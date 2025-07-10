@@ -7,7 +7,9 @@
 
   @vite('resources/css/app.css')
   <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/animate.css@4/animate.min.css" />
 
   <style>
     body {
@@ -43,7 +45,7 @@
       height: 16px;
       animation: spin 0.6s linear infinite;
       display: inline-block;
-      margin-left: 8px;
+      margin-left: 0.5rem;
       vertical-align: middle;
     }
 
@@ -56,61 +58,39 @@
 <body class="bg-gray-100">
 
   <section class="flex flex-col md:flex-row min-h-screen">
-
-    <!-- ✅ Gambar Atas (Mobile) / Kiri (Desktop) -->
-    <div class="w-full md:w-1/2 h-64 md:h-auto bg-cover bg-center relative"
-         style="background-image: url('/img/Blog-post.jpg');">
-      <div class="absolute inset-0 bg-gradient-to-br from-black/70 via-gray-900/70 to-black/60
-                  flex flex-col items-center justify-center text-center px-6 py-10 md:py-16 space-y-4">
-        <h1 class="text-white text-3xl md:text-5xl font-extrabold tracking-wide drop-shadow-md fade-in">
-          Army Collection
-        </h1>
+    <!-- Gambar -->
+    <div class="w-full md:w-1/2 h-64 md:h-auto bg-cover bg-center relative" style="background-image: url('/img/Blog-post.jpg');">
+      <div class="absolute inset-0 bg-gradient-to-br from-black/70 via-gray-900/70 to-black/60 flex flex-col items-center justify-center text-center px-6 py-10 md:py-16 space-y-4">
+        <h1 class="text-white text-3xl md:text-5xl font-extrabold tracking-wide drop-shadow-md fade-in">Army Collection</h1>
         <p class="text-gray-200 text-sm md:text-lg max-w-md leading-relaxed fade-in">
-          Selamat datang kembali ke <span class="text-green-400 font-semibold">Army Collection</span> —
-          tempat terbaik untuk koleksi army, gear taktis, dan apparel militer premium.
+          Selamat datang kembali di <span class="text-green-400 font-semibold">Army Collection</span>.
         </p>
       </div>
     </div>
 
-    <!-- ✅ Form Login -->
+    <!-- Form Login -->
     <div class="w-full md:w-1/2 flex items-center justify-center px-4 sm:px-8 py-10 bg-white">
       <div class="w-full max-w-md space-y-6 fade-in">
-
-        <!-- Judul -->
         <div class="text-center">
           <h2 class="text-2xl md:text-3xl font-bold text-gray-800 mb-1">Login ke akunmu</h2>
-          <p class="text-sm text-gray-500">Masukkan email dan password untuk melanjutkan</p>
+          <p class="text-sm text-gray-500">Masukkan username dan password kamu</p>
         </div>
 
-        <!-- Alert Error -->
-        @if (session('error'))
-          <div class="bg-red-100 border border-red-300 text-red-600 text-sm p-3 rounded-md">
-            {{ session('error') }}
-          </div>
-        @endif
-
-        @if ($errors->any())
-          <ul class="text-sm text-red-600 list-disc pl-5">
-            @foreach ($errors->all() as $error)
-              <li>{{ $erorr }}</li>
-            @endforeach
-          </ul>
-        @endif
-
-        <!-- Form -->
-        <form id="loginForm" method="POST" action="{{ route('login') }}" class="space-y-4">
+        <form id="loginForm" method="POST" action="{{ route('login.post') }}" class="space-y-4">
           @csrf
 
           <div>
-            <label class="block text-sm font-medium text-gray-700">Email</label>
-            <input type="email" id="email" name="email" value="{{ old('email') }}" required
-              class="mt-1 w-full px-4 py-2 border border-gray-300 rounded-lg bg-gray-100 glow-focus"/>
+            <label class="block text-sm font-medium text-gray-700">Username</label>
+            <input type="text" name="username" value="{{ old('username') }}" required
+              class="mt-1 w-full px-4 py-2 border border-gray-300 rounded-lg bg-gray-100 glow-focus" />
           </div>
+
           <div>
             <label class="block text-sm font-medium text-gray-700">Password</label>
-            <input type="password" id="password" name="password" required minlength="6"
-              class="mt-1 w-full px-4 py-2 border border-gray-300 rounded-lg bg-gray-100 glow-focus"/>
+            <input type="password" name="password" required
+              class="mt-1 w-full px-4 py-2 border border-gray-300 rounded-lg bg-gray-100 glow-focus" />
           </div>
+
           <div class="flex justify-between text-sm">
             <label class="flex items-center gap-2 text-gray-600">
               <input type="checkbox" name="remember" class="rounded text-indigo-500" />
@@ -121,11 +101,10 @@
 
           <button type="submit"
             class="btn-animate w-full bg-indigo-600 hover:bg-indigo-500 text-white font-semibold py-2.5 rounded-lg transition">
-            Masuk
+            Login
           </button>
         </form>
 
-        <!-- Register -->
         <p class="text-center text-sm text-gray-600">
           Belum punya akun?
           <a href="{{ route('register') }}" class="text-indigo-600 hover:underline font-medium">Daftar Sekarang</a>
@@ -134,23 +113,48 @@
     </div>
   </section>
 
-  <!-- JS -->
+  <!-- SweetAlert2 Toast Notification -->
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
   <script>
-    document.getElementById("loginForm").addEventListener("submit", function (e) {
-      const email = document.getElementById("email").value.trim();
-      const password = document.getElementById("password").value.trim();
-
-      if (!email || !password) {
-        alert("Mohon isi semua data dengan benar!");
-        e.preventDefault();
-        return;
+    const Toast = Swal.mixin({
+      toast: true,
+      position: 'top',
+      showConfirmButton: false,
+      timer: 3000,
+      timerProgressBar: true,
+      background: '#fff',
+      color: '#333',
+      iconColor: '#4f46e5',
+      customClass: {
+        popup: 'rounded-xl shadow-md text-sm px-4 py-3 mt-4'
+      },
+      didOpen: (toast) => {
+        toast.addEventListener('mouseenter', Swal.stopTimer)
+        toast.addEventListener('mouseleave', Swal.resumeTimer)
       }
-
-      const btn = this.querySelector("button[type='submit']");
-      btn.disabled = true;
-      btn.textContent = "Memproses...";
-      btn.classList.add("opacity-70", "cursor-not-allowed", "btn-loading");
     });
+
+    @if (session('success'))
+      Toast.fire({
+        icon: 'success',
+        title: {!! json_encode(session('success')) !!}
+      });
+    @endif
+
+    @if (session('error'))
+      Toast.fire({
+        icon: 'error',
+        title: {!! json_encode(session('error')) !!}
+      });
+    @endif
+
+    @if ($errors->any())
+      Toast.fire({
+        icon: 'warning',
+        title: 'Periksa kembali!',
+        text: {!! json_encode($errors->first()) !!}
+      });
+    @endif
   </script>
 </body>
 </html>

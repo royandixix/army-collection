@@ -2,80 +2,167 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use App\Models\User;
 
 class AuthController extends Controller
 {
-    /**
-     * Tampilkan halaman login
-     */
+    // 🔐 Tampilkan form login
     public function showLogin()
     {
         return view('auth.login');
     }
 
-    /**
-     * Proses login
-     */
+    // 🔐 Proses login pakai username
     public function login(Request $request)
     {
-        // Validasi form login
         $credentials = $request->validate([
-            'email' => ['required', 'email'],
-            'password' => ['required', 'min:6'],
+            'username' => 'required|string',
+            'password' => 'required|string',
         ]);
 
-        // Cek autentikasi
-        if (Auth::attempt($credentials, $request->boolean('remember'))) {
+        if (Auth::attempt($credentials)) {
             $request->session()->regenerate();
-            return redirect()->intended('/dashboard');
+
+            $user = Auth::user(); // Ambil user yang berhasil login
+
+            // Redirect berdasarkan role
+            if ($user->role === 'admin') {
+                return redirect()->intended('/admin/dashboard')->with('success', 'Selamat datang, Admin!');
+            } elseif ($user->role === 'user') {
+                return redirect()->intended('/user/dashboard')->with('success', 'Selamat datang, ' . $user->username . '!');
+            }
+
+            // Default jika role tidak dikenali
+            Auth::logout();
+            return redirect('/login')->withErrors([
+                'username' => 'Role pengguna tidak dikenali.',
+            ]);
         }
 
-        return back()->with('error', 'Email atau password salah.')->onlyInput('email');
+        return back()->withErrors([
+            'username' => 'Username atau password salah.',
+        ]);
     }
 
-    /**
-     * Tampilkan halaman registrasi
-     */
+
+    // 🚪 Proses logout
+    public function logout(Request $request)
+    {
+        Auth::logout();
+        $request->session()->invalidate();
+        $request->session()->regenerateToken();
+
+        return redirect('/login');
+    }
+
+    // 📝 Tampilkan form register
     public function showRegister()
     {
         return view('auth.register');
     }
 
-    /**
-     * Proses registrasi
-     */
+    // 📝 Proses register (dengan upload profile_image opsional)
     public function register(Request $request)
     {
-        // Validasi form
-        $request->validate([
-            'name' => 'required|string|max:100',
-            'email' => 'required|email|unique:users,email',
-            'password' => 'required|confirmed|min:6',
+        $validated = $request->validate([
+            'username'       => 'required|string|max:255|unique:users',
+            'email'          => 'required|email|unique:users',
+            'password'       => 'required|confirmed',
+            'role'           => 'required|string|in:admin,user',
+            'profile_image'  => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
         ]);
 
-        // Simpan user baru
+        $imagePath = null;
+
+        if ($request->hasFile('profile_image')) {
+            $role = $validated['role'];
+            $folder = 'profile_images/' . $role;
+            $imagePath = $request->file('profile_image')->store($folder, 'public');
+        }
+
         User::create([
-            'name'     => $request->name,
-            'email'    => $request->email,
-            'password' => bcrypt($request->password),
+            'username'      => $validated['username'],
+            'email'         => $validated['email'],
+            'password'      => bcrypt($validated['password']),
+            'role'          => $validated['role'],
+            'img'           => $imagePath,
         ]);
 
         return redirect()->route('login')->with('success', 'Registrasi berhasil. Silakan login.');
     }
 
-    /**
-     * Logout pengguna
-     */
-    public function logout(Request $request)
+    // 🎯 Tampilkan semua pengguna (admin only)
+    public function index()
     {
-        Auth::logout();
+        $users = User::all();
+        return view('admin.manajemen_pengguna.manajemen_pengguna', compact('users'));
+    }
 
-        $request->session()->invalidate();
-        $request->session()->regenerateToken();
+    // ➕ Form tambah pengguna
+    public function create()
+    {
+        return view('admin.manajemen_pengguna.tambah_manajemen_pengguna');
+    }
 
-        return redirect('/login');
+    // 💾 Simpan pengguna baru
+    public function store(Request $request)
+    {
+        $validated = $request->validate([
+            'username' => 'required|string|unique:users,username',
+            'email'    => 'required|email|unique:users,email',
+            'role'     => 'nullable|string',
+            'status'   => 'required|in:active,inactive',
+            'password' => 'required',
+        ]);
+
+        User::create([
+            'username' => $validated['username'],
+            'email'    => $validated['email'],
+            'role'     => $validated['role'],
+            'status'   => $validated['status'],
+            'password' => bcrypt($validated['password']),
+        ]);
+
+        return redirect()->route('admin.manajemen.manajemen_pengguna')
+            ->with('success', 'Pengguna berhasil ditambahkan.');
+    }
+
+    // ✏️ Edit pengguna
+    public function edit($id)
+    {
+        $user = User::findOrFail($id);
+        return view('admin.manajemen_pengguna.edit_manajemen_pengguna', compact('user'));
+    }
+
+    // 🔄 Update data pengguna
+    public function update(Request $request, $id)
+{
+    $user = User::findOrFail($id);
+
+    $validated = $request->validate([
+        'username' => 'required|string|max:255',
+        'email'    => 'required|email|unique:users,email,' . $id,
+        'role'     => 'nullable|string',
+        'status'   => 'required|in:active,inactive',
+    ]);
+
+    $user->update($validated);
+
+    // Redirect ke halaman edit agar SweetAlert bisa muncul
+    return redirect()->route('admin.users.edit', $user->id)
+        ->with('success', 'Data pengguna berhasil diperbarui.');
+}
+
+
+    // 🗑️ Hapus pengguna
+    public function destroy($id)
+    {
+        $user = User::findOrFail($id);
+        $user->delete();
+
+        return redirect()->route('admin.manajemen.manajemen_pengguna')
+            ->with('success', 'Pengguna berhasil dihapus.');
     }
 }
