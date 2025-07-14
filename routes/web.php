@@ -9,6 +9,10 @@ use App\Http\Controllers\Admin\PenjualanController;
 use App\Http\Controllers\Admin\PelangganController;
 use App\Http\Controllers\Admin\LaporanController;
 
+
+// user
+use App\Http\Controllers\user\ProdukUserController;
+
 // 🔐 Login & Logout
 Route::get('/', [AuthController::class, 'showLogin'])->name('login');
 Route::get('/login', [AuthController::class, 'showLogin'])->name('login');
@@ -59,6 +63,9 @@ Route::prefix('admin')->name('admin.')->group(function () {
     Route::get('/laporan/faktur', [LaporanController::class, 'index'])->name('laporan.faktur_laporan');
     Route::get('/laporan/faktur/{id}', [LaporanController::class, 'show'])->name('laporan.faktur_laporan_show');
 
-    
+});
 
+
+Route::middleware('auth')->prefix('user')->name('user.')->group(function () {
+    Route::get('/produk', [ProdukUserController::class, 'index'])->name('produk.index');
 });

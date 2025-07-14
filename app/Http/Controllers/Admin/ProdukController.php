@@ -131,4 +131,6 @@ class ProdukController extends Controller
 
         return redirect()->route('admin.manajemen.manajemen_produk')->with('success', 'Produk berhasil dihapus.');
     }
+
+    
 }
