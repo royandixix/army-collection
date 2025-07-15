@@ -7,7 +7,6 @@
         <div class="card-body p-4">
             <div class="mb-4 d-flex justify-content-between align-items-center">
                 <h4 class="mb-0">Tambah Produk</h4>
-
             </div>
 
             <form action="{{ route('admin.manajemen.manajemen_produk_store') }}" method="POST" enctype="multipart/form-data">
@@ -19,8 +18,7 @@
                     <input type="text" name="name" id="name" class="form-control form-control-lg" value="{{ old('name') }}" required>
                 </div>
 
-
-
+                {{-- Kategori --}}
                 <div class="mb-3">
                     <label for="kategori_id" class="form-label">Kategori</label>
                     <select name="kategori_id" id="kategori_id" class="form-select" required>
@@ -32,9 +30,6 @@
                         @endforeach
                     </select>
                 </div>
-
-
-
 
                 {{-- Harga --}}
                 <div class="mb-3">
@@ -63,9 +58,8 @@
                     <textarea name="deskripsi" id="deskripsi" class="form-control form-control-lg" rows="4">{{ old('deskripsi') }}</textarea>
                 </div>
 
-
-                <!-- Tombol Submit -->
-                <div class="mt-4 text-end d-flex justify-content-end gap-2">
+                {{-- Tombol --}}
+                <div class="mt-4 d-flex justify-content-end gap-2">
                     <a href="{{ route('admin.manajemen.manajemen_produk') }}" class="btn btn-outline-secondary rounded-2 d-inline-flex align-items-center gap-2">
                         <i class="ri-arrow-go-back-line"></i> Kembali
                     </a>
@@ -73,65 +67,47 @@
                         <i class="ri-save-line"></i> Simpan Produk
                     </button>
                 </div>
-
             </form>
         </div>
     </div>
 </div>
 @endsection
-
-{{-- Styles --}}
 @push('styles')
 <link href="https://cdn.datatables.net/1.13.6/css/dataTables.bootstrap5.min.css" rel="stylesheet" />
 <link href="https://cdn.jsdelivr.net/npm/remixicon/fonts/remixicon.css" rel="stylesheet" />
+<link href="htps://cnd"
 @endpush
-
-{{-- Scripts --}}
 @push('scripts')
 <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
 <script src="https://cdn.datatables.net/1.13.6/js/dataTables.bootstrap5.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
 <script>
-    // Format harga ke format Rupiah
-    document.addEventListener("DOMContentLoaded", function() {
-        const priceInput = document.getElementById('price');
-        priceInput.addEventListener('input', function(e) {
-            let angka = e.target.value.replace(/\D/g, '');
-            if (angka.length > 9) angka = angka.substring(0, 9);
-            e.target.value = new Intl.NumberFormat('id-ID').format(angka);
-        });
-    });
-
-    // Inisialisasi DataTable
-    $(document).ready(function() {
-        $('#produk-table').DataTable();
-    });
-
-    // Inisialisasi Toast dari SweetAlert
+    // Inisialisasi SweetAlert Toast
     const Toast = Swal.mixin({
         toast: true
-        , position: 'top'
+        , position: 'top-end'
         , showConfirmButton: false
-        , timer: 3000
+        , timer: 3500
         , timerProgressBar: true
-        , background: '#fff'
-        , color: '#333'
-        , iconColor: '#4f46e5'
-        , customClass: {
-            popup: 'rounded-xl shadow-md text-sm px-4 py-3 mt-4'
-        }
+        , background: '#f8fafc', // abu-abu terang
+        color: '#1e293b', // abu-abu gelap
+        iconColor: '#0d9488', // teal-500
+        customClass: {
+            popup: 'rounded-xl shadow-md border border-slate-200 px-4 py-3 text-sm'
+        , }
         , didOpen: (toast) => {
             toast.addEventListener('mouseenter', Swal.stopTimer)
             toast.addEventListener('mouseleave', Swal.resumeTimer)
         }
     });
 
-    // Tampilkan notifikasi jika ada session
+    // SweetAlert untuk session flash
     @if(session('success'))
     Toast.fire({
         icon: 'success'
         , title: @js(session('success'))
+        , iconColor: '#16a34a', // green-600
     });
     @endif
 
@@ -139,36 +115,51 @@
     Toast.fire({
         icon: 'error'
         , title: @js(session('error'))
+        , iconColor: '#dc2626', // red-600
     });
     @endif
 
-    @if($errors->any())
+    @if($errors - > any())
     Toast.fire({
         icon: 'warning'
         , title: 'Periksa form kamu'
-        , text: @js($errors->first())
+        , text: @js($errors - > first())
+        , iconColor: '#f59e0b', // amber-500
     });
     @endif
 
-    // Hapus produk dengan konfirmasi
-    $('.delete-btn').on('click', function(e) {
-        e.preventDefault();
-        const id = $(this).data('id');
+    // Konfirmasi hapus produk
+    document.querySelectorAll('.delete-btn').forEach(function(btn) {
+        btn.addEventListener('click', function(e) {
+            e.preventDefault();
+            const id = this.dataset.id;
 
-        Swal.fire({
-            title: 'Hapus Produk?'
-            , text: "Tindakan ini tidak dapat dibatalkan."
-            , icon: 'warning'
-            , showCancelButton: true
-            , confirmButtonColor: '#d33'
-            , cancelButtonColor: '#3085d6'
-            , confirmButtonText: 'Ya, hapus'
-        }).then((result) => {
-            if (result.isConfirmed) {
-                window.location.href = `/admin/manajemen/produk/${id}/delete`;
-            }
+            Swal.fire({
+                title: 'Yakin hapus produk ini?'
+                , text: 'Data akan dihapus permanen dan tidak bisa dikembalikan.'
+                , icon: 'warning'
+                , showCancelButton: true
+                , confirmButtonColor: '#dc2626', // merah
+                cancelButtonColor: '#94a3b8', // slate
+                confirmButtonText: '<i class="ri-delete-bin-2-line"></i> Ya, hapus'
+                , cancelButtonText: 'Batal'
+                , background: '#ffffff'
+                , color: '#1e293b'
+                , iconColor: '#f97316', // orange-500
+                customClass: {
+                    popup: 'rounded-lg shadow-lg border border-slate-200 p-4'
+                    , confirmButton: 'btn btn-danger me-2'
+                    , cancelButton: 'btn btn-outline-secondary'
+                }
+                , buttonsStyling: false
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    window.location.href = `/admin/manajemen/produk/${id}/delete`;
+                }
+            });
         });
     });
 
 </script>
+
 @endpush

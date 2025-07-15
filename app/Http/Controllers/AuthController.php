@@ -54,7 +54,7 @@ class AuthController extends Controller
         $request->session()->invalidate();
         $request->session()->regenerateToken();
 
-        return redirect('/login');
+        return redirect('/login')->with('success', 'Berhasil logout!');
     }
 
     // 📝 Tampilkan form register
@@ -138,22 +138,22 @@ class AuthController extends Controller
 
     // 🔄 Update data pengguna
     public function update(Request $request, $id)
-{
-    $user = User::findOrFail($id);
+    {
+        $user = User::findOrFail($id);
 
-    $validated = $request->validate([
-        'username' => 'required|string|max:255',
-        'email'    => 'required|email|unique:users,email,' . $id,
-        'role'     => 'nullable|string',
-        'status'   => 'required|in:active,inactive',
-    ]);
+        $validated = $request->validate([
+            'username' => 'required|string|max:255',
+            'email'    => 'required|email|unique:users,email,' . $id,
+            'role'     => 'nullable|string',
+            'status'   => 'required|in:active,inactive',
+        ]);
 
-    $user->update($validated);
+        $user->update($validated);
 
-    // Redirect ke halaman edit agar SweetAlert bisa muncul
-    return redirect()->route('admin.users.edit', $user->id)
-        ->with('success', 'Data pengguna berhasil diperbarui.');
-}
+        // Redirect ke halaman edit agar SweetAlert bisa muncul
+        return redirect()->route('admin.users.edit', $user->id)
+            ->with('success', 'Data pengguna berhasil diperbarui.');
+    }
 
 
     // 🗑️ Hapus pengguna

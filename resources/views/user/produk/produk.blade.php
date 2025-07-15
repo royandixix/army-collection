@@ -4,13 +4,7 @@
 
 @section('content')
 <div class="container mt-4">
-    {{-- Sticky Header --}}
-    <div class="position-sticky top-0 py-3 mb-4 z-3 text-center rounded-4 shadow-lg bg-gradient text-white"
-         style="background: linear-gradient(120deg, #5C946E, #2C6E49);">
-        <h2 class="fw-bold text-uppercase m-0" style="letter-spacing: 2px;">
-            🌿 Daftar Produk Unggulan
-        </h2>
-    </div>
+    
 
     {{-- Grid Produk --}}
     <div class="row g-4">

@@ -95,6 +95,7 @@ class ProdukController extends Controller
             'kategori_id.required' => 'Kategori wajib dipilih.',
             'price.required' => 'Harga wajib diisi.',
             'stock.required' => 'Stok wajib diisi.',
+            
         ]);
 
         $data = [
