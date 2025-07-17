@@ -122,6 +122,17 @@
                     next: "➡️"
                     , previous: "⬅️"
                 }
+
+                'prefire'
+                @aware(
+                    mixin '10 * 12 ',
+                )
+
+                @auth(
+                    'container : blurr'
+                )
+                    
+                @endauth
             }
             , pageLength: 10
             , responsive: true
@@ -165,6 +176,7 @@
         icon: 'warning'
         , title: 'Form belum lengkap'
         , text: @js($errors->first())
+
     });
     @endif
 

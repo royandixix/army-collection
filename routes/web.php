@@ -9,25 +9,36 @@ use App\Http\Controllers\Admin\PenjualanController;
 use App\Http\Controllers\Admin\PelangganController;
 use App\Http\Controllers\Admin\LaporanController;
 
-
-// user
+// User
 use App\Http\Controllers\user\ProdukUserController;
+use App\Http\Controllers\user\KeranjangController;
+use App\Http\Controllers\user\CheckoutController;
+use App\Http\Controllers\user\RiwayatController;
 
-// 🔐 Login & Logout
+
+
+// ===============================
+// 🔐 AUTH (LOGIN & REGISTER)
+// ===============================
 Route::get('/', [AuthController::class, 'showLogin'])->name('login');
 Route::get('/login', [AuthController::class, 'showLogin'])->name('login');
 Route::post('/login', [AuthController::class, 'login'])->name('login.post');
 Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 
-// 📝 Register
 Route::get('/register', [AuthController::class, 'showRegister'])->name('register');
 Route::post('/register', [AuthController::class, 'register'])->name('register.post');
 
-// 🏠 Dashboard
+
+// ===============================
+// 🏠 DASHBOARD
+// ===============================
 Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
 Route::get('/admin/dashboard', [DashboardController::class, 'index'])->name('admin.dashboard');
 
-// 🛠️ Admin Routes
+
+// ===============================
+// 🛠️ ADMIN ROUTES
+// ===============================
 Route::prefix('admin')->name('admin.')->group(function () {
 
     // 👥 Manajemen Pengguna
@@ -43,7 +54,7 @@ Route::prefix('admin')->name('admin.')->group(function () {
     Route::put('/manajemen/produk/{id}', [ProdukController::class, 'update'])->name('manajemen.manajemen_produk_update');
     Route::get('/manajemen/produk/{id}/delete', [ProdukController::class, 'destroy'])->name('manajemen.manajemen_produk_destroy');
 
-    // 🧾 Manajemen Penjualan (dengan penamaan konsisten)
+    // 🧾 Manajemen Penjualan
     Route::get('/manajemen/penjualan', [PenjualanController::class, 'index'])->name('manajemen.manajemen_penjualan');
     Route::get('/manajemen/penjualan/create', [PenjualanController::class, 'create'])->name('manajemen.manajemen_penjualan_create');
     Route::post('/manajemen/penjualan', [PenjualanController::class, 'store'])->name('manajemen.manajemen_penjualan_store');
@@ -52,6 +63,7 @@ Route::prefix('admin')->name('admin.')->group(function () {
     Route::put('/manajemen/penjualan/{id}', [PenjualanController::class, 'update'])->name('manajemen.manajemen_penjualan_update');
     Route::delete('/manajemen/penjualan/{id}', [PenjualanController::class, 'destroy'])->name('manajemen.manajemen_penjualan_destroy');
 
+    // 👤 Manajemen Pelanggan
     Route::get('/manajemen/pelanggan', [PelangganController::class, 'index'])->name('manajemen.manajemen_pelanggan');
     Route::get('/manajemen/pelanggan/create', [PelangganController::class, 'create'])->name('manajemen.manajemen_pelanggan_create');
     Route::post('/manajemen/pelanggan', [PelangganController::class, 'store'])->name('manajemen.manajemen_pelanggan_store');
@@ -59,13 +71,28 @@ Route::prefix('admin')->name('admin.')->group(function () {
     Route::put('/manajemen/pelanggan/{id}', [PelangganController::class, 'update'])->name('manajemen.manajemen_pelanggan_update');
     Route::delete('/manajemen/pelanggan/{id}', [PelangganController::class, 'destroy'])->name('manajemen.manajemen_pelanggan_destroy');
 
-    // 📄 Laporan Penjualan
+    // 📄 Laporan
     Route::get('/laporan/faktur', [LaporanController::class, 'index'])->name('laporan.faktur_laporan');
     Route::get('/laporan/faktur/{id}', [LaporanController::class, 'show'])->name('laporan.faktur_laporan_show');
-
 });
 
 
+// ===============================
+// 👤 USER ROUTES (PROTECTED)
+// ===============================
 Route::middleware('auth')->prefix('user')->name('user.')->group(function () {
+
+    // 🛍️ Produk
     Route::get('/produk', [ProdukUserController::class, 'index'])->name('produk.index');
+    Route::get('/produk/{id}', [ProdukUserController::class, 'show'])->name('produk.show');
+
+    // 🛒 Keranjang
+    Route::get('/keranjang', [KeranjangController::class, 'index'])->name('keranjang.index');
+    Route::delete('/keranjang/{id}', [KeranjangController::class, 'destroy'])->name('keranjang.hapus');
+
+    // chekout
+    Route::get('/checkout', [CheckoutController::class, 'index'])->name('checkout.index');
+
+    // Riwayata
+    Route::get('/riwayat', [RiwayatController::class, 'index'])->name('riwayat.index');
 });

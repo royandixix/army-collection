@@ -12,7 +12,7 @@
         <ul class="nav flex-column mt-4">
             @php
             $navItems = [
-            ['name' => 'Beranda', 'url' => '/user/produk', 'icon' => 'bi-house'],
+            ['name' => 'Proudk', 'url' => '/user/produk', 'icon' => 'bi-house'],
             ['name' => 'Keranjang', 'url' => '/user/keranjang', 'icon' => 'bi-cart'],
             ['name' => 'Checkout', 'url' => '/user/checkout', 'icon' => 'bi-bag-check'],
             ['name' => 'Riwayat', 'url' => '/user/riwayat', 'icon' => 'bi-clock-history'],
@@ -83,19 +83,19 @@
     }
 
     const Toast = Swal.mixin({
-        toast: true,
-        position: 'top-end',
-        showConfirmButton: false,
-        timer: 3200,
-        timerProgressBar: true,
-        background: '#ffffff',
-        color: '#1e293b',
-        iconColor: '#198754',
-        backdrop: false,
-        customClass: {
+        toast: true
+        , position: 'top-end'
+        , showConfirmButton: false
+        , timer: 3200
+        , timerProgressBar: true
+        , background: '#ffffff'
+        , color: '#1e293b'
+        , iconColor: '#198754'
+        , backdrop: false
+        , customClass: {
             popup: 'rounded-xl shadow-sm text-sm px-4 py-3 border border-gray-200 mt-3'
-        },
-        didOpen: (toast) => {
+        }
+        , didOpen: (toast) => {
             toast.addEventListener('mouseenter', Swal.stopTimer);
             toast.addEventListener('mouseleave', Swal.resumeTimer);
         }
@@ -103,59 +103,59 @@
 
     // Flash Messages
     @if(session('success'))
-        Toast.fire({
-            icon: 'success',
-            title: @js(session('success')),
-            iconColor: '#16a34a'
-        });
+    Toast.fire({
+        icon: 'success'
+        , title: @js(session('success'))
+        , iconColor: '#16a34a'
+    });
     @endif
 
     @if(session('error'))
-        Toast.fire({
-            icon: 'error',
-            title: @js(session('error')),
-            iconColor: '#dc2626'
-        });
+    Toast.fire({
+        icon: 'error'
+        , title: @js(session('error'))
+        , iconColor: '#dc2626'
+    });
     @endif
 
     @if($errors->any())
-        Toast.fire({
-            icon: 'warning',
-            title: 'Periksa form kamu',
-            text: @js($errors->first()),
-            iconColor: '#f59e0b'
-        });
+    Toast.fire({
+        icon: 'warning'
+        , title: 'Periksa form kamu'
+        , text: @js($errors->first())
+        , iconColor: '#f59e0b'
+    });
     @endif
 
     // Logout Confirmation
-    document.addEventListener('DOMContentLoaded', function () {
+    document.addEventListener('DOMContentLoaded', function() {
         const logoutBtn = document.getElementById('logoutBtn');
         const logoutForm = document.getElementById('logoutForm');
 
         if (logoutBtn) {
-            logoutBtn.addEventListener('click', function (e) {
+            logoutBtn.addEventListener('click', function(e) {
                 e.preventDefault();
 
                 Swal.fire({
-                    title: 'Yakin ingin logout?',
-                    text: 'Kamu akan keluar dari akun ini.',
-                    icon: 'warning',
-                    iconColor: '#f97316',
-                    showCancelButton: true,
-                    confirmButtonText: 'Logout',
-                    cancelButtonText: 'Batal',
-                    confirmButtonColor: '#198754',
-                    cancelButtonColor: '#6c757d',
-                    background: '#ffffff',
-                    backdrop: 'rgba(0,0,0,0.3)',
-                    buttonsStyling: false,
-                    reverseButtons: true,
-                    customClass: {
-                        popup: 'rounded-xl p-4 shadow-sm',
-                        title: 'fw-bold fs-5',
-                        htmlContainer: 'text-muted mb-3',
-                        confirmButton: 'btn btn-success px-4 ms-2 fw-semibold swal2-confirm-space',
-                        cancelButton: 'btn btn-secondary px-4  fw-semibold swal2-cancel-space'
+                    title: 'Yakin ingin logout?'
+                    , text: 'Kamu akan keluar dari akun ini.'
+                    , icon: 'warning'
+                    , iconColor: '#f97316'
+                    , showCancelButton: true
+                    , confirmButtonText: 'Logout'
+                    , cancelButtonText: 'Batal'
+                    , confirmButtonColor: '#198754'
+                    , cancelButtonColor: '#6c757d'
+                    , background: '#ffffff'
+                    , backdrop: 'rgba(0,0,0,0.3)'
+                    , buttonsStyling: false
+                    , reverseButtons: true
+                    , customClass: {
+                        popup: 'rounded-xl p-4 shadow-sm'
+                        , title: 'fw-bold fs-5'
+                        , htmlContainer: 'text-muted mb-3'
+                        , confirmButton: 'btn btn-success px-4 ms-2 fw-semibold swal2-confirm-space'
+                        , cancelButton: 'btn btn-secondary px-4  fw-semibold swal2-cancel-space'
                     }
                 }).then((result) => {
                     if (result.isConfirmed) {
@@ -165,6 +165,7 @@
             });
         }
     });
+
 </script>
 
 {{-- Custom Styles --}}

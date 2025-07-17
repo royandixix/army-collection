@@ -46,6 +46,8 @@ class AuthController extends Controller
         ]);
     }
 
+    
+
 
     // 🚪 Proses logout
     public function logout(Request $request)
