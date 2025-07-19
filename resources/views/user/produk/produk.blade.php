@@ -7,30 +7,25 @@
 
     {{-- Header --}}
     <div class="text-center mb-5">
-        <h2 class="fw-bold text-dark">Produk Kami</h2>
-        <p class="text-muted fs-5">Temukan produk terbaik yang kamu cari dengan harga terbaik!</p>
+        <h2 class="fw-bold text-dark animate__animated animate__fadeInDown">Produk Kami</h2>
+        <p class="text-muted fs-5 animate__animated animate__fadeInUp">Temukan produk terbaik yang kamu cari dengan harga terbaik!</p>
     </div>
 
     {{-- Search --}}
     <div class="mb-5 d-flex justify-content-center">
-        <form action="{{ route('user.produk.index') }}" method="GET" class="d-flex w-100" style="max-width: 540px;">
-            <input type="text" name="search" class="form-control rounded-start shadow-sm" placeholder="Cari produk..." value="{{ request('search') }}" aria-label="Cari produk">
+        <form action="{{ route('user.produk.index') }}" method="GET" class="d-flex w-100 animate__animated animate__fadeIn" style="max-width: 540px;">
+            <input type="text" name="search" class="form-control rounded-start shadow-sm" placeholder="Cari produk..." value="{{ request('search') }}">
             <button class="btn btn-gradient rounded-end" type="submit" aria-label="Cari">
                 <i class="bi bi-search fs-5"></i>
             </button>
         </form>
     </div>
 
-    {{-- Produk Slider --}}
-    <div class="position-relative">
-        <button class="btn slider-btn prev" aria-label="Scroll Left">
-            <i class="bi bi-chevron-left fs-5"></i>
-        </button>
-
-        <div class="product-slider-wrapper overflow-hidden">
-            <div class="d-flex product-slider">
-                @forelse ($produks as $produk)
-                <div class="card product-card mx-2 flex-shrink-0 shadow-sm">
+    {{-- Produk Grid --}}
+    <div class="row g-4">
+        @forelse ($produks as $produk)
+            <div class="col-12 col-sm-6 col-md-4 col-lg-3 col-xl-2 d-flex">
+                <div class="card product-card shadow-sm w-100 animate__animated animate__fadeInUp">
                     <div class="ratio ratio-1x1 position-relative">
                         <img src="{{ asset('storage/' . $produk->gambar) }}" alt="{{ $produk->nama }}" class="w-100 h-100 object-fit-cover product-image shadow-image" loading="lazy">
                     </div>
@@ -50,50 +45,44 @@
                         </form>
                     </div>
                 </div>
-                @empty
-                <div class="text-muted text-center w-100 py-5">
-                    <i class="bi bi-box-seam fs-1 mb-3 d-block"></i> Produk tidak ditemukan
-                </div>
-                @endforelse
             </div>
-        </div>
-
-        <button class="btn slider-btn next" aria-label="Scroll Right">
-            <i class="bi bi-chevron-right fs-5"></i>
-        </button>
+        @empty
+            <div class="text-center py-5 w-100 text-muted animate__animated animate__fadeIn">
+                <i class="bi bi-box-seam fs-1 mb-3 d-block"></i> Produk tidak ditemukan
+            </div>
+        @endforelse
     </div>
+
 </div>
 @endsection
 
 @push('styles')
+<!-- Eksternal CDN -->
 <link href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css" rel="stylesheet" />
+<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet" />
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css" />
+
+<!-- Custom Styles -->
 <style>
     body {
         background: #f8f9fa;
         font-family: 'Poppins', sans-serif;
     }
 
-    .product-slider-wrapper {
-        margin: 0 2.5rem;
-        overflow-x: auto;
-        scroll-snap-type: x mandatory;
-        scroll-behavior: smooth;
-    }
-
-    .product-slider {
-        display: flex;
-        gap: 1rem;
-    }
-
     .product-card {
-        flex: 0 0 auto;
-        width: 260px;
-        scroll-snap-align: start;
         border: none;
         border-radius: 1rem;
         overflow: hidden;
         background: #fff;
-        box-shadow: 0 3px 10px rgba(0, 0, 0, 0.07);
+        display: flex;
+        flex-direction: column;
+        height: 100%;
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+
+    .product-card:hover {
+        transform: translateY(-6px);
+        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.12);
     }
 
     .product-image {
@@ -104,7 +93,6 @@
 
     .shadow-image {
         box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-        border-radius: 1rem 1rem 0 0;
     }
 
     .badge.bg-kategori {
@@ -144,116 +132,73 @@
         color: #fff;
     }
 
-    .slider-btn {
-        position: absolute;
-        top: 50%;
-        transform: translateY(-50%);
-        z-index: 10;
-        width: 44px;
-        height: 44px;
-        background: #2c5364;
-        color: #fff;
-        border: none;
-        border-radius: 50%;
-        box-shadow: 0 5px 14px rgba(0, 0, 0, 0.15);
-        cursor: pointer;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-    }
-
-    .slider-btn:hover {
-        background: #1b2b3a;
-    }
-
-    .slider-btn.prev {
-        left: 0.5rem;
-    }
-
-    .slider-btn.next {
-        right: 0.5rem;
-    }
-
-    @media (max-width: 576px) {
-        .slider-btn {
-            width: 36px;
-            height: 36px;
-        }
-
-        .product-card {
-            width: 200px;
+    /* Responsive tweaks for product cards */
+    @media (max-width: 1399.98px) {
+        .col-xl-2 {
+            flex: 0 0 auto;
+            width: 20%;
         }
     }
 
+    @media (max-width: 1199.98px) {
+        .col-lg-3 {
+            flex: 0 0 auto;
+            width: 25%;
+        }
+    }
+
+    @media (max-width: 991.98px) {
+        .col-md-4 {
+            flex: 0 0 auto;
+            width: 33.3333%;
+        }
+    }
+
+    @media (max-width: 767.98px) {
+        .col-sm-6 {
+            flex: 0 0 auto;
+            width: 50%;
+        }
+    }
+
+    @media (max-width: 575.98px) {
+        .col-12 {
+            flex: 0 0 auto;
+            width: 100%;
+        }
+    }
 </style>
 @endpush
 
 @push('scripts')
-    <!-- SweetAlert2 -->
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-
-    <!-- Bootstrap Icons -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet" />
-
-    <!-- Animate.css -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css" />
-
-    <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            // === Produk Slider Logic ===
-            const sliderWrapper = document.querySelector('.product-slider-wrapper');
-            const sliderProd = document.querySelector('.product-slider');
-            const nextBtn = document.querySelector('.slider-btn.next');
-            const prevBtn = document.querySelector('.slider-btn.prev');
-            const card = sliderProd?.querySelector('.product-card');
-            const cardWidth = card ? card.offsetWidth + 16 : 276;
-
-            if (nextBtn && prevBtn && sliderWrapper && sliderProd) {
-                nextBtn.addEventListener('click', () => {
-                    sliderWrapper.scrollBy({ left: cardWidth, behavior: 'smooth' });
-                });
-
-                prevBtn.addEventListener('click', () => {
-                    sliderWrapper.scrollBy({ left: -cardWidth, behavior: 'smooth' });
-                });
-
-                function updateButtonVisibility() {
-                    const maxScroll = sliderProd.scrollWidth - sliderWrapper.clientWidth;
-                    nextBtn.style.display = sliderWrapper.scrollLeft >= maxScroll - 5 ? 'none' : 'flex';
-                    prevBtn.style.display = sliderWrapper.scrollLeft <= 5 ? 'none' : 'flex';
-                }
-
-                sliderWrapper.addEventListener('scroll', updateButtonVisibility);
-                window.addEventListener('resize', updateButtonVisibility);
-                updateButtonVisibility();
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        @if(session('success'))
+        Swal.fire({
+            iconHtml: '<i class="bi bi-cart-check-fill fs-2 text-success"></i>',
+            title: 'Berhasil!',
+            text: '{{ session('success') }}',
+            position: 'center',
+            showConfirmButton: false,
+            timer: 2200,
+            timerProgressBar: true,
+            background: '#ffffff',
+            color: '#333',
+            customClass: {
+                popup: 'rounded-4 shadow px-4 py-3 animate__animated animate__fadeInDown',
+                title: 'fw-bold text-success mb-2',
+                htmlContainer: 'text-dark fs-6'
+            },
+            hideClass: {
+                popup: 'animate__animated animate__fadeOutUp'
+            },
+            didOpen: (popup) => {
+                popup.addEventListener('mouseenter', Swal.stopTimer);
+                popup.addEventListener('mouseleave', Swal.resumeTimer);
             }
-
-            // === SweetAlert2 Success Message ===
-            @if(session('success'))
-                Swal.fire({
-                    iconHtml: '<i class="bi bi-cart-check-fill fs-2 text-success"></i>',
-                    title: 'Berhasil!',
-                    text: '{{ session('success') }}',
-                    position: 'center',
-                    showConfirmButton: false,
-                    timer: 2200,
-                    timerProgressBar: true,
-                    background: '#ffffff',
-                    color: '#333',
-                    customClass: {
-                        popup: 'rounded-4 shadow px-4 py-3 animate__animated animate__fadeInDown',
-                        title: 'fw-bold text-success mb-2',
-                        htmlContainer: 'text-dark fs-6'
-                    },
-                    hideClass: {
-                        popup: 'animate__animated animate__fadeOutUp'
-                    },
-                    didOpen: (popup) => {
-                        popup.addEventListener('mouseenter', Swal.stopTimer);
-                        popup.addEventListener('mouseleave', Swal.resumeTimer);
-                    }
-                });
-            @endif
         });
-    </script>
+        @endif
+    });
+</script>
 @endpush
