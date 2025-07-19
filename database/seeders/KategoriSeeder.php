@@ -7,6 +7,9 @@ use App\Models\Kategori;
 
 class KategoriSeeder extends Seeder
 {
+    /**
+     * Run the database seeds.
+     */
     public function run(): void
     {
         $data = [
@@ -20,10 +23,11 @@ class KategoriSeeder extends Seeder
             'Sarung Tangan',
             'Alat Survival',
             'Perlengkapan Tembak',
+            'Senjata', // ✅ Tambahan baru
         ];
 
         foreach ($data as $name) {
-            Kategori::create(['name' => $name]);
+            Kategori::firstOrCreate(['name' => $name]);
         }
     }
 }

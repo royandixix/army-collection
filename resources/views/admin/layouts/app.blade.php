@@ -35,7 +35,7 @@
     @stack('styles')
 
     <style>
-        * {
+        .* {
             font-family: "Poppins", sans-serif;
         }
     </style>

@@ -47,7 +47,7 @@
         </div>
 
         {{-- Form checkout (alamat & metode pembayaran) --}}
-        <form action="{{ route('checkout.proses') }}" method="POST">
+        <form action="{{ route('user.checkout.proses') }}" method="POST">
             @csrf
             <div class="mb-3">
                 <label for="alamat" class="form-label">Alamat Pengiriman</label>

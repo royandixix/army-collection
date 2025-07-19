@@ -123,16 +123,9 @@
                     , previous: "⬅️"
                 }
 
-                'prefire'
-                @aware(
-                    mixin '10 * 12 ',
-                )
-
-                @auth(
-                    'container : blurr'
-                )
+                
                     
-                @endauth
+                
             }
             , pageLength: 10
             , responsive: true

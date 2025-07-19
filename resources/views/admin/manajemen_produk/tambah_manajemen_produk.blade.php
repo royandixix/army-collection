@@ -119,11 +119,11 @@
     });
     @endif
 
-    @if($errors - > any())
+    @if($errors->any())
     Toast.fire({
         icon: 'warning'
         , title: 'Periksa form kamu'
-        , text: @js($errors - > first())
+        , text: @js($errors->first())
         , iconColor: '#f59e0b', // amber-500
     });
     @endif

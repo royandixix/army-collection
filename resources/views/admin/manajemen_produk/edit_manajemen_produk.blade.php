@@ -1,198 +1,111 @@
-<div class="d-flex">
+@extends('admin.layouts.app')
+@section('title', 'Edit Produk')
 
-    {{-- Sidebar --}}
-    <nav id="sidebarMenu" class="sidebar shadow-sm">
-        <div class="sidebar-header text-center py-3">
-            <a href="{{ url('/user/produk') }}" class="text-decoration-none fw-bold fs-5 text-dark">
-                <i class="bi bi-shop me-1"></i> Army Collection
-            </a>
-        </div>
-
-        {{-- Menu Navigasi --}}
-        <ul class="nav flex-column mt-4">
-            @php
-                $navItems = [
-                    ['name' => 'Beranda',   'url' => '/user/produk',    'icon' => 'bi-house'],
-                    ['name' => 'Keranjang', 'url' => '/user/keranjang', 'icon' => 'bi-cart'],
-                    ['name' => 'Checkout',  'url' => '/user/checkout',  'icon' => 'bi-bag-check'],
-                    ['name' => 'Riwayat',   'url' => '/user/riwayat',   'icon' => 'bi-clock-history'],
-                ];
-            @endphp
-
-            @foreach ($navItems as $item)
-                <li class="nav-item">
-                    <a href="{{ url($item['url']) }}"
-                       class="nav-link px-3 py-2 rounded sidebar-link {{ request()->is(ltrim($item['url'], '/')) ? 'active' : 'text-dark' }}">
-                        <i class="bi {{ $item['icon'] }} me-2"></i>{{ $item['name'] }}
-                    </a>
-                </li>
-            @endforeach
-        </ul>
-
-        {{-- User Dropdown --}}
-        <div class="mt-auto p-3 user-dropdown">
-            <div class="dropdown">
-                <a href="#" class="d-flex align-items-center gap-2 text-decoration-none text-dark dropdown-toggle fw-semibold"
-                   id="dropdownUser" data-bs-toggle="dropdown" aria-expanded="false">
-                    <i class="bi bi-person-circle fs-5"></i>
-                    <span>{{ Auth::user()->username }}</span>
-                </a>
-                <ul class="dropdown-menu shadow-sm border-0 rounded-3 mt-2" aria-labelledby="dropdownUser">
-                    <li>
-                        <a class="dropdown-item d-flex align-items-center gap-2" href="{{ url('/user/profil') }}">
-                            <i class="bi bi-gear"></i> Profil
-                        </a>
-                    </li>
-                    <li><hr class="dropdown-divider my-1"></li>
-                    <li>
-                        <form id="logoutForm" action="{{ route('logout') }}" method="POST">
-                            @csrf
-                            <button type="button" onclick="confirmLogout()" class="dropdown-item d-flex align-items-center gap-2 text-danger fw-semibold">
-                                <i class="bi bi-box-arrow-right"></i> Logout
-                            </button>
-                        </form>
-                    </li>
-                </ul>
+@section('content')
+<div class="cx-main-content">
+    <div class="card shadow rounded-2 border-0">
+        <div class="card-body p-4">
+            <div class="mb-4 d-flex justify-content-between align-items-center">
+                <h4 class="mb-0">Edit Produk</h4>
             </div>
-        </div>
-    </nav>
 
-    {{-- Konten Utama --}}
-    <main class="flex-grow-1 p-4 content-area">
-        <div class="d-flex justify-content-between align-items-center mb-3">
-            <h4 class="fw-semibold text-success">@yield('title', 'Halaman')</h4>
-            <button class="btn btn-outline-success d-md-none" onclick="toggleSidebar()">
-                <i class="bi bi-list"></i>
-            </button>
-        </div>
+            <form action="{{ route('admin.manajemen.manajemen_produk_update', $produk->id) }}" method="POST" enctype="multipart/form-data">
+                @csrf
+                @method('PUT')
 
-        @yield('content')
-    </main>
+                {{-- Nama Produk --}}
+                <div class="mb-3">
+                    <label for="name" class="form-label">Nama Produk</label>
+                    <input type="text" name="name" id="name" class="form-control form-control-lg"
+                           value="{{ old('name', $produk->nama) }}" required>
+                </div>
+
+                {{-- Kategori --}}
+                <div class="mb-3">
+                    <label for="kategori_id" class="form-label">Kategori</label>
+                    <select name="kategori_id" id="kategori_id" class="form-select" required>
+                        <option value="">-- Pilih Kategori --</option>
+                        @foreach($kategoris as $kategori)
+                            <option value="{{ $kategori->id }}"
+                                {{ old('kategori_id', $produk->kategori_id) == $kategori->id ? 'selected' : '' }}>
+                                {{ $kategori->name }}
+                            </option>
+                        @endforeach
+                    </select>
+                </div>
+
+                {{-- Harga --}}
+                <div class="mb-3">
+                    <label for="price" class="form-label">Harga</label>
+                    <div class="input-group input-group-lg">
+                        <span class="input-group-text">Rp</span>
+                        <input type="text" name="price" id="price" class="form-control"
+                               value="{{ old('price', $produk->harga) }}" required>
+                    </div>
+                </div>
+
+                {{-- Stok --}}
+                <div class="mb-3">
+                    <label for="stock" class="form-label">Stok</label>
+                    <input type="number" name="stock" id="stock" class="form-control form-control-lg"
+                           value="{{ old('stock', $produk->stok) }}" required>
+                </div>
+
+                {{-- Gambar Produk --}}
+                <div class="mb-3">
+                    <label for="image" class="form-label">Gambar Produk</label>
+                    <input type="file" name="image" id="image" class="form-control form-control-lg" accept="image/*">
+                    @if($produk->gambar)
+                        <div class="mt-2">
+                            <img src="{{ asset('storage/' . $produk->gambar) }}" alt="Gambar Produk" width="100">
+                        </div>
+                    @endif
+                </div>
+
+                {{-- Deskripsi --}}
+                <div class="mb-3">
+                    <label for="deskripsi" class="form-label">Deskripsi</label>
+                    <textarea name="deskripsi" id="deskripsi" class="form-control form-control-lg" rows="4">{{ old('deskripsi', $produk->deskripsi) }}</textarea>
+                </div>
+
+                {{-- Tombol --}}
+                <div class="mt-4 d-flex justify-content-end gap-2">
+                    <a href="{{ route('admin.manajemen.manajemen_produk') }}"
+                       class="btn btn-outline-secondary rounded-2 d-inline-flex align-items-center gap-2">
+                        <i class="ri-arrow-go-back-line"></i> Kembali
+                    </a>
+                    <button type="submit" class="btn btn-primary rounded-2 d-inline-flex align-items-center gap-2">
+                        <i class="ri-save-line"></i> Simpan Perubahan
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
 </div>
+@endsection
 
-{{-- Script --}}
-<script>
-    function toggleSidebar() {
-        document.getElementById('sidebarMenu').classList.toggle('active');
-    }
+@push('styles')
+<link href="https://cdn.datatables.net/1.13.6/css/dataTables.bootstrap5.min.css" rel="stylesheet" />
+<link href="https://cdn.jsdelivr.net/npm/remixicon/fonts/remixicon.css" rel="stylesheet" />
+@endpush
 
-    function confirmLogout() {
-        Swal.fire({
-            title: 'Yakin ingin logout?',
-            text: "Sesi kamu akan ditutup.",
-            icon: 'warning',
-            showCancelButton: true,
-            confirmButtonColor: '#d33',
-            cancelButtonColor: '#6c757d',
-            confirmButtonText: 'Ya, Logout',
-            cancelButtonText: 'Batal',
-            customClass: {
-                popup: 'rounded-3',
-                confirmButton: 'btn btn-danger me-2',
-                cancelButton: 'btn btn-secondary'
-            },
-            buttonsStyling: false
-        }).then((result) => {
-            if (result.isConfirmed) {
-                document.getElementById('logoutForm').submit();
-            }
-        });
-    }
-</script>
-
-{{-- CSS --}}
-<style>
-    body {
-        font-family: 'Segoe UI', sans-serif;
-        background-color: #f9f9f9;
-    }
-
-    .sidebar {
-        width: 220px;
-        min-height: 100vh;
-        background: #e6f2e6;
-        padding: 1rem;
-        display: flex;
-        flex-direction: column;
-        position: sticky;
-        top: 0;
-        transition: all 0.3s ease-in-out;
-    }
-
-    .sidebar-link {
-        display: block;
-        color: #333;
-        font-size: 0.95rem;
-        font-weight: 500;
-        transition: background 0.2s ease-in-out;
-    }
-
-    .sidebar-link:hover {
-        background-color: #d1e7dd;
-        color: #000;
-    }
-
-    .sidebar-link.active {
-        background-color: #198754;
-        color: #fff !important;
-    }
-
-    .dropdown-menu {
-        font-size: 0.9rem;
-    }
-
-    .content-area {
-        background: #ffffff;
-        border-radius: 0.5rem;
-        box-shadow: 0 0 10px rgba(0,0,0,0.05);
-    }
-
-    @media (max-width: 768px) {
-        .sidebar {
-            position: fixed;
-            left: -250px;
-            top: 0;
-            z-index: 1050;
-            height: 100%;
-            transition: left 0.3s ease-in-out;
-        }
-
-        .sidebar.active {
-            left: 0;
-        }
-    }
-
-    .user-dropdown .dropdown-menu {
-        font-size: 0.95rem;
-        background-color: #fff;
-        transition: all 0.2s ease-in-out;
-    }
-
-    .user-dropdown .dropdown-menu .dropdown-item:hover {
-        background-color: #e9f5ee;
-        color: #000;
-    }
-
-    .user-dropdown .dropdown-toggle:hover {
-        color: #198754;
-    }
-</style>
-
-{{-- SweetAlert Toast --}}
 @push('scripts')
+<script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+<script src="https://cdn.datatables.net/1.13.6/js/dataTables.bootstrap5.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
 <script>
     const Toast = Swal.mixin({
         toast: true,
         position: 'top-end',
         showConfirmButton: false,
-        timer: 3000,
+        timer: 3500,
         timerProgressBar: true,
-        background: '#f9f9f9',
+        background: '#f8fafc',
         color: '#1e293b',
-        iconColor: '#10b981',
+        iconColor: '#0d9488',
         customClass: {
-            popup: 'rounded-xl shadow-md text-sm px-4 py-3 mt-4 border border-gray-200'
+            popup: 'rounded-xl shadow-md border border-slate-200 px-4 py-3 text-sm'
         },
         didOpen: (toast) => {
             toast.addEventListener('mouseenter', Swal.stopTimer);
@@ -201,19 +114,15 @@
     });
 
     @if(session('success'))
-        Toast.fire({ icon: 'success', title: @js(session('success')) });
+    Toast.fire({ icon: 'success', title: @js(session('success')), iconColor: '#16a34a' });
     @endif
 
     @if(session('error'))
-        Toast.fire({ icon: 'error', title: @js(session('error')) });
+    Toast.fire({ icon: 'error', title: @js(session('error')), iconColor: '#dc2626' });
     @endif
 
     @if($errors->any())
-        Toast.fire({
-            icon: 'warning',
-            title: 'Periksa form kamu',
-            text: @js($errors->first())
-        });
+    Toast.fire({ icon: 'warning', title: 'Periksa form kamu', text: @js($errors->first()), iconColor: '#f59e0b' });
     @endif
 </script>
 @endpush

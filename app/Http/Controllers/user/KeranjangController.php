@@ -17,4 +17,22 @@ class KeranjangController extends Controller
 
         return view('user.keranjang.keranjang', compact('keranjang'));
     }
+
+    public function updateJumlah(Request $request)
+    {
+        $request->validate([
+            'id' => 'required|exists:keranjangs,id',
+            'jumlah' => 'required|integer|min:1',
+        ]);
+
+        $item = \App\Models\Keranjang::find($request->id);
+        $item->jumlah = $request->jumlah;
+        $item->save();
+
+        $subtotal = $item->jumlah * $item->produk->harga;
+
+        return response()->json([
+            'subtotal' => $subtotal
+        ]);
+    }
 }

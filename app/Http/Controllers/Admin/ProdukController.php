@@ -54,7 +54,7 @@ class ProdukController extends Controller
             'kategori_id' => $request->kategori_id,
             'deskripsi' => $request->deskripsi,
             'harga' => $request->price,
-            'stok' => $request->stock,
+           'stok' => $request->input('stock'), // ✅ FIELD yang benar
         ];
 
         if ($request->hasFile('image')) {
@@ -103,7 +103,7 @@ class ProdukController extends Controller
             'kategori_id' => $request->kategori_id,
             'deskripsi' => $request->deskripsi,
             'harga' => $request->price,
-            'stok' => $request->stock,
+            'stok' => $request->input('stock'), // ✅ FIELD yang benar
         ];
 
         if ($request->hasFile('image')) {

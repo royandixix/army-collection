@@ -2,24 +2,25 @@
 
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
+
+// ADMIN
 use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\UserController;
-use App\Http\Controllers\Admin\ProdukController;
+use App\Http\Controllers\Admin\ProdukController as AdminProdukController;
 use App\Http\Controllers\Admin\PenjualanController;
 use App\Http\Controllers\Admin\PelangganController;
 use App\Http\Controllers\Admin\LaporanController;
 
-// User
-use App\Http\Controllers\user\ProdukUserController;
-use App\Http\Controllers\user\KeranjangController;
-use App\Http\Controllers\user\CheckoutController;
-use App\Http\Controllers\user\RiwayatController;
+// USER
+use App\Http\Controllers\User\ProdukUserController;
+use App\Http\Controllers\User\KeranjangController;
+use App\Http\Controllers\User\CheckoutController;
+use App\Http\Controllers\User\RiwayatController;
 
-
-
-// ===============================
-// 🔐 AUTH (LOGIN & REGISTER)
-// ===============================
+//
+// ==============================
+// 🔐 AUTHENTIKASI (LOGIN / REGISTER)
+// ==============================
 Route::get('/', [AuthController::class, 'showLogin'])->name('login');
 Route::get('/login', [AuthController::class, 'showLogin'])->name('login');
 Route::post('/login', [AuthController::class, 'login'])->name('login.post');
@@ -28,18 +29,18 @@ Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 Route::get('/register', [AuthController::class, 'showRegister'])->name('register');
 Route::post('/register', [AuthController::class, 'register'])->name('register.post');
 
-
-// ===============================
-// 🏠 DASHBOARD
-// ===============================
+//
+// ==============================
+// 🏠 DASHBOARD (ADMIN/UMUM)
+// ==============================
 Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
 Route::get('/admin/dashboard', [DashboardController::class, 'index'])->name('admin.dashboard');
 
-
-// ===============================
+//
+// ==============================
 // 🛠️ ADMIN ROUTES
-// ===============================
-Route::prefix('admin')->name('admin.')->group(function () {
+// ==============================
+Route::prefix('admin')->name('admin.')->middleware('auth')->group(function () {
 
     // 👥 Manajemen Pengguna
     Route::get('/manajemen/pengguna', [UserController::class, 'index'])->name('manajemen.manajemen_pengguna');
@@ -47,12 +48,13 @@ Route::prefix('admin')->name('admin.')->group(function () {
     Route::put('/manajemen/pengguna/{id}', [UserController::class, 'update'])->name('users.update');
 
     // 📦 Manajemen Produk
-    Route::get('/manajemen/produk', [ProdukController::class, 'index'])->name('manajemen.manajemen_produk');
-    Route::get('/manajemen/produk/create', [ProdukController::class, 'create'])->name('manajemen.manajemen_produk_create');
-    Route::post('/manajemen/produk', [ProdukController::class, 'store'])->name('manajemen.manajemen_produk_store');
-    Route::get('/manajemen/produk/{id}/edit', [ProdukController::class, 'edit'])->name('manajemen.manajemen_produk_edit');
-    Route::put('/manajemen/produk/{id}', [ProdukController::class, 'update'])->name('manajemen.manajemen_produk_update');
-    Route::get('/manajemen/produk/{id}/delete', [ProdukController::class, 'destroy'])->name('manajemen.manajemen_produk_destroy');
+    Route::get('/manajemen/produk', [AdminProdukController::class, 'index'])->name('manajemen.manajemen_produk');
+    Route::get('/manajemen/produk/create', [AdminProdukController::class, 'create'])->name('manajemen.manajemen_produk_create');
+    Route::post('/manajemen/produk', [AdminProdukController::class, 'store'])->name('manajemen.manajemen_produk_store');
+    Route::get('/manajemen/produk/{id}/edit', [AdminProdukController::class, 'edit'])->name('manajemen.manajemen_produk_edit');
+    Route::put('/manajemen/produk/{id}', [AdminProdukController::class, 'update'])->name('manajemen.manajemen_produk_update');
+    Route::get('/manajemen/produk/{id}/delete', [AdminProdukController::class, 'destroy'])->name('manajemen.manajemen_produk_destroy');
+    
 
     // 🧾 Manajemen Penjualan
     Route::get('/manajemen/penjualan', [PenjualanController::class, 'index'])->name('manajemen.manajemen_penjualan');
@@ -76,23 +78,29 @@ Route::prefix('admin')->name('admin.')->group(function () {
     Route::get('/laporan/faktur/{id}', [LaporanController::class, 'show'])->name('laporan.faktur_laporan_show');
 });
 
-
-// ===============================
-// 👤 USER ROUTES (PROTECTED)
-// ===============================
+//
+// ==============================
+// 👤 USER ROUTES
+// ==============================
 Route::middleware('auth')->prefix('user')->name('user.')->group(function () {
 
     // 🛍️ Produk
     Route::get('/produk', [ProdukUserController::class, 'index'])->name('produk.index');
     Route::get('/produk/{id}', [ProdukUserController::class, 'show'])->name('produk.show');
 
+    // 🛒 Tambah ke Keranjang via ProdukController
+    Route::post('/keranjang', [ProdukUserController::class, 'tambahKeKeranjang'])->name('keranjang.store');
+
     // 🛒 Keranjang
     Route::get('/keranjang', [KeranjangController::class, 'index'])->name('keranjang.index');
     Route::delete('/keranjang/{id}', [KeranjangController::class, 'destroy'])->name('keranjang.hapus');
+    Route::post('/keranjang/update', [KeranjangController::class, 'updateJumlah'])->name('keranjang.update');
 
-    // chekout
+
+    // 💳 Checkout
     Route::get('/checkout', [CheckoutController::class, 'index'])->name('checkout.index');
+    Route::post('/checkout/proses', [CheckoutController::class, 'proses'])->name('checkout.proses');
 
-    // Riwayata
+    // 📄 Riwayat Transaksi
     Route::get('/riwayat', [RiwayatController::class, 'index'])->name('riwayat.index');
 });
