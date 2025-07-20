@@ -35,4 +35,17 @@ class KeranjangController extends Controller
             'subtotal' => $subtotal
         ]);
     }
+    public function destroy($id)
+    {
+        $userId = Auth::id();
+
+        $item = Keranjang::where('id', $id)->where('user_id', $userId)->first();
+
+        if ($item) {
+            $item->delete();
+            return redirect()->back()->with('success', 'Produk berhasil dihapus dari keranjang.');
+        }
+
+        return redirect()->back()->with('error', 'Produk tidak ditemukan atau tidak diizinkan.');
+    }
 }

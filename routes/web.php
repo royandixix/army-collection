@@ -16,6 +16,7 @@ use App\Http\Controllers\User\ProdukUserController;
 use App\Http\Controllers\User\KeranjangController;
 use App\Http\Controllers\User\CheckoutController;
 use App\Http\Controllers\User\RiwayatController;
+use App\Http\Controllers\user\ProfilController;
 
 //
 // ==============================
@@ -54,7 +55,7 @@ Route::prefix('admin')->name('admin.')->middleware('auth')->group(function () {
     Route::get('/manajemen/produk/{id}/edit', [AdminProdukController::class, 'edit'])->name('manajemen.manajemen_produk_edit');
     Route::put('/manajemen/produk/{id}', [AdminProdukController::class, 'update'])->name('manajemen.manajemen_produk_update');
     Route::get('/manajemen/produk/{id}/delete', [AdminProdukController::class, 'destroy'])->name('manajemen.manajemen_produk_destroy');
-    
+
 
     // 🧾 Manajemen Penjualan
     Route::get('/manajemen/penjualan', [PenjualanController::class, 'index'])->name('manajemen.manajemen_penjualan');
@@ -103,4 +104,11 @@ Route::middleware('auth')->prefix('user')->name('user.')->group(function () {
 
     // 📄 Riwayat Transaksi
     Route::get('/riwayat', [RiwayatController::class, 'index'])->name('riwayat.index');
+
+    Route::delete('/keranjang/{id}', [KeranjangController::class, 'destroy'])->name('keranjang.hapus');
+
+
+    Route::get('/profil', [ProfilController::class, 'index'])->name('profil.profil');
+    Route::get('/profil/edit', [ProfilController::class, 'edit'])->name('profil.edit');
+    Route::post('/profil/update', [ProfilController::class, 'update'])->name('profil.update');
 });

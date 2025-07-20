@@ -5,21 +5,26 @@
 @section('content')
 <div class="container py-5">
 
-    {{-- Header --}}
-    <div class="text-center mb-5">
-        <h2 class="fw-bold text-dark animate__animated animate__fadeInDown">Produk Kami</h2>
-        <p class="text-muted fs-5 animate__animated animate__fadeInUp">Temukan produk terbaik yang kamu cari dengan harga terbaik!</p>
-    </div>
-
-    {{-- Search --}}
-    <div class="mb-5 d-flex justify-content-center">
-        <form action="{{ route('user.produk.index') }}" method="GET" class="d-flex w-100 animate__animated animate__fadeIn" style="max-width: 540px;">
-            <input type="text" name="search" class="form-control rounded-start shadow-sm" placeholder="Cari produk..." value="{{ request('search') }}">
-            <button class="btn btn-gradient rounded-end" type="submit" aria-label="Cari">
-                <i class="bi bi-search fs-5"></i>
-            </button>
-        </form>
-    </div>
+   {{-- Header --}}
+<div class="mb-4">
+    <h3 class="fw-bold text-dark animate__animated animate__fadeInDown">
+      <i class="bi bi-shop-window text-primary me-2"></i> Produk Kami
+    </h3>
+    <p class="text-muted fs-6 animate__animated animate__fadeInUp">
+      Jelajahi produk berkualitas dengan harga terbaik!
+    </p>
+  </div>
+  
+  {{-- Search Mini --}}
+  <form action="{{ route('user.produk.index') }}" method="GET"
+      class="d-flex align-items-center mb-4 animate__animated animate__fadeIn">
+      <input type="text" name="search" class="form-control form-control-sm shadow-sm rounded-pill px-3 py-2"
+          placeholder="Cari produk..." value="{{ request('search') }}" style="max-width: 240px;">
+      <button class="btn btn-sm btn-primary ms-2 rounded-pill px-3 py-2  d-flex align-items-center" type="submit">
+          </i> Cari
+      </button>
+  </form>
+  
 
     {{-- Produk Grid --}}
     <div class="row g-4">
@@ -32,7 +37,7 @@
                     <div class="card-body d-flex flex-column pt-3">
                         <span class="badge bg-kategori mb-2">{{ $produk->kategori?->name }}</span>
                         <h6 class="fw-semibold text-truncate mb-1" title="{{ $produk->nama }}">{{ $produk->nama }}</h6>
-                        <p class="text-success fw-bold mb-3 fs-5">Rp {{ number_format($produk->harga, 0, ',', '.') }}</p>
+                        <p class="text-success  mb-3 fs-5">Rp {{ number_format($produk->harga, 0, ',', '.') }}</p>
                         <a href="{{ url('/user/produk/' . $produk->id) }}" class="btn btn-outline-gradient w-100 mb-3">
                             <i class="bi bi-eye"></i> Lihat Detail
                         </a>
@@ -167,6 +172,31 @@
             width: 100%;
         }
     }
+
+    form input::placeholder {
+  font-size: 0.9rem;
+  color: #999;
+}
+
+form input:focus {
+  box-shadow: none;
+  border-color: #0d6efd;
+}
+
+form .btn-primary {
+  background: linear-gradient(135deg, #0d6efd, #3f83f8);
+  border: none;
+  transition: all 0.2s ease;
+}
+
+form .btn-primary:hover {
+  background: #0b5ed7;
+  box-shadow: 0 3px 10px rgba(0, 123, 255, 0.25);
+}
+
+
+
+    
 </style>
 @endpush
 

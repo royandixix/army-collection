@@ -1,69 +1,161 @@
 <nav class="navbar navbar-expand-lg shadow-sm fixed-top" style="background: linear-gradient(90deg, #1e3c72, #2a5298); z-index:1040;">
     <div class="container-fluid px-4 d-flex align-items-center justify-content-between">
 
-        {{-- Brand --}}
-        <a class="navbar-brand text-white fw-bold glow-text d-flex align-items-center" href="{{ url('/') }}">
+        {{-- Logo Brand --}}
+        <a class="navbar-brand text-white fw-bold d-flex align-items-center glow-text" href="{{ url('/') }}">
             <i class="bi bi-box-seam me-2 fs-4"></i>
             <span class="fs-5">Army Collection</span>
         </a>
 
-        {{-- Animated Inspirational Text --}}
-        <span class="text-light small d-none d-md-inline inspirational-text">
+        {{-- Typing Animation --}}
+        <div class="text-light inspirational-text d-none d-md-block">
             <span id="typing-text"></span>
-        </span>
+        </div>
+
+        {{-- Akun Dropdown --}}
+        <div class="dropdown ms-3">
+            @auth
+            <a href="#" class="d-flex align-items-center text-white text-decoration-none dropdown-toggle" id="userDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                <img src="{{ Auth::user()->img ? asset('storage/' . Auth::user()->img) : asset('img/default-user.png') }}" alt="Foto Profil" width="40" height="40" class="elegant-avatar">
+            </a>
+
+            <ul class="dropdown-menu dropdown-menu-end shadow profile-dropdown mt-3" aria-labelledby="userDropdown">
+                <li class="px-3 pt-2 pb-1 text-muted small">Akun Saya</li>
+
+                <li>
+                    <a class="dropdown-item d-flex align-items-center gap-2" href="{{ route('user.profil.profil') }}">
+                        <i class="bi bi-person-fill-gear text-primary fs-5"></i>
+                        <span>Profil & Pengaturan</span>
+                    </a>
+                </li>
+                <li>
+                    <hr class="dropdown-divider my-2">
+                </li>
+
+                <li>
+                    <form method="POST" action="{{ route('logout') }}">
+                        @csrf
+                        <button class="dropdown-item d-flex align-items-center gap-2 text-danger fw-semibold">
+                            <i class="bi bi-box-arrow-right fs-5"></i>
+                            <span>Keluar</span>
+                        </button>
+                    </form>
+                </li>
+            </ul>
+            @else
+            <a href="{{ route('login') }}" class="btn btn-light btn-sm fw-semibold me-2">Masuk</a>
+            <a href="{{ route('register') }}" class="btn btn-outline-light btn-sm fw-semibold">Daftar</a>
+            @endauth
+        </div>
 
     </div>
 </nav>
-
 @push('styles')
 <style>
-    /* Glow text - warna soft biru sesuai tema */
     .glow-text {
-        text-shadow: 0 0 8px rgba(66, 135, 245, 0.7);
-        transition: text-shadow 0.3s ease;
-    }
-    .glow-text:hover {
-        text-shadow: 0 0 16px rgba(66, 135, 245, 0.9);
+        text-shadow: 0 0 6px rgba(255, 255, 255, 0.5);
     }
 
-    /* Tombol glow untuk aksi (jika dipakai) dengan warna gold/orange */
-    .btn-glow {
-        background: linear-gradient(90deg, #f6d365, #fda085);
-        color: #fff;
-        font-weight: 600;
-        border: none;
-        padding: 6px 16px;
-        border-radius: 8px;
-        box-shadow: 0 0 8px rgba(253, 160, 133, 0.5);
-        transition: all 0.3s ease-in-out;
-    }
-    .btn-glow:hover {
-        background: linear-gradient(90deg, #fda085, #f6d365);
-        box-shadow: 0 0 14px rgba(253, 160, 133, 0.8);
-        color: #000;
-    }
-
-    /* Style teks inspirasi */
     .inspirational-text {
         font-style: italic;
-        font-size: 0.875rem;
-        opacity: 0.85;
-        letter-spacing: 0.3px;
-        min-height: 1.2rem;
-        user-select: none;
+        font-size: 0.95rem;
+        font-weight: 500;
+        opacity: 0.95;
+        letter-spacing: 0.5px;
+        white-space: nowrap;
+        overflow: hidden;
+        max-width: 100%;
+        background: linear-gradient(90deg, #ffffff, #cce0ff, #ffffff);
+        background-size: 200% auto;
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        animation: shimmer 4s linear infinite;
     }
+
+    @keyframes shimmer {
+        0% {
+            background-position: 200% center;
+        }
+        100% {
+            background-position: -200% center;
+        }
+    }
+
+    .elegant-avatar {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        object-fit: cover;
+        border: 2px solid #fff;
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+        transition: transform 0.2s ease;
+    }
+
+    .elegant-avatar:hover {
+        transform: scale(1.05);
+    }
+
+    .profile-dropdown {
+        border-radius: 14px;
+        min-width: 240px;
+        background-color: #ffffff;
+        padding: 8px 0;
+        border: 1px solid #e4e6ef;
+        animation: fadeInDown 0.2s ease-out;
+    }
+
+    .profile-dropdown .dropdown-item {
+        padding: 10px 16px;
+        font-weight: 500;
+        color: #333;
+        transition: all 0.2s ease-in-out;
+        border-radius: 8px;
+    }
+
+    .profile-dropdown .dropdown-item:hover {
+        background: #f1f3f9;
+        color: #1e3c72;
+        box-shadow: inset 0 0 4px rgba(0, 0, 0, 0.03);
+    }
+
+    .profile-dropdown i {
+        min-width: 24px;
+        text-align: center;
+    }
+
+    .profile-dropdown hr {
+        margin: 0.5rem 1rem;
+    }
+
+    .profile-dropdown small {
+        font-size: 0.75rem;
+        font-weight: 600;
+        letter-spacing: 0.3px;
+    }
+
+    @keyframes fadeInDown {
+        from {
+            opacity: 0;
+            transform: translateY(-10px);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
 </style>
 @endpush
-
 @push('scripts')
 <script>
-    document.addEventListener("DOMContentLoaded", function () {
+    document.addEventListener("DOMContentLoaded", function() {
         const textElement = document.getElementById("typing-text");
         const phrases = [
-            "Temukan gaya terbaikmu.",
-            "Mulai harimu dengan percaya diri.",
-            "Tampil keren tanpa usaha lebih.",
-            "Belanja mudah, tampil maksimal."
+            "Temukan gaya terbaikmu."
+            , "Tampil keren tanpa usaha lebih."
+            , "Belanja mudah, tampil maksimal."
+            , "Mulai harimu dengan percaya diri."
         ];
         let currentPhrase = 0;
         let currentChar = 0;
@@ -71,24 +163,68 @@
 
         function type() {
             const current = phrases[currentPhrase];
-            if (isDeleting) {
-                currentChar--;
-            } else {
-                currentChar++;
-            }
-
             textElement.textContent = current.substring(0, currentChar);
+
+            if (!isDeleting && currentChar < current.length) {
+                currentChar++;
+            } else if (isDeleting && currentChar > 0) {
+                currentChar--;
+            }
 
             if (!isDeleting && currentChar === current.length) {
                 isDeleting = true;
-                setTimeout(type, 2000); // stay full text 2s
+                setTimeout(type, 1800);
+                return;
             } else if (isDeleting && currentChar === 0) {
                 isDeleting = false;
                 currentPhrase = (currentPhrase + 1) % phrases.length;
-                setTimeout(type, 300); // pause before typing next
-            } else {
-                setTimeout(type, isDeleting ? 40 : 70);
             }
+
+            setTimeout(type, isDeleting ? 40 : 70);
+        }
+
+        type();
+    });
+
+
+    document.addEventListener("DOMContentLoaded", function () {
+        const textElement = document.getElementById("typing-text");
+        const phrases = [
+            "Temukan gaya terbaikmu.",
+            "Tampil keren tanpa usaha lebih.",
+            "Belanja mudah, tampil maksimal.",
+            "Mulai harimu dengan percaya diri."
+        ];
+
+        let currentPhrase = 0;
+        let currentChar = 0;
+        let isDeleting = false;
+
+        function type() {
+            const current = phrases[currentPhrase];
+            const fullText = current;
+            const partial = current.substring(0, currentChar);
+
+            textElement.textContent = partial;
+
+            if (!isDeleting && currentChar < fullText.length) {
+                currentChar++;
+            } else if (isDeleting && currentChar > 0) {
+                currentChar--;
+            }
+
+            if (!isDeleting && currentChar === fullText.length) {
+                textElement.classList.add("glow-text"); // Add glow when fully typed
+                isDeleting = true;
+                setTimeout(type, 1800); // pause
+                return;
+            } else if (isDeleting && currentChar === 0) {
+                textElement.classList.remove("glow-text"); // Remove glow when deleting
+                isDeleting = false;
+                currentPhrase = (currentPhrase + 1) % phrases.length;
+            }
+
+            setTimeout(type, isDeleting ? 40 : 70);
         }
 
         type();

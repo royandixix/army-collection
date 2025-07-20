@@ -30,4 +30,10 @@ class User extends Authenticatable
             'password' => 'hashed',
         ];
     }
+
+
+    public function getProfilePhotoUrlAttribute()
+    {
+        return $this->img ? asset('storage/' . $this->img) : asset('img/default-user.png');
+    }
 }
