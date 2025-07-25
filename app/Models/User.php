@@ -11,11 +11,13 @@ class User extends Authenticatable
     use HasFactory, Notifiable;
 
     protected $fillable = [
-        'username',  // ✅ username digunakan
+        'username',
         'email',
         'password',
         'role',
+        'status',
         'img',
+        'no_hp',
     ];
 
     protected $hidden = [
@@ -23,17 +25,27 @@ class User extends Authenticatable
         'remember_token',
     ];
 
-    protected function casts(): array
+    protected $casts = [
+        'email_verified_at' => 'datetime',
+        'password' => 'hashed',
+    ];
+
+    public function pelanggan()
     {
-        return [
-            'email_verified_at' => 'datetime',
-            'password' => 'hashed',
-        ];
+        return $this->hasOne(Pelanggan::class);
     }
 
+    public function transaksis()
+    {
+        return $this->hasMany(Transaksi::class);
+    }
 
     public function getProfilePhotoUrlAttribute()
     {
-        return $this->img ? asset('storage/' . $this->img) : asset('img/default-user.png');
+        return $this->img
+            ? asset('storage/' . $this->img)
+            : asset('img/default-user.png');
     }
+    
+    // Tidak ada accessor no_hp di sini
 }

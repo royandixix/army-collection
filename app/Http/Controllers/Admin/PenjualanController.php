@@ -6,16 +6,20 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\Penjualan;
 use App\Models\Pelanggan;
+use App\Models\Transaksi;
+use Illuminate\Support\Facades\Auth;
 
 class PenjualanController extends Controller
 {
     /**
-     * 🔍 Tampilkan semua transaksi penjualan
+     * 🔍 Tampilkan semua transaksi penjualan (Admin & User)
      */
     public function index()
     {
-        $penjualans = Penjualan::with('pelanggan')->latest()->get();
-        return view('admin.manajemen_penjualan.manajemen_penjualan', compact('penjualans'));
+        $penjualans = Penjualan::with(['pelanggan', 'user'])->latest()->get();
+        $transaksis = Transaksi::with(['user.pelanggan'])->latest()->get();
+
+        return view('admin.manajemen_penjualan.manajemen_penjualan', compact('penjualans', 'transaksis'));
     }
 
     /**
@@ -32,36 +36,19 @@ class PenjualanController extends Controller
      */
     public function store(Request $request)
     {
-        $validated = $request->validate([
-            'pelanggan_id' => 'required|exists:pelanggans,id',
-            'tanggal'      => 'required|date',
-            'total'        => 'required|integer|min:1',
-            'status'       => 'required|in:lunas,pending,batal',
-        ], [
-            'pelanggan_id.required' => 'Pelanggan wajib dipilih.',
-            'pelanggan_id.exists'   => 'Pelanggan tidak ditemukan.',
-            'tanggal.required'      => 'Tanggal transaksi wajib diisi.',
-            'tanggal.date'          => 'Format tanggal tidak valid.',
-            'total.required'        => 'Total pembayaran wajib diisi.',
-            'total.integer'         => 'Total harus berupa angka bulat.',
-            'total.min'             => 'Total tidak boleh 0.',
-            'status.required'       => 'Status pembayaran wajib dipilih.',
-            'status.in'             => 'Status harus salah satu dari: lunas, pending, atau batal.',
+        $validated = $this->validatePenjualan($request);
+
+        Penjualan::create([
+            'pelanggan_id'       => $validated['pelanggan_id'],
+            'tanggal'            => $validated['tanggal'],
+            'total'              => $validated['total'],
+            'status'             => $validated['status'],
+            'metode_pembayaran'  => $request->metode_pembayaran,
+            'user_id'            => Auth::id(),
         ]);
 
-        Penjualan::create($validated);
-
         return redirect()->route('admin.manajemen.manajemen_penjualan')
-                         ->with('success', 'Transaksi berhasil ditambahkan.');
-    }
-
-    /**
-     * 📄 Detail transaksi penjualan
-     */
-    public function show($id)
-    {
-        $penjualan = Penjualan::with('pelanggan')->findOrFail($id);
-        return view('admin.manajemen_penjualan.show', compact('penjualan'));
+            ->with('success', 'Transaksi berhasil ditambahkan.');
     }
 
     /**
@@ -72,7 +59,7 @@ class PenjualanController extends Controller
         $penjualan = Penjualan::findOrFail($id);
         $pelanggans = Pelanggan::all();
 
-        return view('admin.manajemen_penjualan.edit', compact('penjualan', 'pelanggans'));
+        return view('admin.manajemen_penjualan.edit_manajemen_penjualan', compact('penjualan', 'pelanggans'));
     }
 
     /**
@@ -81,28 +68,18 @@ class PenjualanController extends Controller
     public function update(Request $request, $id)
     {
         $penjualan = Penjualan::findOrFail($id);
+        $validated = $this->validatePenjualan($request);
 
-        $validated = $request->validate([
-            'pelanggan_id' => 'required|exists:pelanggans,id',
-            'tanggal'      => 'required|date',
-            'total'        => 'required|integer|min:1',
-            'status'       => 'required|in:lunas,pending,batal',
-        ], [
-            'pelanggan_id.required' => 'Pelanggan wajib dipilih.',
-            'pelanggan_id.exists'   => 'Pelanggan tidak ditemukan.',
-            'tanggal.required'      => 'Tanggal transaksi wajib diisi.',
-            'tanggal.date'          => 'Format tanggal tidak valid.',
-            'total.required'        => 'Total pembayaran wajib diisi.',
-            'total.integer'         => 'Total harus berupa angka bulat.',
-            'total.min'             => 'Total tidak boleh 0.',
-            'status.required'       => 'Status pembayaran wajib dipilih.',
-            'status.in'             => 'Status harus salah satu dari: lunas, pending, atau batal.',
+        $penjualan->update([
+            'pelanggan_id'       => $validated['pelanggan_id'],
+            'tanggal'            => $validated['tanggal'],
+            'total'              => $validated['total'],
+            'status'             => $validated['status'],
+            'metode_pembayaran'  => $request->metode_pembayaran,
         ]);
 
-        $penjualan->update($validated);
-
         return redirect()->route('admin.manajemen.manajemen_penjualan')
-                         ->with('success', 'Transaksi berhasil diperbarui.');
+            ->with('success', 'Transaksi berhasil diperbarui.');
     }
 
     /**
@@ -114,6 +91,49 @@ class PenjualanController extends Controller
         $penjualan->delete();
 
         return redirect()->route('admin.manajemen.manajemen_penjualan')
-                         ->with('success', 'Transaksi berhasil dihapus.');
+            ->with('success', 'Transaksi berhasil dihapus.');
+    }
+
+    /**
+     * 🟡 Ubah status transaksi
+     */
+    public function ubahStatus(Request $request, $id)
+    {
+        $item = Penjualan::find($id) ?? Transaksi::find($id);
+
+        if (!$item) {
+            return redirect()->back()->with('error', 'Transaksi tidak ditemukan.');
+        }
+
+        $request->validate([
+            'status' => $item instanceof Penjualan
+                ? 'required|in:lunas,pending,batal'
+                : 'required|in:pending,diproses,selesai,batal',
+        ]);
+
+        $item->status = $request->status;
+        $item->save();
+
+        return redirect()->back()->with('success', 'Status transaksi berhasil diperbarui.');
+    }
+
+    /**
+     * ✅ Validasi data transaksi
+     */
+    protected function validatePenjualan(Request $request)
+    {
+        return $request->validate([
+            'pelanggan_id'       => 'required|exists:pelanggans,id',
+            'tanggal'            => 'required|date',
+            'total'              => 'required|integer|min:1',
+            'status'             => 'required|in:lunas,pending,batal',
+            'metode_pembayaran'  => 'required|in:cod,qiris,transfer',
+        ], [
+            'pelanggan_id.required'      => 'Pelanggan wajib dipilih.',
+            'tanggal.required'           => 'Tanggal transaksi wajib diisi.',
+            'total.required'             => 'Total pembayaran wajib diisi.',
+            'status.required'            => 'Status pembayaran wajib dipilih.',
+            'metode_pembayaran.required' => 'Metode pembayaran wajib dipilih.',
+        ]);
     }
 }

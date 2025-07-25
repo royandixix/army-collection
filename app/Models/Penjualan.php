@@ -9,8 +9,6 @@ class Penjualan extends Model
 {
     use HasFactory;
 
-    protected $table = 'penjualans';
-
     protected $fillable = [
         'pelanggan_id',
         'tanggal',
@@ -18,13 +16,17 @@ class Penjualan extends Model
         'status',
     ];
 
-    protected $dates = ['tanggal'];
+    protected $casts = [
+        'tanggal' => 'datetime',
+    ];
 
-    // Relasi ke Pelanggan
     public function pelanggan()
     {
         return $this->belongsTo(Pelanggan::class);
     }
 
-    
+    public function user()
+    {
+        return $this->belongsTo(User::class);
+    }
 }

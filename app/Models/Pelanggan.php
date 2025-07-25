@@ -9,16 +9,20 @@ class Pelanggan extends Model
 {
     use HasFactory;
 
-    protected $table = 'pelanggans';
-
     protected $fillable = [
+        'user_id',
         'nama',
         'alamat',
         'no_hp',
-        'email',
+        'email', // ← WAJIB ADA INI
     ];
+    
 
-    // Relasi: 1 pelanggan bisa punya banyak penjualan
+    public function user()
+    {
+        return $this->belongsTo(User::class);
+    }
+
     public function penjualans()
     {
         return $this->hasMany(Penjualan::class);

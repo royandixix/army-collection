@@ -15,13 +15,13 @@ class Keranjang extends Model
         'jumlah',
     ];
 
-    public function produk()
-    {
-        return $this->belongsTo(Produk::class);
-    }
-
     public function user()
     {
         return $this->belongsTo(User::class);
+    }
+
+    public function produk()
+    {
+        return $this->belongsTo(Produk::class);
     }
 }

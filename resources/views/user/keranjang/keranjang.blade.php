@@ -57,6 +57,7 @@
         @endforeach
       </ul>
 
+     
       <div class="d-flex justify-content-end align-items-center gap-3 mt-4 flex-wrap">
         <h4 class="m-0">Total:</h4>
         <h4 class="text-primary fw-bold mb-0" id="grandTotal">Rp {{ number_format($total, 0, ',', '.') }}</h4>
@@ -99,6 +100,7 @@
   }
   .input-group-sm .btn {
     font-weight: bold;
+    list-style: none;
   }
 
   
@@ -171,6 +173,8 @@
       });
     }
 
+    
+
     function updateTotal() {
       let total = 0;
       $('.subtotal').each(function() {
@@ -178,6 +182,8 @@
       });
       $('#grandTotal').text(formatRupiah(total));
     }
+
+
 
     
 

@@ -32,7 +32,8 @@
                         @foreach($penjualans as $penjualan)
                         <tr>
                             <td>{{ $loop->iteration }}</td>
-                            <td>{{ $penjualan->tanggal->format('d-m-Y') }}</td>
+                            {{-- Gunakan Carbon::parse() agar aman meski tanggal adalah string --}}
+                            <td>{{ \Carbon\Carbon::parse($penjualan->tanggal)->format('d-m-Y') }}</td>
                             <td>{{ $penjualan->pelanggan->nama ?? '-' }}</td>
                             <td>Rp {{ number_format($penjualan->total, 0, ',', '.') }}</td>
                             <td>

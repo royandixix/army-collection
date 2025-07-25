@@ -5,88 +5,110 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\User;
+use Illuminate\Support\Facades\Auth;
+
 use Illuminate\Support\Str;
 
 class UserController extends Controller
 {
     /**
      * Tampilkan daftar semua pengguna.
-     *
-     * @return \Illuminate\View\View
      */
     public function index()
-    {
-        $users = User::all()->map(function ($user) {
-            return [
-                'id'       => $user->id,
-                'username' => $user->username,
-                'img'      => $user->img ?? 'default.jpg',
-                'date'     => $user->created_at->format('Y-m-d'),
-                'team'     => $user->role ?? 'N/A',
-                'status'   => $user->status ?? 'inactive',
-            ];
-        });
+{
+    $users = User::with('pelanggan')
+        ->where(function ($query) {
+            $query->where('role', '!=', 'admin')
+                  ->orWhereNull('role');
+        })
+        ->get();
 
-        return view('admin.manajemen_pengguna.manajemen_pengguna', compact('users'));
-    }
+    return view('admin.manajemen_pengguna.manajemen_pengguna', compact('users'));
+}
+
+
 
     /**
      * Tampilkan form edit pengguna berdasarkan ID.
-     *
-     * @param  int  $id
-     * @return \Illuminate\View\View
      */
     public function edit($id)
     {
-        $user = User::findOrFail($id);
+        $user = User::with('pelanggan')->findOrFail($id);
 
         return view('admin.manajemen_pengguna.edit_manajemen_pengguna', compact('user'));
     }
 
     /**
      * Update data pengguna berdasarkan ID.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @param  int  $id
-     * @return \Illuminate\Http\RedirectResponse
      */
     public function update(Request $request, $id)
     {
-        $user = User::findOrFail($id);
+        $user = User::with('pelanggan')->findOrFail($id);
 
         $validated = $request->validate([
             'username' => 'required|string|max:255',
             'email'    => 'required|email',
+            'no_hp'    => 'nullable|string|max:20',
             'role'     => 'nullable|string',
             'status'   => 'required|in:active,inactive',
-            'img'      => 'nullable|image|mimes:jpg,jpeg,png|max:2048', // validasi file gambar
-        ], [
-            'username.required' => 'Nama pengguna wajib diisi.',
-            'username.string'   => 'Nama pengguna harus berupa teks.',
-            'username.max'      => 'Nama pengguna tidak boleh lebih dari 255 karakter.',
-            'email.required'    => 'Email wajib diisi.',
-            'email.email'       => 'Format email tidak valid.',
-            'role.string'       => 'Peran harus berupa teks.',
-            'status.required'   => 'Status pengguna wajib dipilih.',
-            'status.in'         => 'Status harus bernilai active atau inactive.',
-            'img.image'         => 'File harus berupa gambar.',
-            'img.mimes'         => 'Format gambar harus jpg, jpeg, atau png.',
-            'img.max'           => 'Ukuran gambar maksimal 2MB.',
+            'img'      => 'nullable|image|mimes:jpg,jpeg,png|max:2048|dimensions:min_width=100,min_height=100,max_width=3000,max_height=3000',
         ]);
 
         // Update data user
-        $user->update($validated);
+        $user->username = $validated['username'];
+        $user->email    = $validated['email'];
+        $user->role     = $validated['role'] ?? null;
+        $user->status   = $validated['status'];
 
-        // Proses upload gambar jika ada
+        // Upload gambar jika ada
         if ($request->hasFile('img')) {
             $file = $request->file('img');
             $filename = Str::random(40) . '.' . $file->getClientOriginalExtension();
             $file->storeAs('public/profile_images/admin', $filename);
             $user->img = $filename;
-            $user->save();
+        } elseif (!$user->img) {
+            $user->img = 'default.jpg';
+        }
+
+        $user->save();
+
+        // ✅ Update atau buat relasi pelanggan (no_hp)
+        if ($user->pelanggan) {
+            $user->pelanggan->no_hp = $validated['no_hp'] ?? null;
+            $user->pelanggan->save();
+        } else {
+            $user->pelanggan()->create([
+                'no_hp'  => $validated['no_hp'] ?? null,
+                'nama'   => $user->username,
+                'email'  => $user->email,
+            ]);
         }
 
         return redirect()->route('admin.manajemen.manajemen_pengguna')
-                         ->with('success', 'Data pengguna berhasil diperbarui.');
+            ->with('success', 'Data pengguna berhasil diperbarui.');
+    }
+
+    /**
+     * Hapus pengguna berdasarkan ID.
+     */
+    public function destroy($id)
+    {
+        $user = User::with('pelanggan')->findOrFail($id);
+
+        // ✅ Cegah hapus diri sendiri
+        if (Auth::check() && Auth::id() === $user->id) {
+            return redirect()->back()->with('error', 'Kamu tidak bisa menghapus akunmu sendiri.');
+        }
+
+        // Hapus relasi pelanggan jika ada
+        if ($user->pelanggan) {
+            $user->pelanggan->delete();
+        }
+
+        // Hapus user
+        $user->delete();
+
+        return redirect()->route('admin.manajemen.manajemen_pengguna')
+            ->with('success', 'Pengguna berhasil dihapus.');
     }
 }

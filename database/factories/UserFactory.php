@@ -22,15 +22,17 @@ class UserFactory extends Factory
      * @return array<string, mixed>
      */
     public function definition(): array
-    {
-        return [
-            'name' => fake()->name(),
-            'email' => fake()->unique()->safeEmail(),
-            'email_verified_at' => now(),
-            'password' => static::$password ??= Hash::make('password'),
-            'remember_token' => Str::random(10),
-        ];
-    }
+{
+    return [
+        'username' => fake()->userName(), // ✅ Ganti 'name' jadi 'username'
+        'email' => fake()->unique()->safeEmail(),
+        'email_verified_at' => now(),
+        'password' => static::$password ??= Hash::make('password'),
+        'remember_token' => Str::random(10),
+        'role' => 'user',           // ✅ Sesuaikan jika kolom ini ada
+        'status' => 'active',       // ✅ Sesuaikan jika kolom ini ada
+    ];
+}
 
     /**
      * Indicate that the model's email address should be unverified.

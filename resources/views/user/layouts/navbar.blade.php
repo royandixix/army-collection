@@ -49,9 +49,125 @@
         </div>
 
     </div>
+    
 </nav>
+{{-- Search Mini --}}
+<div id="stickySearch" class="position-sticky end-0 py-2 animate__animated" style="top: 56px; z-index: 1030;">
+    <div class="container d-flex justify-content-end">
+        <form action="{{ route('user.produk.index') }}" method="GET"
+              class="d-flex align-items-center px-3 py-2 shadow-sm rounded-2 search-box"
+              style="gap: 0.5rem; max-width: 100%; background: #ffffffee;">
+            <input type="text" name="search"
+                   class="form-control form-control-sm border-0 shadow-none px-2 search-input"
+                   placeholder="Cari produk..." value="{{ request('search') }}">
+            <button class="btn btn-sm btn-primary rounded-1 px-3 py-2" type="submit">
+                Cari
+            </button>
+        </form>
+    </div>
+</div>
+
+
+
+
 @push('styles')
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css" />
 <style>
+  
+
+  #stickySearch {
+       
+    }
+
+    .search-box {
+        backdrop-filter: blur(6px);
+        border: 1px solid #ddd;
+        
+    }
+
+    .search-input::placeholder {
+        font-size: 0.9rem;
+        
+        color: #999;
+    }
+
+    .search-input:focus {
+        background-color: transparent;
+        outline: none;
+        box-shadow: none;
+        
+    }
+
+    .btn-primary {
+        background-color: #1e3c72;
+        border: none;
+    }
+
+    .btn-primary:hover {
+        background-color: #2a5298;
+        box-shadow: 0 3px 8px rgba(30, 60, 114, 0.2);
+    }
+
+    @media (max-width: 576px) {
+        #stickySearch .container {
+            justify-content: center !important;
+        }
+
+        #stickySearch form {
+            flex-direction: column;
+            width: 100%;
+        }
+
+        .search-input,
+        .btn-primary {
+            width: 100%;
+        }
+
+        .btn-primary {
+            justify-content: center;
+        }
+    }
+
+    @media (max-width: 576px) {
+        #stickySearch .container {
+            justify-content: center !important;
+        }
+
+        #stickySearch form {
+            flex-direction: column;
+            width: 100%;
+            max-width: 100%;
+        }
+
+        #stickySearch input,
+        #stickySearch button {
+            width: 100%;
+        }
+    }
+
+    @media (max-width: 576px) {
+        #stickySearch form {
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        #stickySearch input {
+            max-width: 100%;
+            width: 100%;
+        }
+
+        #stickySearch button {
+            width: 100%;
+        }
+    }
+
+
+@media (max-width: 767.98px) {
+  .sticky-search {
+    top: 60px;
+  }
+}
+
     .glow-text {
         text-shadow: 0 0 6px rgba(255, 255, 255, 0.5);
     }
@@ -228,6 +344,27 @@
         }
 
         type();
+    });
+
+
+
+    let lastScrollTop = 0;
+    const searchBar = document.getElementById("stickySearch");
+
+    window.addEventListener("scroll", function () {
+        const currentScroll = window.pageYOffset || document.documentElement.scrollTop;
+
+        if (currentScroll > lastScrollTop) {
+            // Scroll Down - Hide
+            searchBar.classList.remove("animate__fadeInDown");
+            searchBar.classList.add("animate__fadeOutUp");
+        } else {
+            // Scroll Up - Show
+            searchBar.classList.remove("animate__fadeOutUp");
+            searchBar.classList.add("animate__fadeInDown");
+        }
+
+        lastScrollTop = currentScroll <= 0 ? 0 : currentScroll;
     });
 </script>
 @endpush

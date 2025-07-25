@@ -88,4 +88,12 @@ class ProdukUserController extends Controller
 
         return redirect()->back()->with('success', 'Produk berhasil ditambahkan ke keranjang.');
     }
+
+
+    public function show($id)
+{
+    $produk = Produk::findOrFail($id);
+    return view('user.produk.produk_list', compact('produk'));
+}
+
 }

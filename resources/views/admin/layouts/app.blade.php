@@ -26,6 +26,8 @@
     <link href="{{ asset('materialdesigndashboard/assets/css/slick.min.css') }}" rel="stylesheet">
     <link id="mainCss" href="{{ asset('materialdesigndashboard/assets/css/style.css') }}" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/remixicon@2.5.0/fonts/remixicon.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/remixicon/fonts/remixicon.css" rel="stylesheet">
+
 
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -35,9 +37,7 @@
     @stack('styles')
 
     <style>
-        .* {
-            font-family: "Poppins", sans-serif;
-        }
+        
     </style>
 </head>
 

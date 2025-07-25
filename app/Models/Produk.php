@@ -12,17 +12,24 @@ class Produk extends Model
     protected $fillable = [
         'nama',
         'kategori_id',
-        'deskripsi', // ✅ Tambah ini
+        'deskripsi',
         'harga',
         'stok',
         'gambar',
     ];
-    
 
     public function kategori()
     {
-        return $this->belongsTo(Kategori::class, 'kategori_id');
+        return $this->belongsTo(Kategori::class);
     }
 
-   
+    public function detailTransaksis()
+    {
+        return $this->hasMany(DetailTransaksi::class);
+    }
+
+    public function keranjangs()
+    {
+        return $this->hasMany(Keranjang::class);
+    }
 }

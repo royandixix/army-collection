@@ -5,59 +5,52 @@
 @section('content')
 <div class="container py-5">
 
-   {{-- Header --}}
-<div class="mb-4">
-    <h3 class="fw-bold text-dark animate__animated animate__fadeInDown">
-      <i class="bi bi-shop-window text-primary me-2"></i> Produk Kami
-    </h3>
-    <p class="text-muted fs-6 animate__animated animate__fadeInUp">
-      Jelajahi produk berkualitas dengan harga terbaik!
-    </p>
-  </div>
-  
-  {{-- Search Mini --}}
-  <form action="{{ route('user.produk.index') }}" method="GET"
-      class="d-flex align-items-center mb-4 animate__animated animate__fadeIn">
-      <input type="text" name="search" class="form-control form-control-sm shadow-sm rounded-pill px-3 py-2"
-          placeholder="Cari produk..." value="{{ request('search') }}" style="max-width: 240px;">
-      <button class="btn btn-sm btn-primary ms-2 rounded-pill px-3 py-2  d-flex align-items-center" type="submit">
-          </i> Cari
-      </button>
-  </form>
-  
+    {{-- Header --}}
+    <div class="mb-4">
+        <h3 class="fw-bold text-dark animate__animated animate__fadeInDown">
+            <i class="bi bi-shop-window text-primary me-2"></i> Produk Kami
+        </h3>
+        <p class="text-muted fs-6 animate__animated animate__fadeInUp">
+            Jelajahi produk berkualitas dengan harga terbaik!
+        </p>
+    </div>
+
+
 
     {{-- Produk Grid --}}
     <div class="row g-4">
         @forelse ($produks as $produk)
-            <div class="col-12 col-sm-6 col-md-4 col-lg-3 col-xl-2 d-flex">
-                <div class="card product-card shadow-sm w-100 animate__animated animate__fadeInUp">
-                    <div class="ratio ratio-1x1 position-relative">
-                        <img src="{{ asset('storage/' . $produk->gambar) }}" alt="{{ $produk->nama }}" class="w-100 h-100 object-fit-cover product-image shadow-image" loading="lazy">
-                    </div>
-                    <div class="card-body d-flex flex-column pt-3">
-                        <span class="badge bg-kategori mb-2">{{ $produk->kategori?->name }}</span>
-                        <h6 class="fw-semibold text-truncate mb-1" title="{{ $produk->nama }}">{{ $produk->nama }}</h6>
-                        <p class="text-success  mb-3 fs-5">Rp {{ number_format($produk->harga, 0, ',', '.') }}</p>
-                        <a href="{{ url('/user/produk/' . $produk->id) }}" class="btn btn-outline-gradient w-100 mb-3">
-                            <i class="bi bi-eye"></i> Lihat Detail
-                        </a>
-                        <form action="{{ url('/user/keranjang') }}" method="POST" class="mt-auto">
-                            @csrf
-                            <input type="hidden" name="produk_id" value="{{ $produk->id }}">
-                            <button class="btn btn-gradient w-100" type="submit">
-                                <i class="bi bi-cart-plus"></i> Tambah
-                            </button>
-                        </form>
-                    </div>
+        <div class="col-12 col-sm-6 col-md-4 col-lg-3 col-xl-2 d-flex">
+            <div class="card product-card shadow-sm w-100 animate__animated animate__fadeInUp">
+                <div class="ratio ratio-1x1 position-relative">
+                    <img src="{{ asset('storage/' . $produk->gambar) }}" alt="{{ $produk->nama }}" class="w-100 h-100 object-fit-cover product-image shadow-image" loading="lazy">
+                </div>
+                <div class="card-body d-flex flex-column pt-3">
+                    <span class="badge bg-kategori mb-2">{{ $produk->kategori?->name }}</span>
+                    <h6 class="fw-semibold text-truncate mb-1" title="{{ $produk->nama }}">{{ $produk->nama }}</h6>
+                    <p class="text-success mb-3 fs-5">Rp {{ number_format($produk->harga, 0, ',', '.') }}</p>
+
+                    <a href="{{ url('/user/produk/' . $produk->id) }}" class="btn btn-outline-gradient btn-sm w-100 mb-2 d-flex align-items-center justify-content-start gap-2">
+                        <i class="bi bi-eye fs-6"></i> <span>Lihat</span>
+                    </a>
+
+                    {{-- Tombol Tambah ke Keranjang --}}
+                    <form action="{{ url('/user/keranjang') }}" method="POST" class="mt-auto">
+                        @csrf
+                        <input type="hidden" name="produk_id" value="{{ $produk->id }}">
+                        <button type="submit" class="btn btn-outline-gradient btn-sm w-100 d-flex align-items-center justify-content-start gap-2">
+                            <i class="bi bi-cart-plus fs-6"></i> <span>Tambah</span>
+                        </button>
+                    </form>
                 </div>
             </div>
+        </div>
         @empty
-            <div class="text-center py-5 w-100 text-muted animate__animated animate__fadeIn">
-                <i class="bi bi-box-seam fs-1 mb-3 d-block"></i> Produk tidak ditemukan
-            </div>
+        <div class="text-center py-5 w-100 text-muted animate__animated animate__fadeIn">
+            <i class="bi bi-box-seam fs-1 mb-3 d-block"></i> Produk tidak ditemukan
+        </div>
         @endforelse
     </div>
-
 </div>
 @endsection
 
@@ -101,7 +94,7 @@
     }
 
     .badge.bg-kategori {
-        background: linear-gradient(45deg, #a8dadc, #457b9d);
+        background: linear-gradient(45deg, #556836, #457b9d);
         color: #fff;
         font-size: 0.8rem;
         padding: 0.35rem 0.75rem;
@@ -112,8 +105,8 @@
     }
 
     .btn-gradient {
-        background: linear-gradient(90deg, #0f2027, #203a43, #2c5364);
-        color: #fff;
+        background: linear-gradient(90deg, #ffffff, #ffffff, #fbfbfb);
+        color: #000000;
         border: none;
         font-weight: 600;
         transition: filter 0.3s ease;
@@ -122,7 +115,7 @@
 
     .btn-gradient:hover {
         filter: brightness(1.15);
-        color: #fff;
+        color: #000000;
     }
 
     .btn-outline-gradient {
@@ -136,6 +129,29 @@
         background-color: #2c5364;
         color: #fff;
     }
+
+
+    .btn-sm {
+        padding: 0.4rem 0.75rem;
+        font-size: 0.85rem;
+        border-radius: 0.5rem;
+    }
+
+    .btn-gradient.btn-sm,
+    .btn-outline-gradient.btn-sm {
+        font-weight: 500;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+    }
+
+    .btn-gradient.btn-sm:hover {
+        filter: brightness(1.1);
+    }
+
+    .btn-outline-gradient.btn-sm:hover {
+        background-color: #2c5364;
+        color: #fff;
+    }
+
 
     /* Responsive tweaks for product cards */
     @media (max-width: 1399.98px) {
@@ -174,29 +190,34 @@
     }
 
     form input::placeholder {
-  font-size: 0.9rem;
-  color: #999;
+        font-size: 0.9rem;
+        color: #999;
+    }
+
+    form input:focus {
+        box-shadow: none;
+        border-color: #0d6efd;
+    }
+
+    form .btn-primary {
+        background: linear-gradient(135deg, #0d6efd, #3f83f8);
+        border: none;
+        transition: all 0.2s ease;
+    }
+
+    form .btn-primary:hover {
+        background: #0b5ed7;
+        box-shadow: 0 3px 10px rgba(0, 123, 255, 0.25);
+    }
+
+
+    /* Tambahan efek sticky untuk pencarian */
+    .position-sticky {
+   
 }
 
-form input:focus {
-  box-shadow: none;
-  border-color: #0d6efd;
-}
-
-form .btn-primary {
-  background: linear-gradient(135deg, #0d6efd, #3f83f8);
-  border: none;
-  transition: all 0.2s ease;
-}
-
-form .btn-primary:hover {
-  background: #0b5ed7;
-  box-shadow: 0 3px 10px rgba(0, 123, 255, 0.25);
-}
 
 
-
-    
 </style>
 @endpush
 
@@ -206,29 +227,31 @@ form .btn-primary:hover {
     document.addEventListener('DOMContentLoaded', () => {
         @if(session('success'))
         Swal.fire({
-            iconHtml: '<i class="bi bi-cart-check-fill fs-2 text-success"></i>',
-            title: 'Berhasil!',
-            text: '{{ session('success') }}',
-            position: 'center',
-            showConfirmButton: false,
-            timer: 2200,
-            timerProgressBar: true,
-            background: '#ffffff',
-            color: '#333',
-            customClass: {
-                popup: 'rounded-4 shadow px-4 py-3 animate__animated animate__fadeInDown',
-                title: 'fw-bold text-success mb-2',
-                htmlContainer: 'text-dark fs-6'
-            },
-            hideClass: {
+            iconHtml: '<i class="bi bi-cart-check-fill fs-2 text-success"></i>'
+            , title: 'Berhasil!'
+            , text: '{{ session('
+            success ') }}'
+            , position: 'center'
+            , showConfirmButton: false
+            , timer: 2200
+            , timerProgressBar: true
+            , background: '#ffffff'
+            , color: '#333'
+            , customClass: {
+                popup: 'rounded-4 shadow px-4 py-3 animate__animated animate__fadeInDown'
+                , title: 'fw-bold text-success mb-2'
+                , htmlContainer: 'text-dark fs-6'
+            }
+            , hideClass: {
                 popup: 'animate__animated animate__fadeOutUp'
-            },
-            didOpen: (popup) => {
+            }
+            , didOpen: (popup) => {
                 popup.addEventListener('mouseenter', Swal.stopTimer);
                 popup.addEventListener('mouseleave', Swal.resumeTimer);
             }
         });
         @endif
     });
+
 </script>
 @endpush

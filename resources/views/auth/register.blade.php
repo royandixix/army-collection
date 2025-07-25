@@ -67,7 +67,7 @@
 <body class="bg-gray-100">
     <section class="flex flex-col md:flex-row min-h-screen">
         <!-- Gambar -->
-        <div class="w-full md:w-1/2 h-64 md:h-auto bg-cover bg-center relative" style="background-image: url('/img/Blog-post.jpg');">
+        <div class="w-full md:w-1/2 h-64 md:h-auto bg-cover bg-center relative" style="background-image: url('/img/pexels-chaikong2511-104764.jpg');">
             <div class="absolute inset-0 bg-gradient-to-br from-black/70 via-gray-900/70 to-black/60 flex flex-col items-center justify-center text-center px-6 py-10 md:py-16 space-y-4">
                 <h1 class="text-white text-3xl md:text-5xl font-extrabold tracking-wide drop-shadow-md fade-in">Army Collection</h1>
                 <p class="text-gray-200 text-sm md:text-lg max-w-md leading-relaxed fade-in">
@@ -97,6 +97,12 @@
                         <label class="block text-sm font-medium text-gray-700">Email</label>
                         <input type="email" name="email" value="{{ old('email') }}" required class="mt-1 w-full px-4 py-2 border border-gray-300 rounded-lg bg-gray-100 glow-focus" />
                     </div>
+
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700">Nomor Telepon</label>
+                        <input type="text" name="no_hp" value="{{ old('no_hp') }}" required class="mt-1 w-full px-4 py-2 border border-gray-300 rounded-lg bg-gray-100 glow-focus" />
+                    </div>
+                    
 
                     <div>
                         <label class="block text-sm font-medium text-gray-700">Password</label>

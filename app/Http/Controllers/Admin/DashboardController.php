@@ -2,16 +2,18 @@
 
 namespace App\Http\Controllers\Admin;
 
-use App\Models\penjualan;
+use App\Models\Penjualan; // ← huruf P besar! (bukan penjualan)
 use App\Http\Controllers\Controller;
-use Dom\Comment;
 use Illuminate\Http\Request;
+
 
 class DashboardController extends Controller
 {
     public function index()
     {
-        $penjualans = penjualan::with('penjualan')->latest()->get();
-        return view('admin.dashboard',compact('penjualans'));
+        // Ambil data penjualan lengkap dengan relasi pelanggan & user
+        $penjualans = Penjualan::with(['pelanggan', 'user'])->latest()->get();
+
+        return view('admin.dashboard', compact('penjualans'));
     }
 }

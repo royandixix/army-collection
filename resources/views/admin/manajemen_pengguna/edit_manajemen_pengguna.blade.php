@@ -46,7 +46,7 @@
                         </div>
 
                         <!-- Status -->
-                        <div class="row mb-4">
+                        <div class="row mb-3">
                             <label for="status" class="col-sm-2 col-form-label fw-semibold text-end">Status</label>
                             <div class="col-sm-10">
                                 <select name="status" id="status" class="form-select">
@@ -56,19 +56,34 @@
                             </div>
                         </div>
 
+                        <!-- Nomor Telepon -->
+                        <div class="row mb-3">
+                            <label for="no_hp" class="col-sm-2 col-form-label fw-semibold text-end">Nomor Telepon</label>
+                            <div class="col-sm-10">
+                                <input type="text" name="no_hp" id="no_hp" class="form-control" value="{{ old('no_hp', $user->no_hp) }}" placeholder="Contoh: 08123456789">
+                            </div>
+                        </div>
+
+                        <!-- Alamat -->
+                        <div class="row mb-4">
+                            <label for="alamat" class="col-sm-2 col-form-label fw-semibold text-end">Alamat</label>
+                            <div class="col-sm-10">
+                                <textarea name="alamat" id="alamat" class="form-control" rows="3" placeholder="Alamat lengkap">{{ old('alamat', $user->alamat) }}</textarea>
+                            </div>
+                        </div>
+
                         <!-- Tombol Aksi -->
                         <div class="d-flex justify-content-between mt-4">
-
                             <div class="text-end">
                                 <button type="button" id="btn-submit-confirm" class="btn btn-outline-primary rounded-2 d-inline-flex align-items-center gap-2">
                                     <i class="ri-save-line"></i> Simpan Produk
                                 </button>
                             </div>
-
                             <a href="{{ route('admin.manajemen.manajemen_pengguna') }}" class="btn btn-outline-secondary">
                                 <i class="ri-arrow-go-back-line"></i> Kembali
                             </a>
                         </div>
+
                     </form>
                 </div>
             </div>
