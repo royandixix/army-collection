@@ -76,7 +76,7 @@
                 </li>
 
                 <!-- Logout Menu Item -->
-                <li class="cx-sb-item">
+                {{-- <li class="cx-sb-item">
                     <a href="javascript:void(0)" onclick="confirmLogout()" class="cx-drop-toggle text-red-500 hover:text-red-600 transition-all">
                         <i class="ri-logout-box-r-line text-xl"></i>
                         <span class="condense ml-2">Logout</span>
@@ -86,7 +86,7 @@
                     <form id="logout-form" action="{{ route('logout') }}" method="POST" style="display: none;">
                         @csrf
                     </form>
-                </li>
+                </li> --}}
             </ul>
         </div>
     </div>

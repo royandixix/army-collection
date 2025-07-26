@@ -39,6 +39,10 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'role:admin'])->grou
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
     Route::get('/search', [SearchController::class, 'index'])->name('search');
     Route::get('/search/live', [SearchController::class, 'liveSearch'])->name('search.live');
+    Route::get('/laporan/{id}/pdf', [App\Http\Controllers\Admin\LaporanController::class, 'cetakPdf'])->name('laporan.faktur_pdf');
+    Route::get('/admin/laporan/{id}/pdf', [App\Http\Controllers\Admin\LaporanController::class, 'cetakPdf'])->name('admin.laporan.faktur_pdf');
+
+
 
 
 
@@ -77,6 +81,8 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'role:admin'])->grou
 
     // 📄 Laporan
     Route::get('/laporan/faktur', [LaporanController::class, 'index'])->name('laporan.faktur_laporan');
+    Route::get('/admin/laporan/faktur/{id}', [LaporanController::class, 'show'])->name('admin.laporan.faktur_laporan_show');
+
     Route::get('/laporan/faktur/{id}', [LaporanController::class, 'show'])->name('laporan.faktur_laporan_show');
 });
 

@@ -8,62 +8,97 @@
         <i class="bi bi-receipt-cutoff fs-4"></i> Riwayat Transaksi
     </h4>
 
-    @if($riwayats->isEmpty())
-        <div class="alert alert-info text-center animate__animated animate__fadeIn">
-            <i class="bi bi-info-circle fs-4"></i><br>
-            Belum ada riwayat transaksi.
-        </div>
+    @if($transaksis->isEmpty())
+    <div class="alert alert-info text-center animate__animated animate__fadeIn">
+        <i class="bi bi-info-circle fs-4"></i><br>
+        Belum ada riwayat transaksi.
+    </div>
     @else
-        {{-- Search Input --}}
-        <div class="row mb-4 animate__animated animate__fadeInLeft animate__delay-1s">
-            <div class="col-md-6">
-                <input type="text" id="searchInput" class="form-control shadow-sm rounded-3" placeholder="Cari tanggal / status transaksi...">
-            </div>
+    <div class="row mb-4 animate__animated animate__fadeInLeft animate__delay-1s">
+        <div class="col-md-6">
+            <input type="text" id="searchInput" class="form-control shadow-sm rounded-3" placeholder="Cari tanggal / status transaksi...">
         </div>
+    </div>
 
-        {{-- Riwayat Cards --}}
-        <div class="row gy-3" id="riwayatContainer">
-            @foreach($riwayats as $i => $riwayat)
-                <div class="col-md-6 animate__animated animate__fadeInUp animate__delay-2s riwayat-item" data-tanggal="{{ strtolower(\Carbon\Carbon::parse($riwayat->tanggal)->translatedFormat('d F Y')) }}" data-status="{{ strtolower($riwayat->status) }}">
-                    <div class="card shadow-sm border-0 rounded-4 h-100">
-                        <div class="card-body">
-                            <div class="d-flex justify-content-between align-items-center mb-2">
-                                <h6 class="fw-bold mb-0">
-                                    <i class="bi bi-calendar-check me-1 text-success"></i> {{ \Carbon\Carbon::parse($riwayat->tanggal)->translatedFormat('d F Y') }}
-                                </h6>
-                                <span class="badge rounded-pill status-badge
-                                    @if($riwayat->status == 'selesai') bg-success
-                                    @elseif($riwayat->status == 'diproses') bg-warning text-dark
-                                    @elseif($riwayat->status == 'batal') bg-danger
-                                    @else bg-secondary
-                                    @endif
-                                ">
-                                    <i class="bi 
-                                        @if($riwayat->status == 'selesai') bi-check-circle-fill
-                                        @elseif($riwayat->status == 'diproses') bi-hourglass-split
-                                        @elseif($riwayat->status == 'batal') bi-x-circle-fill
-                                        @else bi-info-circle
-                                        @endif
-                                    me-1"></i> {{ ucfirst($riwayat->status) }}
-                                </span>
+    <div class="row gy-3" id="riwayatContainer">
+        @foreach($transaksis as $transaksi)
+        <div class="col-md-6 animate__animated animate__fadeInUp animate__delay-2s riwayat-item"
+             data-tanggal="{{ optional($transaksi->penjualan)->tanggal ? strtolower(\Carbon\Carbon::parse($transaksi->penjualan->tanggal)->translatedFormat('d F Y')) : 'tidak diketahui' }}"
+             data-status="{{ optional($transaksi->penjualan)->status ? strtolower($transaksi->penjualan->status) : 'tidak diketahui' }}">
+            <div class="card shadow-sm border-0 rounded-4 h-100">
+                <div class="card-body">
+
+                    {{-- Tanggal & Status --}}
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        @if($transaksi->penjualan)
+                        <h6 class="fw-bold mb-0">
+                            <i class="bi bi-calendar-check me-1 text-success"></i>
+                            {{ \Carbon\Carbon::parse($transaksi->penjualan->tanggal)->translatedFormat('l, d F Y H:i') }}
+                        </h6>
+                        <span class="badge rounded-pill status-badge
+                            @if($transaksi->penjualan->status == 'selesai') bg-success
+                            @elseif($transaksi->penjualan->status == 'diproses') bg-warning text-dark
+                            @elseif($transaksi->penjualan->status == 'batal') bg-danger
+                            @else bg-secondary
+                            @endif">
+                            <i class="bi 
+                                @if($transaksi->penjualan->status == 'selesai') bi-check-circle-fill
+                                @elseif($transaksi->penjualan->status == 'diproses') bi-hourglass-split
+                                @elseif($transaksi->penjualan->status == 'batal') bi-x-circle-fill
+                                @else bi-info-circle
+                                @endif me-1"></i>
+                            {{ ucfirst($transaksi->penjualan->status) }}
+                        </span>
+                        @else
+                        <h6 class="fw-bold mb-0 text-muted">
+                            <i class="bi bi-exclamation-circle me-1"></i> Data penjualan tidak tersedia
+                        </h6>
+                        @endif
+                    </div>
+
+                    {{-- Daftar Produk --}}
+                    @foreach($transaksi->detailTransaksi as $item)
+                    <div class="border-bottom py-2">
+                        <div class="d-flex justify-content-between">
+                            <div>
+                                <strong>{{ $item->produk->nama ?? '-' }}</strong><br>
+                                <small class="text-muted">x{{ $item->jumlah }} @ Rp {{ number_format($item->harga, 0, ',', '.') }}</small>
                             </div>
-                            <div class="d-flex justify-content-between align-items-center mt-3">
-                                <span class="text-muted">Total Pembayaran</span>
-                                <h5 class="mb-0 text-primary">Rp {{ number_format($riwayat->total, 0, ',', '.') }}</h5>
+                            <div class="text-primary fw-semibold">
+                                Rp {{ number_format($item->jumlah * $item->harga, 0, ',', '.') }}
                             </div>
                         </div>
                     </div>
+                    @endforeach
+
+                    {{-- Info Tambahan --}}
+                    <div class="mt-3">
+                        <div class="small text-muted">Alamat Pengiriman:</div>
+                        <div class="mb-2">{{ $transaksi->alamat ?? '-' }}</div>
+
+                        <div class="small text-muted">Metode Pembayaran:</div>
+                        <div class="mb-2 text-uppercase">{{ $transaksi->metode ?? '-' }}</div>
+
+                        <div class="d-flex justify-content-between align-items-center mt-2">
+                            <span class="text-muted fw-medium">Total Pembayaran</span>
+                            <h5 class="mb-0 text-primary">
+                                Rp {{ $transaksi->penjualan ? number_format($transaksi->penjualan->total, 0, ',', '.') : '-' }}
+                            </h5>
+                        </div>
+                    </div>
+
                 </div>
-            @endforeach
+            </div>
         </div>
+        @endforeach
+    </div>
     @endif
 </div>
+
 @endsection
 
 @push('style')
-<!-- Animate.css -->
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
-
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css" />
 <style>
     .status-badge {
         font-size: 0.85rem;
@@ -73,7 +108,7 @@
 
     .status-badge:hover {
         transform: scale(1.05);
-        box-shadow: 0 3px 10px rgba(0,0,0,0.1);
+        box-shadow: 0 3px 10px rgba(0, 0, 0, 0.1);
     }
 
     .card {
@@ -82,7 +117,7 @@
 
     .card:hover {
         transform: translateY(-4px);
-        box-shadow: 0 8px 16px rgba(0,0,0,0.1);
+        box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
     }
 
     #searchInput {
@@ -100,7 +135,6 @@
 
         searchInput.addEventListener('keyup', function () {
             const filter = this.value.toLowerCase();
-
             items.forEach(item => {
                 const tanggal = item.getAttribute('data-tanggal');
                 const status = item.getAttribute('data-status');

@@ -3,8 +3,8 @@
 namespace App\Http\Controllers\user;
 
 use App\Http\Controllers\Controller;
-use Illuminate\Support\Facades\Auth;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use App\Models\Keranjang;
 use App\Models\Transaksi;
 use App\Models\DetailTransaksi;
@@ -13,52 +13,73 @@ use App\Models\Penjualan;
 
 class CheckoutController extends Controller
 {
+    /**
+     * Tampilkan halaman checkout.
+     */
     public function index()
     {
         $keranjangs = Keranjang::where('user_id', Auth::id())->with('produk')->get();
-
         return view('user.checkout.checkout', compact('keranjangs'));
     }
 
+    /**
+     * Proses checkout dengan validasi dan penyimpanan.
+     */
     public function proses(Request $request)
     {
+        // ✅ Validasi input
         $request->validate([
-            'alamat' => 'required|string',
+            'alamat' => 'required|string|min:5|max:255',
             'metode' => 'required|in:cod,transfer,qris',
+        ], [
+            'alamat.required' => 'Alamat pengiriman wajib diisi.',
+            'alamat.min' => 'Alamat terlalu pendek.',
+            'metode.required' => 'Pilih metode pembayaran.',
+            'metode.in' => 'Metode tidak valid.',
         ]);
 
-        $keranjangs = Keranjang::where('user_id', Auth::id())->with('produk')->get();
+        $user = Auth::user();
+
+        // ✅ Ambil isi keranjang
+        $keranjangs = Keranjang::where('user_id', $user->id)->with('produk')->get();
 
         if ($keranjangs->isEmpty()) {
             return redirect()->route('user.checkout.index')->with('error', 'Keranjang kosong.');
         }
 
-        $user = Auth::user();
-
-        // ✅ Update atau buat data pelanggan saat checkout
+        // ✅ Simpan atau update data pelanggan
         $pelanggan = Pelanggan::updateOrCreate(
             ['user_id' => $user->id],
             [
                 'nama'   => $user->username ?? $user->name ?? 'Pengguna',
-                'email'  => $user->email,
+                'email'  => $user->email ?? '-',
                 'alamat' => $request->alamat,
-                'no_hp'  => $user->no_hp,
+                'no_hp'  => $user->no_hp ?? '-',
             ]
         );
 
-        $total = 0;
+        // ✅ Hitung total belanja
+        $total = $keranjangs->sum(function ($item) {
+            return $item->produk->harga * $item->jumlah;
+        });
 
-        foreach ($keranjangs as $item) {
-            $total += $item->produk->harga * $item->jumlah;
-        }
+        // ✅ Simpan data penjualan
+        $penjualan = Penjualan::create([
+            'user_id'      => $user->id,
+            'pelanggan_id' => $pelanggan->id,
+            'tanggal'      => now(),
+            'total'        => $total,
+            'status'       => 'pending',
+        ]);
 
         // ✅ Simpan transaksi
         $transaksi = Transaksi::create([
-            'user_id' => $user->id,
-            'alamat'  => $request->alamat,
-            'metode'  => $request->metode,
-            'total'   => $total,
-            'status'  => 'pending',
+            'penjualan_id' => $penjualan->id,
+            'user_id'      => $user->id,
+            'alamat'       => $request->alamat,
+            'metode'       => $request->metode,
+            'total'        => $total,
+            'status'       => 'pending',
         ]);
 
         // ✅ Simpan detail transaksi
@@ -71,18 +92,9 @@ class CheckoutController extends Controller
             ]);
         }
 
-        // ✅ Simpan juga ke tabel penjualans
-        Penjualan::create([
-            'user_id'      => $user->id,
-            'pelanggan_id' => $pelanggan->id,
-            'tanggal'      => now(),
-            'total'        => $total,
-            'status'       => 'pending',
-        ]);
-
-        // ✅ Kosongkan keranjang
+        // ✅ Kosongkan keranjang setelah checkout
         Keranjang::where('user_id', $user->id)->delete();
 
-        return redirect()->route('user.riwayat.index')->with('success', 'Checkout berhasil.');
+        return redirect()->route('user.riwayat.index')->with('success', 'Checkout berhasil!');
     }
 }

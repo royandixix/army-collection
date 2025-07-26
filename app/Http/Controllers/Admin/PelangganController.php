@@ -15,15 +15,15 @@ class PelangganController extends Controller
      * Tampilkan daftar pelanggan.
      */
     public function index()
-{
-    $pelanggans = User::with(['pelanggan', 'transaksis'])
-        ->where('role', 'user')         // ✅ hanya user biasa
-        ->whereHas('pelanggan')         // ✅ pastikan ada relasi pelanggan
-        ->withCount('transaksis')
-        ->get();
+    {
+        $pelanggans = User::with(['pelanggan', 'transaksis'])
+            ->where('role', 'user')         // ✅ hanya user biasa
+            ->whereHas('pelanggan')         // ✅ pastikan ada relasi pelanggan
+            ->withCount('transaksis')
+            ->get();
 
-    return view('admin.manajemen_pelanggan.manajemen_pelanggan', compact('pelanggans'));
-}
+        return view('admin.manajemen_pelanggan.manajemen_pelanggan', compact('pelanggans'));
+    }
 
 
     /**

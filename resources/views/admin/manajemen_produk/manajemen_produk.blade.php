@@ -30,6 +30,10 @@
         </div>
     </div>
 
+    <div class="uas">
+        <p><span style="list-style: none">masuk ke dalama uas</span></p>
+    </div>
+
     <div class="mb-4 ms-3">
         <h5>Manajemen Produk</h5>
     </div>

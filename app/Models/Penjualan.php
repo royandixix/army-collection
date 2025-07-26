@@ -29,4 +29,10 @@ class Penjualan extends Model
     {
         return $this->belongsTo(User::class);
     }
+
+    public function transaksi()
+    {
+        return $this->hasOne(Transaksi::class, 'penjualan_id');
+    }
+    
 }

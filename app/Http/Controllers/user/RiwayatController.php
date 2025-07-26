@@ -1,22 +1,21 @@
 <?php
 
-
 namespace App\Http\Controllers\user;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Auth;
-use App\Models\Penjualan;
+use App\Models\Transaksi;
 
 class RiwayatController extends Controller
 {
     public function index()
     {
-        $userId = Auth::id();
-
-        $riwayats = Penjualan::where('user_id', $userId)
-            ->orderBy('tanggal', 'desc')
+        // Ambil semua transaksi user beserta detail produk dan penjualan
+        $transaksis = Transaksi::with(['detailTransaksi.produk', 'penjualan'])
+            ->where('user_id', Auth::id())
+            ->latest()
             ->get();
 
-        return view('user.riwayat.riwayat', compact('riwayats'));
+        return view('user.riwayat.riwayat', compact('transaksis'));
     }
 }

@@ -34,7 +34,7 @@
                             $subtotal = $item->produk->harga * $item->jumlah;
                             $total += $subtotal;
                         @endphp
-                        <tr class="animate__animated animate__fadeInUp animate__faster">
+                        <tr>
                             <td class="d-flex align-items-center gap-3">
                                 <img src="{{ asset('storage/' . $item->produk->gambar) }}" alt="{{ $item->produk->nama }}" class="rounded shadow-sm" style="width: 60px; height: 60px; object-fit: cover;">
                                 <div>
@@ -59,9 +59,9 @@
             </table>
         </div>
 
-        <div class="card shadow border-0 rounded-4 animate__animated animate__zoomIn animate__delay-2s">
+        <div class="card shadow border-0 rounded-4">
             <div class="card-body bg-white">
-                <form action="{{ route('user.checkout.proses') }}" method="POST">
+                <form id="checkoutForm" action="{{ route('user.checkout.proses') }}" method="POST">
                     @csrf
                     <div class="mb-3">
                         <label for="alamat" class="form-label">Alamat Pengiriman</label>
@@ -82,18 +82,14 @@
                     <div id="qrisContainer" class="mb-4" style="display: none;">
                         <label class="form-label">Scan QRIS</label>
                         <div class="text-center">
-                            <img src="{{ asset('images/qiris/qiris.jpeg') }}"
-                                 alt="QRIS"
-                                 onerror="this.onerror=null;this.src='https://via.placeholder.com/250x250.png?text=QRIS';"
-                                 class="img-fluid rounded shadow" style="max-width: 250px;">
+                            <img src="{{ asset('images/qiris/qiris.jpeg') }}" alt="QRIS" class="img-fluid rounded shadow" style="max-width: 250px;"
+                                onerror="this.onerror=null;this.src='https://via.placeholder.com/250x250.png?text=QRIS';">
                             <p class="text-muted mt-2 small">Scan menggunakan e-wallet atau m-banking Anda.</p>
                         </div>
                     </div>
 
                     <div class="text-end mt-4">
-                        <button type="submit" class="btn checkout-btn">
-                            Proses Checkout
-                        </button>
+                        <button type="submit" class="btn checkout-btn">Proses Checkout</button>
                     </div>
                 </form>
             </div>
@@ -101,13 +97,13 @@
     @endif
 </div>
 @endsection
+
 @push('style')
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
 <style>
     .table th, .table td {
         vertical-align: middle !important;
     }
-
     .checkout-btn {
         background-color: #4e54c8;
         color: white;
@@ -118,33 +114,27 @@
         border: none;
         transition: 0.3s ease;
     }
-
     .checkout-btn:hover {
         background-color: #3b40a4;
         box-shadow: 0 6px 16px rgba(78, 84, 200, 0.2);
     }
-
     .custom-input {
         border-radius: 8px;
-        transition: all 0.2s ease-in-out;
         font-size: 14px;
+        transition: all 0.2s ease-in-out;
     }
-
     .custom-input:focus {
         border-color: #4e54c8;
         box-shadow: 0 0 0 0.2rem rgba(142, 148, 251, 0.25);
     }
-
     textarea::placeholder {
         color: #adb5bd;
         font-style: italic;
     }
-
     @media (max-width: 576px) {
         .checkout-btn {
             width: 100%;
         }
-
         .table td {
             font-size: 13px;
         }
@@ -153,15 +143,17 @@
 @endpush
 
 @push('scripts')
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>
     function toggleQRIS() {
         const metode = document.getElementById('metode').value;
         document.getElementById('qrisContainer').style.display = metode === 'qris' ? 'block' : 'none';
     }
 
-    document.addEventListener('DOMContentLoaded', () => {
+    document.addEventListener('DOMContentLoaded', function () {
         toggleQRIS();
 
+        // Geolokasi otomatis
         if (navigator.geolocation) {
             navigator.geolocation.getCurrentPosition(function(position) {
                 const lat = position.coords.latitude;
@@ -173,16 +165,42 @@
                         if (data && data.display_name) {
                             document.getElementById('alamat').value = data.display_name;
                         }
-                    })
-                    .catch(error => {
-                        console.error('Gagal mengambil alamat otomatis:', error);
                     });
             }, function(error) {
-                console.warn('Izin lokasi ditolak atau error:', error);
+                console.warn('Lokasi ditolak atau error:', error);
             });
-        } else {
-            console.warn('Browser tidak mendukung geolokasi.');
         }
+
+        // ✅ SweetAlert ketika proses checkout ditekan
+        const form = document.getElementById('checkoutForm');
+        form.addEventListener('submit', function(e) {
+            e.preventDefault();
+
+            Swal.fire({
+                title: 'Memproses...',
+                text: 'Mohon tunggu sebentar.',
+                icon: 'info',
+                allowOutsideClick: false,
+                showConfirmButton: false,
+                didOpen: () => {
+                    Swal.showLoading();
+                    setTimeout(() => {
+                        form.submit();
+                    }, 1200);
+                }
+            });
+        });
+
+        // ✅ SweetAlert jika checkout berhasil (dari session)
+        @if(session('success'))
+        Swal.fire({
+            icon: 'success',
+            title: 'Berhasil!',
+            text: '{{ session('success') }}',
+            timer: 3000,
+            showConfirmButton: false
+        });
+        @endif
     });
 </script>
 @endpush
