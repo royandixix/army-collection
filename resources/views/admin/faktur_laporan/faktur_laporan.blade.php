@@ -9,8 +9,12 @@
     </div>
 
     <div class="cx-card card-default">
-        <div class="cx-card-header">
+        <div class="cx-card-header d-flex justify-content-between align-items-center">
             <h5 class="mb-0">Data Penjualan</h5>
+            <a href="{{ route('admin.faktur_laporan.semua_pdf') }}" class="btn btn-outline-danger" target="_blank">
+                <i class="ri-file-pdf-line"></i> Cetak Semua PDF
+            </a>
+            
         </div>
 
         <div class="cx-card-content card-default">
@@ -28,7 +32,7 @@
                             <th>Status</th>
                             <th>Jenis</th>
                             <th>Metode Pembayaran</th>
-                            <th>Cetak</th>
+                            {{-- <th>Cetak</th>  <!-- Kolom tombol per baris dihapus --> --}}
                         </tr>
                     </thead>
                     <tbody>
@@ -74,16 +78,11 @@
                                     <span class="badge bg-secondary">Belum ada Transaksi</span>
                                 @endif
                             </td>
-                            
-                            <td>
-                                <a href="{{ route('admin.laporan.faktur_pdf', $penjualan->id) }}" class="btn btn-sm btn-danger" target="_blank">
-                                    <i class="ri-file-pdf-line"></i> Cetak PDF
-                                </a>
-                            </td>
+                            {{-- Kolom cetak dihapus --}}
                         </tr>
                         @empty
                         <tr>
-                            <td colspan="11" class="text-center text-muted">Tidak ada data penjualan.</td>
+                            <td colspan="10" class="text-center text-muted">Tidak ada data penjualan.</td>
                         </tr>
                         @endforelse
                     </tbody>
@@ -136,7 +135,6 @@
             }
         });
 
-        // Tampilkan data ke modal
         $('#detailTransaksiModal').on('show.bs.modal', function (event) {
             const button = $(event.relatedTarget);
             $('#modal-nama').text(button.data('nama'));

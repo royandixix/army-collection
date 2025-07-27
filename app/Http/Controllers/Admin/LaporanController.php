@@ -12,15 +12,15 @@ class LaporanController extends Controller
      * Tampilkan halaman laporan penjualan
      */
     public function index()
-{
-    // Ambil semua penjualan dengan relasi lengkap
-    $penjualans = Penjualan::with([
-        'pelanggan.user',
-        'transaksi.detailTransaksi.produk'
-    ])->latest()->get();
+    {
+        // Ambil semua penjualan dengan relasi lengkap
+        $penjualans = Penjualan::with([
+            'pelanggan.user',
+            'transaksi.detailTransaksi.produk'
+        ])->latest()->get();
 
-    return view('admin.faktur_laporan.faktur_laporan', compact('penjualans'));
-}
+        return view('admin.faktur_laporan.faktur_laporan', compact('penjualans'));
+    }
 
 
     /**
@@ -39,16 +39,14 @@ class LaporanController extends Controller
     /**
      * Cetak seluruh faktur PDF
      */
+
     public function cetakSemua()
     {
-        $penjualans = Penjualan::with([
-            'pelanggan.user',
-            'transaksi.detailTransaksi.produk'
-        ])->get();
+        $penjualans = Penjualan::with(['pelanggan.user', 'transaksi.detailTransaksi.produk'])
+            ->latest()
+            ->get();
 
-        $pdf = Pdf::loadView('admin.faktur_laporan.semua_pdf', compact('penjualans'))
-            ->setPaper('a4', 'portrait');
-
-        return $pdf->download('faktur-semua-penjualan.pdf');
+        $pdf = Pdf::loadView('admin.faktur_laporan.pdf_semua', compact('penjualans'));
+        return $pdf->stream('laporan-penjualan-semua.pdf'); // atau ->download(...) jika mau download
     }
 }
