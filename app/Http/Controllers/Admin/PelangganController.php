@@ -17,13 +17,15 @@ class PelangganController extends Controller
     public function index()
     {
         $pelanggans = User::with(['pelanggan', 'transaksis'])
-            ->where('role', 'user')         // ✅ hanya user biasa
-            ->whereHas('pelanggan')         // ✅ pastikan ada relasi pelanggan
-            ->withCount('transaksis')
+            ->where('role', 'user')                  // ✅ hanya role user
+            ->whereHas('pelanggan')                  // ✅ ada relasi pelanggan
+            ->whereHas('transaksis')                 // ✅ hanya jika punya transaksi
+            ->withCount('transaksis')                // ✅ tampilkan jumlah transaksi
             ->get();
-
+    
         return view('admin.manajemen_pelanggan.manajemen_pelanggan', compact('pelanggans'));
     }
+    
 
 
     /**

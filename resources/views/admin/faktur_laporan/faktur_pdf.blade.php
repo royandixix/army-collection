@@ -2,7 +2,7 @@
 <html>
 <head>
     <meta charset="UTF-8">
-    <title>Faktur Penjualan</title>
+    <title>Faktur Semua Penjualan</title>
     <style>
         body {
             font-family: "DejaVu Sans", sans-serif;
@@ -13,9 +13,11 @@
 
         h2.judul {
             text-align: center;
-            margin-bottom: 30px;
+            margin-bottom: 20px;
             text-transform: uppercase;
             letter-spacing: 1px;
+            border-bottom: 2px solid #000;
+            padding-bottom: 5px;
         }
 
         table {
@@ -37,7 +39,7 @@
         .produk-table th,
         .produk-table td {
             border: 1px solid #999;
-            padding: 8px;
+            padding: 6px;
             text-align: left;
         }
 
@@ -55,15 +57,22 @@
         }
 
         .footer {
-            margin-top: 40px;
+            margin-top: 30px;
             text-align: right;
             font-style: italic;
             font-size: 11px;
         }
+
+        .section-break {
+            page-break-after: always;
+            margin-top: 50px;
+        }
     </style>
 </head>
 <body>
-    <h2 class="judul">🧾 Faktur Penjualan</h2>
+
+@foreach($penjualans as $index => $penjualan)
+    <h2 class="judul">🧾 Faktur Penjualan #{{ $penjualan->id }}</h2>
 
     <table class="info-table">
         <tr>
@@ -88,11 +97,11 @@
         </tr>
         <tr>
             <td>Metode Pembayaran:</td>
-            <td>{{ strtoupper($penjualan->transaksi->metode ?? '-') }}</td>
+            <td>{{ strtoupper(optional($penjualan->transaksi)->metode ?? '-') }}</td>
         </tr>
     </table>
 
-    <h4 style="margin-top: 30px;">Detail Produk</h4>
+    <h4 style="margin-top: 20px;">Detail Produk</h4>
     <table class="produk-table">
         <thead>
             <tr>
@@ -104,7 +113,7 @@
             </tr>
         </thead>
         <tbody>
-            @foreach ($penjualan->transaksi->detailTransaksi as $i => $detail)
+            @forelse ($penjualan->transaksi->detailTransaksi as $i => $detail)
                 <tr>
                     <td>{{ $i + 1 }}</td>
                     <td>{{ $detail->produk->nama }}</td>
@@ -112,7 +121,11 @@
                     <td>{{ $detail->jumlah }}</td>
                     <td>Rp {{ number_format($detail->jumlah * $detail->harga, 0, ',', '.') }}</td>
                 </tr>
-            @endforeach
+            @empty
+                <tr>
+                    <td colspan="5" class="text-center">Tidak ada produk.</td>
+                </tr>
+            @endforelse
         </tbody>
         <tfoot>
             <tr>
@@ -125,5 +138,11 @@
     <div class="footer">
         Dicetak pada: {{ now()->format('d-m-Y H:i') }}
     </div>
+
+    @if (!$loop->last)
+    <div class="section-break"></div>
+    @endif
+@endforeach
+
 </body>
 </html>

@@ -17,6 +17,7 @@ class Transaksi extends Model
         'metode',
         'status',
         'total',
+        'penjualan_id',
     ];
 
     public function user()

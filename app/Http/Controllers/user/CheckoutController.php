@@ -72,10 +72,10 @@ class CheckoutController extends Controller
             'status'       => 'pending',
         ]);
 
-        // ✅ Simpan transaksi
+        // ✅ Simpan transaksi dan hubungkan dengan penjualan
         $transaksi = Transaksi::create([
-            'penjualan_id' => $penjualan->id,
             'user_id'      => $user->id,
+            'penjualan_id' => $penjualan->id, // penting agar relasi $penjualan->transaksi tidak null
             'alamat'       => $request->alamat,
             'metode'       => $request->metode,
             'total'        => $total,

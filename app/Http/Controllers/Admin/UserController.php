@@ -6,7 +6,7 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\User;
 use Illuminate\Support\Facades\Auth;
-
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 
 class UserController extends Controller
@@ -15,18 +15,13 @@ class UserController extends Controller
      * Tampilkan daftar semua pengguna.
      */
     public function index()
-{
-    $users = User::with('pelanggan')
-        ->where(function ($query) {
-            $query->where('role', '!=', 'admin')
-                  ->orWhereNull('role');
-        })
-        ->get();
+    {
+        $users = User::with('pelanggan')
+            ->where('role', 'user') // hanya tampilkan user
+            ->get();
 
-    return view('admin.manajemen_pengguna.manajemen_pengguna', compact('users'));
-}
-
-
+        return view('admin.manajemen_pengguna.manajemen_pengguna', compact('users'));
+    }
 
     /**
      * Tampilkan form edit pengguna berdasarkan ID.
@@ -54,13 +49,11 @@ class UserController extends Controller
             'img'      => 'nullable|image|mimes:jpg,jpeg,png|max:2048|dimensions:min_width=100,min_height=100,max_width=3000,max_height=3000',
         ]);
 
-        // Update data user
         $user->username = $validated['username'];
         $user->email    = $validated['email'];
         $user->role     = $validated['role'] ?? null;
         $user->status   = $validated['status'];
 
-        // Upload gambar jika ada
         if ($request->hasFile('img')) {
             $file = $request->file('img');
             $filename = Str::random(40) . '.' . $file->getClientOriginalExtension();
@@ -72,7 +65,6 @@ class UserController extends Controller
 
         $user->save();
 
-        // ✅ Update atau buat relasi pelanggan (no_hp)
         if ($user->pelanggan) {
             $user->pelanggan->no_hp = $validated['no_hp'] ?? null;
             $user->pelanggan->save();
@@ -95,14 +87,19 @@ class UserController extends Controller
     {
         $user = User::with('pelanggan')->findOrFail($id);
 
-        // ✅ Cegah hapus diri sendiri
-        if (Auth::check() && Auth::id() === $user->id) {
+        // Cegah user menghapus dirinya sendiri
+        if (Auth::id() === $user->id) {
             return redirect()->back()->with('error', 'Kamu tidak bisa menghapus akunmu sendiri.');
         }
 
-        // Hapus relasi pelanggan jika ada
+        // Hapus relasi pelanggan
         if ($user->pelanggan) {
             $user->pelanggan->delete();
+        }
+
+        // Hapus gambar profil jika bukan default
+        if ($user->img && $user->img !== 'default.jpg') {
+            Storage::delete('public/profile_images/admin/' . $user->img);
         }
 
         // Hapus user

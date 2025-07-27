@@ -5,12 +5,12 @@
 @section('content')
 <div class="cx-main-content">
     <div class="cx-page-title d-flex justify-content-between align-items-center flex-wrap mb-4">
-        <h4 class="mb-0">📊 Laporan Penjualan & Pelanggan</h4>
+        <h4 class="mb-0">Laporan Penjualan & Pelanggan</h4>
     </div>
 
     <div class="cx-card card-default">
         <div class="cx-card-header">
-            <h5 class="mb-0">📋 Data Penjualan</h5>
+            <h5 class="mb-0">Data Penjualan</h5>
         </div>
 
         <div class="cx-card-content card-default">
@@ -39,42 +39,46 @@
                             <td>{{ optional(optional($penjualan->pelanggan)->user)->email ?? '-' }}</td>
                             <td>{{ optional($penjualan->pelanggan)->no_hp ?? '-' }}</td>
                             <td>{{ optional($penjualan->pelanggan)->alamat ?? '-' }}</td>
-                            <td>{{ \Carbon\Carbon::parse($penjualan->tanggal)->format('d-m-Y') }}</td>
+                            <td>
+                                @php
+                                    \Carbon\Carbon::setLocale('id');
+                                    $waktu = $penjualan->tanggal ?? $penjualan->created_at;
+                                @endphp
+                                <span>{{ \Carbon\Carbon::parse($waktu)->translatedFormat('l, d F Y H:i') }}</span>
+                            </td>
                             <td>Rp {{ number_format($penjualan->total, 0, ',', '.') }}</td>
                             <td>
                                 <span class="badge bg-{{ 
-                                        $penjualan->status == 'lunas' ? 'success' : 
-                                        ($penjualan->status == 'pending' ? 'warning' : 'danger') 
-                                    }}">
+                                    $penjualan->status == 'lunas' ? 'success' : 
+                                    ($penjualan->status == 'pending' ? 'warning' : 'danger') 
+                                }}">
                                     {{ strtoupper($penjualan->status) }}
                                 </span>
                             </td>
                             <td>{{ $penjualan->jenis_transaksi ?? '-' }}</td>
                             <td>
-                                @php
-                                $transaksi = $penjualan->transaksi;
-                                $metode = optional($transaksi)->metode;
-                                @endphp
-
-                                @if ($metode)
-                                <a href="#" class="badge bg-{{ 
-                                            $metode === 'cod' ? 'success' : 
-                                            ($metode === 'transfer' ? 'primary' : 
-                                            ($metode === 'qris' ? 'warning text-dark' : 'secondary')) 
-                                        }} text-decoration-none" data-bs-toggle="modal" data-bs-target="#detailTransaksiModal" data-nama="{{ optional($penjualan->pelanggan)->nama }}" data-metode="{{ strtoupper($metode) }}" data-total="Rp {{ number_format($transaksi->total ?? 0, 0, ',', '.') }}" data-tanggal="{{ optional($transaksi)->created_at?->format('d-m-Y H:i') }}">
-                                    {{ strtoupper($metode) }}
-                                </a>
+                                @if ($penjualan->transaksi?->metode)
+                                    @php
+                                        $metode = $penjualan->transaksi->metode;
+                                        $warna = match ($metode) {
+                                            'cod' => 'success',
+                                            'transfer' => 'primary',
+                                            'qris' => 'warning text-dark',
+                                            default => 'secondary'
+                                        };
+                                    @endphp
+                                    <span class="badge bg-{{ $warna }}">
+                                        {{ strtoupper($metode) }}
+                                    </span>
                                 @else
-                                <span class="badge bg-secondary">-</span>
+                                    <span class="badge bg-secondary">Belum ada Transaksi</span>
                                 @endif
                             </td>
+                            
                             <td>
                                 <a href="{{ route('admin.laporan.faktur_pdf', $penjualan->id) }}" class="btn btn-sm btn-danger" target="_blank">
-
                                     <i class="ri-file-pdf-line"></i> Cetak PDF
                                 </a>
-                                
-                                
                             </td>
                         </tr>
                         @empty
@@ -82,17 +86,14 @@
                             <td colspan="11" class="text-center text-muted">Tidak ada data penjualan.</td>
                         </tr>
                         @endforelse
-
                     </tbody>
-
-
                 </table>
             </div>
         </div>
     </div>
 </div>
 
-<!-- Modal dummy agar tidak error saat klik badge -->
+<!-- Modal detail transaksi -->
 <div class="modal fade" id="detailTransaksiModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog">
         <div class="modal-content">
@@ -120,23 +121,23 @@
 <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
 <script src="https://cdn.datatables.net/1.13.6/js/dataTables.bootstrap5.min.js"></script>
 <script>
-    $(document).ready(function() {
+    $(document).ready(function () {
         $('#laporan-table').DataTable({
-            pageLength: 10
-            , language: {
-                searchPlaceholder: "🔍 Cari..."
-                , zeroRecords: "Data tidak ditemukan"
-                , lengthMenu: "Tampilkan _MENU_ entri"
-                , info: "Menampilkan _START_ - _END_ dari _TOTAL_ data"
-                , paginate: {
-                    previous: "⬅️"
-                    , next: "➡️"
+            pageLength: 10,
+            language: {
+                searchPlaceholder: "🔍 Cari...",
+                zeroRecords: "Data tidak ditemukan",
+                lengthMenu: "Tampilkan _MENU_ entri",
+                info: "Menampilkan _START_ - _END_ dari _TOTAL_ data",
+                paginate: {
+                    previous: "⬅️",
+                    next: "➡️"
                 }
             }
         });
 
-        // Handler untuk modal detail transaksi
-        $('#detailTransaksiModal').on('show.bs.modal', function(event) {
+        // Tampilkan data ke modal
+        $('#detailTransaksiModal').on('show.bs.modal', function (event) {
             const button = $(event.relatedTarget);
             $('#modal-nama').text(button.data('nama'));
             $('#modal-metode').text(button.data('metode'));
@@ -144,6 +145,5 @@
             $('#modal-tanggal').text(button.data('tanggal'));
         });
     });
-
 </script>
 @endpush

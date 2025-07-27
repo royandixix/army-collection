@@ -46,30 +46,41 @@
                                 <td>{{ $pelanggan->transaksis_count }} transaksi</td>
                                 <td>
                                     @php
-                                    $transaksi = $pelanggan->transaksis->first();
-                                    $metode = optional($transaksi)->metode;
+                                        // Ambil transaksi terbaru berdasarkan created_at
+                                        $transaksi = $pelanggan->transaksis->sortByDesc('created_at')->first();
+                                        $metode = optional($transaksi)->metode;
+                                        $total  = optional($transaksi)->total;
+                                        $tanggal = optional($transaksi)->created_at;
                                     @endphp
-                                    
-
+                        
                                     @if ($metode)
-                                    <a href="#" class="badge bg-{{ 
-                                               $metode === 'cod' ? 'success' : 
-                                               ($metode === 'transfer' ? 'primary' : 
-                                               ($metode === 'qris' ? 'warning text-dark' : 'secondary')) 
-                                           }} text-decoration-none" data-bs-toggle="modal" data-bs-target="#detailTransaksiModal" data-nama="{{ $pelanggan->username }}" data-metode="{{ strtoupper($metode) }}" data-total="Rp {{ number_format($transaksi->total ?? 0, 0, ',', '.') }}" data-tanggal="{{ $transaksi->created_at->format('d-m-Y H:i') }}">
+                                    <a href="#" 
+                                       class="badge bg-{{ 
+                                           $metode === 'cod' ? 'success' : 
+                                           ($metode === 'transfer' ? 'primary' : 
+                                           ($metode === 'qris' ? 'warning text-dark' : 'secondary')) 
+                                       }} text-decoration-none"
+                                       data-bs-toggle="modal"
+                                       data-bs-target="#detailTransaksiModal"
+                                       data-nama="{{ $pelanggan->username }}"
+                                       data-metode="{{ strtoupper($metode) }}"
+                                       data-total="Rp {{ number_format($total ?? 0, 0, ',', '.') }}"
+                                       data-tanggal="{{ $tanggal ? $tanggal->format('d-m-Y H:i') : '-' }}">
                                         {{ strtoupper($metode) }}
                                     </a>
                                     @else
                                     <span class="badge bg-secondary">-</span>
                                     @endif
                                 </td>
+                                
+            
                                 <td>
                                     <div class="d-flex gap-2">
                                         {{-- Tombol Edit --}}
                                         <a href="{{ route('admin.manajemen.manajemen_pelanggan_edit', $pelanggan->pelanggan->id) }}" class="btn btn-sm btn-outline-primary" title="Edit">
                                             <i class="ri-edit-line"></i>
                                         </a>
-                                
+                        
                                         {{-- Tombol Hapus --}}
                                         <form id="delete-form-{{ $pelanggan->pelanggan->id }}" action="{{ route('admin.manajemen.manajemen_pelanggan_destroy', $pelanggan->pelanggan->id) }}" method="POST" class="d-inline">
                                             @csrf
@@ -80,12 +91,10 @@
                                         </form>
                                     </div>
                                 </td>
-                                
-                                
-
                             </tr>
                             @endforeach
                         </tbody>
+                        
                     </table>
                 </div>
             </div>

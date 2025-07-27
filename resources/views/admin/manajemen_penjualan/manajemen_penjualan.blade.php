@@ -79,7 +79,17 @@
                                         <span>{{ $nama }}</span>
                                     </div>
                                 </td>
-                                <td>{{ $item->tanggal ?? $item->created_at->format('Y-m-d') }}</td>
+                                <td>
+                                    @php
+                                    // Ambil nilai tanggal dari properti 'tanggal' jika ada, jika tidak gunakan 'created_at'
+                                    \Carbon\Carbon::setLocale('id');
+                                    $waktu = $item->tanggal ?? $item->created_at;
+                                    @endphp
+                                    <!-- Format: Sabtu, 26 Juli 2025 14:30 -->
+                                    <span>{{ \Carbon\Carbon::parse($waktu)->translatedFormat('l, d F Y H:i') }}</span>
+                                </td>
+
+
                                 <td>Rp {{ number_format($item->total, 0, ',', '.') }}</td>
                                 <td>
                                     @php $isPenjualan = isset($item->pelanggan); @endphp
@@ -101,15 +111,24 @@
                                     </form>
                                 </td>
                                 <td>
-                                    <span class="badge bg-{{ $isPenjualan ? 'secondary' : 'info' }}">
-                                        {{ $isPenjualan ? 'Admin' : 'User' }}
-                                    </span>
+                                    @php
+                                    $role = $item->user->role ?? 'unknown';
+                                    @endphp
+
+                                    @if ($role === 'admin')
+                                    <span class="badge bg-dark">Admin</span>
+                                    @elseif ($role === 'user')
+                                    <span class="badge bg-secondary">User</span>
+                                    @else
+                                    <span class="badge bg-danger">Unknown</span>
+                                    @endif
                                 </td>
+
+
                                 <td>
                                     <div class="d-flex gap-2">
                                         <!-- Tombol Edit -->
-                                        <a href="{{ route('admin.manajemen.manajemen_penjualan_edit', $item->id)
- }}" class="btn btn-sm btn-outline-primary" title="Edit">
+                                        <a href="{{ route('admin.manajemen.manajemen_penjualan_edit', $item->id) }}" class="btn btn-sm btn-outline-primary" title="Edit">
                                             <i class="ri-edit-line"></i>
                                         </a>
                                         <form id="delete-form-{{ $item->id }}" action="{{ route('admin.manajemen.manajemen_penjualan_destroy', $item->id) }}" method="POST" class="d-inline">

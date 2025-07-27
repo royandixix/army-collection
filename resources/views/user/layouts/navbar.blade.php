@@ -1,6 +1,5 @@
 <nav class="navbar navbar-expand-lg shadow-sm fixed-top" style="background: linear-gradient(90deg, #1e3c72, #2a5298); z-index:1040;">
     <div class="container-fluid px-4 d-flex align-items-center justify-content-between">
-
         {{-- Logo Brand --}}
         <a class="navbar-brand text-white fw-bold d-flex align-items-center glow-text" href="{{ url('/') }}">
             <i class="bi bi-box-seam me-2 fs-4"></i>
@@ -15,57 +14,47 @@
         {{-- Akun Dropdown --}}
         <div class="dropdown ms-3">
             @auth
-            <a href="#" class="d-flex align-items-center text-white text-decoration-none dropdown-toggle" id="userDropdown" data-bs-toggle="dropdown" aria-expanded="false">
-                <img src="{{ Auth::user()->img ? asset('storage/' . Auth::user()->img) : asset('img/default-user.png') }}" alt="Foto Profil" width="40" height="40" class="elegant-avatar">
-            </a>
+                <a href="#" class="d-flex align-items-center text-white text-decoration-none dropdown-toggle" id="userDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                    <img src="{{ Auth::user()->img ? asset('storage/' . Auth::user()->img) : asset('img/default-user.png') }}" alt="Foto Profil" width="40" height="40" class="elegant-avatar">
+                </a>
 
-            <ul class="dropdown-menu dropdown-menu-end shadow profile-dropdown mt-3" aria-labelledby="userDropdown">
-                <li class="px-3 pt-2 pb-1 text-muted small">Akun Saya</li>
-
-                <li>
-                    <a class="dropdown-item d-flex align-items-center gap-2" href="{{ route('user.profil.profil') }}">
-                        <i class="bi bi-person-fill-gear text-primary fs-5"></i>
-                        <span>Profil & Pengaturan</span>
-                    </a>
-                </li>
-                <li>
-                    <hr class="dropdown-divider my-2">
-                </li>
-
-                <li>
-                    <form method="POST" action="{{ route('logout') }}">
-                        @csrf
-                        <button class="dropdown-item d-flex align-items-center gap-2 text-danger fw-semibold">
-                            <i class="bi bi-box-arrow-right fs-5"></i>
-                            <span>Keluar</span>
-                        </button>
-                    </form>
-                </li>
-            </ul>
+                <ul class="dropdown-menu dropdown-menu-end shadow profile-dropdown mt-3" aria-labelledby="userDropdown">
+                    <li class="px-3 pt-2 pb-1 text-muted small">Akun Saya</li>
+                    <li>
+                        <a class="dropdown-item d-flex align-items-center gap-2" href="{{ route('user.profil.profil') }}">
+                            <i class="bi bi-person-fill-gear text-primary fs-5"></i>
+                            <span>Profil & Pengaturan</span>
+                        </a>
+                    </li>
+                    <li><hr class="dropdown-divider my-2"></li>
+                    <li>
+                        <form method="POST" action="{{ route('logout') }}">
+                            @csrf
+                            <button type="submit" class="dropdown-item d-flex align-items-center gap-2 text-danger fw-semibold">
+                                <i class="bi bi-box-arrow-right fs-5"></i>
+                                <span>Keluar</span>
+                            </button>
+                        </form>
+                    </li>
+                </ul>
             @else
-            <a href="{{ route('login') }}" class="btn btn-light btn-sm fw-semibold me-2">Masuk</a>
-            <a href="{{ route('register') }}" class="btn btn-outline-light btn-sm fw-semibold">Daftar</a>
+                <a href="{{ route('login') }}" class="btn btn-light btn-sm fw-semibold me-2">Masuk</a>
+                <a href="{{ route('register') }}" class="btn btn-outline-light btn-sm fw-semibold">Daftar</a>
             @endauth
         </div>
-
     </div>
-    
 </nav>
-{{-- Search Mini --}}
+
+{{-- Search Sticky --}}
 <div id="stickySearch" class="position-sticky end-0 py-2 animate__animated" style="top: 56px; z-index: 1030;">
     <div class="container d-flex justify-content-end">
-        <form action="{{ route('user.produk.index') }}" method="GET"
-              class="d-flex align-items-center px-3 py-2 shadow-sm rounded-2 search-box"
-              style="gap: 0.5rem; max-width: 100%; background: #ffffffee;">
-            <input type="text" name="search"
-                   class="form-control form-control-sm border-0 shadow-none px-2 search-input"
-                   placeholder="Cari produk..." value="{{ request('search') }}">
-            <button class="btn btn-sm btn-primary rounded-1 px-3 py-2" type="submit">
-                Cari
-            </button>
+        <form action="{{ route('user.produk.index') }}" method="GET" class="d-flex align-items-center px-3 py-2 shadow-sm rounded-2 search-box" style="gap: 0.5rem; max-width: 100%; background: #ffffffee;">
+            <input type="text" name="search" class="form-control form-control-sm border-0 shadow-none px-2 search-input" placeholder="Cari produk..." value="{{ request('search') }}">
+            <button class="btn btn-sm btn-primary rounded-1 px-3 py-2" type="submit">Cari</button>
         </form>
     </div>
 </div>
+
 
 
 

@@ -52,6 +52,9 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'role:admin'])->grou
     Route::get('/manajemen/pengguna', [UserController::class, 'index'])->name('manajemen.manajemen_pengguna');
     Route::get('/manajemen/pengguna/{id}/edit', [UserController::class, 'edit'])->name('users.edit');
     Route::put('/manajemen/pengguna/{id}', [UserController::class, 'update'])->name('users.update');
+    // ✅ Route hapus user
+    Route::delete('/manajemen/pengguna/{id}', [UserController::class, 'destroy'])->name('users.destroy');
+
 
     // 📦 Manajemen Produk
     Route::get('/manajemen/produk', [AdminProdukController::class, 'index'])->name('manajemen.manajemen_produk');

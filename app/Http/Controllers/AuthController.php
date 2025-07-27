@@ -6,7 +6,6 @@ use App\Models\User;
 use App\Models\Pelanggan;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Validator;
 
 class AuthController extends Controller
 {
@@ -47,7 +46,6 @@ class AuthController extends Controller
         Auth::logout();
         $request->session()->invalidate();
         $request->session()->regenerateToken();
-
         return redirect('/login')->with('success', 'Berhasil logout!');
     }
 
@@ -59,37 +57,20 @@ class AuthController extends Controller
     public function register(Request $request)
     {
         $validated = $request->validate([
-            'username'       => 'required|string|max:255|unique:users',
-            'email'          => 'required|email|unique:users',
-            'no_hp'          => 'required|string|max:20',
-            'password'       => 'required|confirmed|min:6',
-            'role'           => 'required|string|in:admin,user',
-            'profile_image'  => 'nullable|image|mimes:jpg,jpeg,png|max:5120',
-        ], [
-            'username.required'      => 'Nama pengguna wajib diisi.',
-            'username.unique'        => 'Username sudah digunakan.',
-            'email.required'         => 'Email wajib diisi.',
-            'email.email'            => 'Format email tidak valid.',
-            'email.unique'           => 'Email sudah digunakan.',
-            'no_hp.required'         => 'Nomor HP wajib diisi.',
-            'password.required'      => 'Password wajib diisi.',
-            'password.confirmed'     => 'Konfirmasi password tidak cocok.',
-            'password.min'           => 'Password minimal 6 karakter.',
-            'role.required'          => 'Peran wajib dipilih.',
-            'role.in'                => 'Peran harus berupa admin atau user.',
-            'profile_image.image'    => 'File harus berupa gambar.',
-            'profile_image.mimes'    => 'Gambar harus berformat jpg, jpeg, atau png.',
-            'profile_image.max'      => 'Ukuran gambar maksimal 5MB.',
+            'username' => 'required|string|max:255|unique:users',
+            'email'    => 'required|email|unique:users',
+            'no_hp'    => 'required|string|max:20',
+            'password' => 'required', // ⛔ tidak perlu min atau confirmed
+            'role'     => 'required|in:admin,user',
+            'profile_image' => 'nullable|image',
         ]);
 
-        // Upload image jika ada
         $imagePath = null;
         if ($request->hasFile('profile_image')) {
             $folder = 'profile_images/' . $validated['role'];
             $imagePath = $request->file('profile_image')->store($folder, 'public');
         }
 
-        // Simpan user
         $user = User::create([
             'username' => $validated['username'],
             'email'    => $validated['email'],
@@ -99,14 +80,12 @@ class AuthController extends Controller
             'img'      => $imagePath,
         ]);
 
-        // Jika user adalah pelanggan, simpan ke tabel pelanggans
         if ($user->role === 'user') {
             Pelanggan::create([
                 'user_id' => $user->id,
                 'nama'    => $user->username,
                 'email'   => $user->email,
                 'no_hp'   => $user->no_hp,
-                'alamat'  => null,
             ]);
         }
 
@@ -129,9 +108,9 @@ class AuthController extends Controller
         $validated = $request->validate([
             'username' => 'required|string|unique:users,username',
             'email'    => 'required|email|unique:users,email',
-            'role'     => 'nullable|string|in:admin,user',
+            'role'     => 'nullable|in:admin,user',
             'status'   => 'required|in:active,inactive',
-            'password' => 'required',
+            'password' => 'required', // ⛔ tanpa konfirmasi
             'no_hp'    => 'nullable|string|max:20',
         ]);
 
@@ -144,14 +123,12 @@ class AuthController extends Controller
             'no_hp'    => $validated['no_hp'] ?? null,
         ]);
 
-        // Buat data pelanggan jika role adalah user
         if ($user->role === 'user') {
             Pelanggan::create([
                 'user_id' => $user->id,
                 'nama'    => $user->username,
                 'email'   => $user->email,
                 'no_hp'   => $user->no_hp,
-                'alamat'  => null,
             ]);
         }
 
@@ -186,7 +163,6 @@ class AuthController extends Controller
     {
         $user = User::findOrFail($id);
 
-        // Hapus pelanggan jika role = user
         if ($user->role === 'user') {
             $user->pelanggan()->delete();
         }

@@ -30,16 +30,6 @@
                 <h4 class="cx-card-title mb-0">Daftar Pengguna</h4>
             </div>
 
-            {{-- Tombol tambah pengguna jika diperlukan --}}
-            {{-- 
-            <div>
-                <a href="{{ route('admin.users.create') }}" class="btn btn-outline-primary rounded-pill d-inline-flex align-items-center mb-3">
-                    <i class="ri-add-line me-1"></i>
-                    Tambah Pengguna
-                </a>
-            </div> 
-            --}}
-
             <div class="cx-card-content card-default">
                 <div class="table-responsive">
                     <table id="pengguna-table" class="table table-striped table-hover align-middle">
@@ -59,10 +49,7 @@
                             @foreach($users as $user)
                                 @php
                                     $fotoUrl = $user->profile_photo_url;
-                                    $nama = $user->pelanggan->nama
-                                        ?? $user->username
-                                        ?? $user->email
-                                        ?? 'Pengguna';
+                                    $nama = $user->pelanggan->nama ?? $user->username ?? $user->email ?? 'Pengguna';
                                 @endphp
                                 <tr>
                                     <td>{{ $user->id }}</td>
@@ -86,16 +73,18 @@
                                             <a href="{{ route('admin.users.edit', $user->id) }}" class="btn btn-sm btn-outline-primary" title="Edit">
                                                 <i class="ri-edit-line"></i>
                                             </a>
-                                            <a href="#" class="btn btn-sm btn-outline-danger delete-btn" data-id="{{ $user->id }}" title="Hapus">
-                                                <i class="ri-delete-bin-6-line"></i>
-                                            </a>
+                                            <form action="{{ route('admin.users.destroy', $user->id) }}" method="POST" class="form-delete-user" style="display: inline;">
+                                                @csrf
+                                                @method('DELETE')
+                                                <button type="submit" class="btn btn-sm btn-outline-danger delete-btn" title="Hapus">
+                                                    <i class="ri-delete-bin-6-line"></i>
+                                                </button>
+                                            </form>
                                         </div>
                                     </td>
                                 </tr>
                             @endforeach
                         </tbody>
-                        
-                        
                     </table>
                 </div> <!-- /.table-responsive -->
             </div> <!-- /.cx-card-content -->
@@ -143,9 +132,10 @@
                 responsive: true,
             });
 
-            $('.delete-btn').on('click', function (e) {
+            // Konfirmasi hapus dengan SweetAlert
+            $('.form-delete-user').on('submit', function (e) {
                 e.preventDefault();
-                const id = $(this).data('id');
+                const form = this;
 
                 Swal.fire({
                     title: 'Yakin ingin menghapus?',
@@ -158,7 +148,7 @@
                     cancelButtonText: 'Batal'
                 }).then((result) => {
                     if (result.isConfirmed) {
-                        window.location.href = `/admin/users/${id}/delete`;
+                        form.submit();
                     }
                 });
             });
