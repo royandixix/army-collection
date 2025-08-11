@@ -75,20 +75,21 @@ class CheckoutController extends Controller
         // ✅ Simpan transaksi dan hubungkan dengan penjualan
         $transaksi = Transaksi::create([
             'user_id'      => $user->id,
-            'penjualan_id' => $penjualan->id, // penting agar relasi $penjualan->transaksi tidak null
+            'penjualan_id' => $penjualan->id,
             'alamat'       => $request->alamat,
             'metode'       => $request->metode,
             'total'        => $total,
             'status'       => 'pending',
         ]);
 
-        // ✅ Simpan detail transaksi
+        // ✅ Simpan detail transaksi dengan field subtotal
         foreach ($keranjangs as $item) {
             DetailTransaksi::create([
                 'transaksi_id' => $transaksi->id,
                 'produk_id'    => $item->produk_id,
                 'jumlah'       => $item->jumlah,
                 'harga'        => $item->produk->harga,
+                'subtotal'     => $item->jumlah * $item->produk->harga,  // <== Tambahkan ini
             ]);
         }
 

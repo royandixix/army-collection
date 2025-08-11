@@ -16,10 +16,12 @@
         <div class="cx-sidebar-body">
             <ul class="cx-sb-list">
                 <li class="cx-sb-item sb-drop-item">
-                    <a href="javascript:void(0)" class="cx-drop-toggle">
+                    <a href="{{ route('admin.dashboard') }}" class="cx-drop-toggle">
                         <i class="ri-home-3-line"></i>
                         <span class="condense">Dashboard <i class="drop-arrow ri-arrow-down-s-line"></i></span>
                     </a>
+                    
+                    
                 </li>
 
                 <li class="cx-sb-title condense"><span>data</span></li>

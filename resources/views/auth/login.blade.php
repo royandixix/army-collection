@@ -31,7 +31,7 @@
 
     .glow-focus:focus {
       outline: none;
-      box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.3);
+      box-shadow: 0 0 0  4px rgba(99, 102, 241, 0.3);
       border-color: #6366f1;
       transition: box-shadow 0.3s ease, border 0.3s ease;
     }

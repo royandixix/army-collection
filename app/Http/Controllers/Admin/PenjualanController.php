@@ -116,6 +116,8 @@ class PenjualanController extends Controller
         return redirect()->back()->with('success', 'Status transaksi berhasil diperbarui.');
     }
 
+
+
     protected function validatePenjualan(Request $request)
     {
         return $request->validate([
