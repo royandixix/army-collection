@@ -3,15 +3,13 @@
     <div class="cx-sidebar">
         <div class="cx-sidebar-head text-center py-4">
             @auth
-            @if(Auth::user()->img)
-            <img src="{{ asset('storage/' . Auth::user()->img) }}" alt="Profile" width="40" height="40" class="rounded-circle">
-            @else
-            <img src="{{ asset('assets/img/default-profile.png') }}" alt="Default Profile" width="40" height="40" class="rounded-circle">
-            @endif
-
+                @if(Auth::user()->img)
+                    <img src="{{ asset('storage/' . Auth::user()->img) }}" alt="Profile" width="40" height="40" class="rounded-circle">
+                @else
+                    <img src="{{ asset('assets/img/default-profile.png') }}" alt="Default Profile" width="40" height="40" class="rounded-circle">
+                @endif
             @endauth
         </div>
-
 
         <div class="cx-sidebar-body">
             <ul class="cx-sb-list">
@@ -20,11 +18,9 @@
                         <i class="ri-home-3-line"></i>
                         <span class="condense">Dashboard <i class="drop-arrow ri-arrow-down-s-line"></i></span>
                     </a>
-                    
-                    
                 </li>
 
-                <li class="cx-sb-title condense"><span>data</span></li>
+                <li class="cx-sb-title condense"><span>Data</span></li>
 
                 <li class="cx-sb-item sb-drop-item">
                     <a href="{{ route('admin.manajemen.manajemen_pengguna') }}" class="cx-drop-toggle">
@@ -54,41 +50,27 @@
                     </a>
                 </li>
 
+                <!-- Grup Laporan -->
                 <li class="cx-sb-item sb-drop-item">
-                    <a href="{{ route('admin.laporan.faktur_laporan') }}" class="cx-drop-toggle">
-                        <i class="ri-kanban-view"></i>
-                        <span class="condense">Faktur & Laporan</span>
+                    <a href="javascript:void(0)" class="cx-drop-toggle">
+                        <i class="ri-file-chart-line"></i>
+                        <span class="condense">Laporan <i class="drop-arrow ri-arrow-down-s-line"></i></span>
                     </a>
+                    <ul class="cx-submenu">
+                        <li>
+                            <a href="{{ route('admin.laporan.faktur_laporan') }}">
+                                <i class="ri-kanban-view"></i> Faktur & Laporan
+                            </a>
+                        </li>
+                        <li>
+                            <a href="{{ route('admin.rekap.index') }}">
+                                <i class="ri-bar-chart-2-line"></i> Rekap Data
+                            </a>
+                        </li>
+                    </ul>
                 </li>
+                <!-- End Grup Laporan -->
 
-
-
-                <li class="cx-sb-item sb-drop-item">
-                    <a href="#" class="cx-drop-toggle">
-                        <i class="ri-contacts-book-3-line"></i>
-                        <span class="condense">Notifikasi</span>
-                    </a>
-                </li>
-
-                <li class="cx-sb-item sb-drop-item">
-                    <a href="#" class="cx-drop-toggle">
-                        <i class="ri-kanban-view"></i>
-                        <span class="condense">Kelola Data Master</span>
-                    </a>
-                </li>
-
-                <!-- Logout Menu Item -->
-                {{-- <li class="cx-sb-item">
-                    <a href="javascript:void(0)" onclick="confirmLogout()" class="cx-drop-toggle text-red-500 hover:text-red-600 transition-all">
-                        <i class="ri-logout-box-r-line text-xl"></i>
-                        <span class="condense ml-2">Logout</span>
-                    </a>
-
-                    <!-- Hidden Logout Form -->
-                    <form id="logout-form" action="{{ route('logout') }}" method="POST" style="display: none;">
-                        @csrf
-                    </form>
-                </li> --}}
             </ul>
         </div>
     </div>
@@ -190,26 +172,25 @@
 <script>
     function confirmLogout() {
         Swal.fire({
-            title: 'Yakin ingin keluar?'
-            , text: 'Sesi kamu akan diakhiri.'
-            , icon: 'warning'
-            , showCancelButton: true
-            , confirmButtonColor: '#3b82f6', // Tailwind blue-500
-            cancelButtonColor: '#6b7280', // Tailwind gray-500
-            confirmButtonText: '<i class="ri-logout-box-line mr-1"></i> Ya, Logout'
-            , cancelButtonText: 'Batal'
-            , customClass: {
-                popup: 'rounded-xl shadow-md'
-                , title: 'text-lg font-bold text-gray-800'
-                , confirmButton: 'px-4 py-2 rounded-md text-white bg-blue-500'
-                , cancelButton: 'px-4 py-2 rounded-md bg-gray-200 text-gray-700'
-            , }
-            , buttonsStyling: false
+            title: 'Yakin ingin keluar?',
+            text: 'Sesi kamu akan diakhiri.',
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#3b82f6',
+            cancelButtonColor: '#6b7280',
+            confirmButtonText: '<i class="ri-logout-box-line mr-1"></i> Ya, Logout',
+            cancelButtonText: 'Batal',
+            customClass: {
+                popup: 'rounded-xl shadow-md',
+                title: 'text-lg font-bold text-gray-800',
+                confirmButton: 'px-4 py-2 rounded-md text-white bg-blue-500',
+                cancelButton: 'px-4 py-2 rounded-md bg-gray-200 text-gray-700',
+            },
+            buttonsStyling: false
         }).then((result) => {
             if (result.isConfirmed) {
                 document.getElementById('logout-form').submit();
             }
         });
     }
-
 </script>

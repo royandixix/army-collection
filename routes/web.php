@@ -3,6 +3,7 @@
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
 
+
 // ADMIN
 use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\UserController;
@@ -11,6 +12,8 @@ use App\Http\Controllers\Admin\PenjualanController;
 use App\Http\Controllers\Admin\PelangganController;
 use App\Http\Controllers\Admin\LaporanController;
 use App\Http\Controllers\Admin\SearchController;
+
+use App\Http\Controllers\Admin\RekapController;
 
 // USER
 use App\Http\Controllers\User\ProdukUserController;
@@ -42,13 +45,7 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'role:admin'])->grou
     // Route::get('/laporan/{id}/pdf', [App\Http\Controllers\Admin\LaporanController::class, 'cetakPdf'])->name('laporan.faktur_pdf');
     // Route::get('/admin/laporan/{id}/pdf', [App\Http\Controllers\Admin\LaporanController::class, 'cetakPdf'])->name('admin.faktur_laporan.semua_pdf');
     Route::get('/laporan/cetak-semua', [LaporanController::class, 'cetakSemua'])
-    ->name('faktur_laporan.semua_pdf');
-
-
-
-
-
-
+        ->name('faktur_laporan.semua_pdf');
 
 
     // 👥 Manajemen Pengguna
@@ -90,6 +87,9 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'role:admin'])->grou
     Route::get('/admin/laporan/faktur/{id}', [LaporanController::class, 'show'])->name('admin.laporan.faktur_laporan_show');
 
     Route::get('/laporan/faktur/{id}', [LaporanController::class, 'show'])->name('laporan.faktur_laporan_show');
+
+
+    Route::get('/rekap', [RekapController::class, 'index'])->name('rekap.index');
 });
 
 // ==============================
