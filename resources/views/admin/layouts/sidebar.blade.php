@@ -3,10 +3,12 @@
     <div class="cx-sidebar">
         <div class="cx-sidebar-head text-center py-4">
             @auth
-                @if(Auth::user()->img)
-                    <img src="{{ asset('storage/' . Auth::user()->img) }}" alt="Profile" width="40" height="40" class="rounded-circle">
+                @if (Auth::user()->img)
+                    <img src="{{ asset('storage/' . Auth::user()->img) }}" alt="Profile" width="40" height="40"
+                        class="rounded-circle">
                 @else
-                    <img src="{{ asset('assets/img/default-profile.png') }}" alt="Default Profile" width="40" height="40" class="rounded-circle">
+                    <img src="{{ asset('assets/img/default-profile.png') }}" alt="Default Profile" width="40"
+                        height="40" class="rounded-circle">
                 @endif
             @endauth
         </div>
@@ -22,12 +24,12 @@
 
                 <li class="cx-sb-title condense"><span>Data</span></li>
 
-                <li class="cx-sb-item sb-drop-item">
+                {{-- <li class="cx-sb-item sb-drop-item">
                     <a href="{{ route('admin.manajemen.manajemen_pengguna') }}" class="cx-drop-toggle">
                         <i class="ri-todo-line"></i>
                         <span class="condense">Manajemen Pengguna</span>
                     </a>
-                </li>
+                </li> --}}
 
                 <li class="cx-sb-item sb-drop-item">
                     <a href="{{ route('admin.manajemen.manajemen_produk') }}" class="cx-drop-toggle">
@@ -67,9 +69,26 @@
                                 <i class="ri-bar-chart-2-line"></i> Rekap Data
                             </a>
                         </li>
+                        <li>
+                            <a href="{{ route('admin.laporan.produk') }}">
+                                <i class="ri-archive-line"></i> Laporan Produk
+                            </a>
+                        </li>
+                        <li>
+                            <a href="{{ route('admin.laporan.penjualan') }}">
+                                <i class="ri-shopping-cart-line"></i> Laporan Penjualan
+                            </a>
+                        </li>
+                        <li>
+                            <a href="{{ route('admin.laporan.pelanggan') }}">
+                                <i class="ri-user-3-line"></i> Laporan Pelanggan
+                            </a>
+                        </li>
                     </ul>
                 </li>
                 <!-- End Grup Laporan -->
+
+
 
             </ul>
         </div>
@@ -87,13 +106,16 @@
             <!-- Tabs -->
             <ul class="nav nav-tabs" id="myTab" role="tablist">
                 <li class="nav-item" role="presentation">
-                    <button class="nav-link active" id="alert-tab" data-bs-toggle="tab" data-bs-target="#alert" type="button" role="tab">Alert</button>
+                    <button class="nav-link active" id="alert-tab" data-bs-toggle="tab" data-bs-target="#alert"
+                        type="button" role="tab">Alert</button>
                 </li>
                 <li class="nav-item" role="presentation">
-                    <button class="nav-link" id="messages-tab" data-bs-toggle="tab" data-bs-target="#messages" type="button" role="tab">Messages</button>
+                    <button class="nav-link" id="messages-tab" data-bs-toggle="tab" data-bs-target="#messages"
+                        type="button" role="tab">Messages</button>
                 </li>
                 <li class="nav-item" role="presentation">
-                    <button class="nav-link" id="log-tab" data-bs-toggle="tab" data-bs-target="#log" type="button" role="tab">Log</button>
+                    <button class="nav-link" id="log-tab" data-bs-toggle="tab" data-bs-target="#log" type="button"
+                        role="tab">Log</button>
                 </li>
             </ul>
 
@@ -129,7 +151,8 @@
                                 <div class="detail">
                                     <a href="#" class="name">Nama Pengguna</a>
                                     <p class="time">5:30AM, Today</p>
-                                    <p class="message">Hello, I am sending some file. Please use this in landing page.</p>
+                                    <p class="message">Hello, I am sending some file. Please use this in landing page.
+                                    </p>
                                     <span class="download-files">
                                         <span class="download">
                                             <img src="assets/img/other/1.jpg" alt="image">
