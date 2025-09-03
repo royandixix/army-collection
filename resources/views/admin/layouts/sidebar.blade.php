@@ -81,7 +81,7 @@
                         </li>
                         <li>
                             <a href="{{ route('admin.laporan.pelanggan') }}">
-                                <i class="ri-user-3-line"></i> Laporan Pelanggan
+                                <i class="ri-user-3-line"></i> Laporan Pembeli
                             </a>
                         </li>
                     </ul>
