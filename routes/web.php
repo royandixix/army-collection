@@ -38,12 +38,15 @@ Route::post('/register', [AuthController::class, 'register'])->name('register.po
 // ==============================
 Route::prefix('admin')->name('admin.')->middleware(['auth', 'role:admin'])->group(function () {
 
+    // 📊 Dashboard & Search
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
     Route::get('/search', [SearchController::class, 'index'])->name('search');
     Route::get('/search/live', [SearchController::class, 'liveSearch'])->name('search.live');
 
-    Route::get('/laporan/cetak-semua', [LaporanController::class, 'cetakSemua'])
-        ->name('faktur_laporan.semua_pdf');
+    // 📄 Faktur
+    Route::get('/laporan/cetak-semua', [LaporanController::class, 'cetakSemua'])->name('faktur_laporan.semua_pdf');
+    Route::get('/laporan/faktur', [LaporanController::class, 'index'])->name('laporan.faktur_laporan');
+    Route::get('/laporan/faktur/{id}', [LaporanController::class, 'show'])->name('laporan.faktur_laporan_show');
 
     // 👥 Manajemen Pengguna
     Route::get('/manajemen/pengguna', [UserController::class, 'index'])->name('manajemen.manajemen_pengguna');
@@ -77,32 +80,21 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'role:admin'])->grou
     Route::put('/manajemen/pelanggan/{id}', [PelangganController::class, 'update'])->name('manajemen.manajemen_pelanggan_update');
     Route::delete('/manajemen/pelanggan/{id}', [PelangganController::class, 'destroy'])->name('manajemen.manajemen_pelanggan_destroy');
 
-    // 📄 Laporan
-    Route::get('/laporan/faktur', [LaporanController::class, 'index'])->name('laporan.faktur_laporan');
-    Route::get('/laporan/faktur/{id}', [LaporanController::class, 'show'])->name('laporan.faktur_laporan_show');
-
     // 📊 Laporan Tambahan
-Route::prefix('laporan')->name('laporan.')->group(function () {
-    Route::get('/produk', [\App\Http\Controllers\Admin\LaporanDataController::class, 'produk'])->name('produk');
-    Route::get('/produk/cetak', [\App\Http\Controllers\Admin\LaporanDataController::class, 'cetakProduk'])->name('produk.cetak');
+    Route::prefix('laporan')->name('laporan.')->group(function () {
+        // Pembelian
+        Route::get('/pembelian', [\App\Http\Controllers\Admin\LaporanDataController::class, 'pembelian'])->name('pembelian');
+        Route::get('/pembelian/cetak', [\App\Http\Controllers\Admin\LaporanDataController::class, 'cetakPembelian'])->name('pembelian.cetak');
 
-    Route::get('/penjualan', [\App\Http\Controllers\Admin\LaporanDataController::class, 'penjualan'])->name('penjualan');
-    Route::get('/penjualan/cetak', [\App\Http\Controllers\Admin\LaporanDataController::class, 'cetakPenjualan'])->name('penjualan.cetak');
-
-    Route::get('/pelanggan', [\App\Http\Controllers\Admin\LaporanDataController::class, 'pelanggan'])->name('pelanggan');
-    Route::get('/pelanggan/cetak', [\App\Http\Controllers\Admin\LaporanDataController::class, 'cetakPelanggan'])->name('pelanggan.cetak');
-
-});
-
-
-    
-
-
-
+        // Penjualan
+        Route::get('/penjualan', [\App\Http\Controllers\Admin\LaporanDataController::class, 'penjualan'])->name('penjualan');
+        Route::get('/penjualan/cetak', [\App\Http\Controllers\Admin\LaporanDataController::class, 'cetakPenjualan'])->name('penjualan.cetak');
+    });
 
     // 📊 Rekap
     Route::get('/rekap', [RekapController::class, 'index'])->name('rekap.index');
 });
+
 
 // ==============================
 // 👤 USER ROUTES
@@ -127,6 +119,7 @@ Route::prefix('user')->name('user.')->middleware(['auth', 'role:user'])->group(f
 
     // 📄 Riwayat Transaksi
     Route::get('/riwayat', [RiwayatController::class, 'index'])->name('riwayat.index');
+    Route::delete('/riwayat/{id}', [RiwayatController::class, 'destroy'])->name('riwayat.hapus'); // <--- gunakan ini
 
     // 👤 Profil
     Route::get('/profil', [ProfilController::class, 'index'])->name('profil.profil');

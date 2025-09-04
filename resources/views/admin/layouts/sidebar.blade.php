@@ -18,18 +18,11 @@
                 <li class="cx-sb-item sb-drop-item">
                     <a href="{{ route('admin.dashboard') }}" class="cx-drop-toggle">
                         <i class="ri-home-3-line"></i>
-                        <span class="condense">Dashboard <i class="drop-arrow ri-arrow-down-s-line"></i></span>
+                        <span class="condense">Dashboard</span>
                     </a>
                 </li>
 
                 <li class="cx-sb-title condense"><span>Data</span></li>
-
-                {{-- <li class="cx-sb-item sb-drop-item">
-                    <a href="{{ route('admin.manajemen.manajemen_pengguna') }}" class="cx-drop-toggle">
-                        <i class="ri-todo-line"></i>
-                        <span class="condense">Manajemen Pengguna</span>
-                    </a>
-                </li> --}}
 
                 <li class="cx-sb-item sb-drop-item">
                     <a href="{{ route('admin.manajemen.manajemen_produk') }}" class="cx-drop-toggle">
@@ -60,35 +53,19 @@
                     </a>
                     <ul class="cx-submenu">
                         <li>
-                            <a href="{{ route('admin.laporan.faktur_laporan') }}">
-                                <i class="ri-kanban-view"></i> Faktur & Laporan
-                            </a>
-                        </li>
-                        <li>
-                            <a href="{{ route('admin.rekap.index') }}">
-                                <i class="ri-bar-chart-2-line"></i> Rekap Data
-                            </a>
-                        </li>
-                        <li>
-                            <a href="{{ route('admin.laporan.produk') }}">
-                                <i class="ri-archive-line"></i> Laporan Produk
-                            </a>
-                        </li>
-                        <li>
                             <a href="{{ route('admin.laporan.penjualan') }}">
                                 <i class="ri-shopping-cart-line"></i> Laporan Penjualan
                             </a>
+                            
                         </li>
                         <li>
-                            <a href="{{ route('admin.laporan.pelanggan') }}">
-                                <i class="ri-user-3-line"></i> Laporan Pembeli
+                            <a href="{{ route('admin.laporan.pembelian') }}">
+                                <i class="ri-wallet-3-line"></i> Laporan Pembelian
                             </a>
                         </li>
                     </ul>
                 </li>
                 <!-- End Grup Laporan -->
-
-
 
             </ul>
         </div>

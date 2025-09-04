@@ -10,44 +10,34 @@ use App\Models\Transaksi;
 use App\Models\DetailTransaksi;
 use App\Models\Pelanggan;
 use App\Models\Penjualan;
+use App\Models\Pembelian;
+use App\Models\Supplier;
 
 class CheckoutController extends Controller
 {
-    /**
-     * Tampilkan halaman checkout.
-     */
     public function index()
     {
         $keranjangs = Keranjang::where('user_id', Auth::id())->with('produk')->get();
         return view('user.checkout.checkout', compact('keranjangs'));
     }
 
-    /**
-     * Proses checkout dengan validasi dan penyimpanan.
-     */
     public function proses(Request $request)
     {
-        // ✅ Validasi input
+        // Validasi input
         $request->validate([
             'alamat' => 'required|string|min:5|max:255',
             'metode' => 'required|in:cod,transfer,qris',
-        ], [
-            'alamat.required' => 'Alamat pengiriman wajib diisi.',
-            'alamat.min' => 'Alamat terlalu pendek.',
-            'metode.required' => 'Pilih metode pembayaran.',
-            'metode.in' => 'Metode tidak valid.',
         ]);
 
         $user = Auth::user();
 
-        // ✅ Ambil isi keranjang
+        // Ambil data keranjang
         $keranjangs = Keranjang::where('user_id', $user->id)->with('produk')->get();
-
         if ($keranjangs->isEmpty()) {
-            return redirect()->route('user.checkout.index')->with('error', 'Keranjang kosong.');
+            return redirect()->back()->with('error', 'Keranjang kosong.');
         }
 
-        // ✅ Simpan atau update data pelanggan
+        // Simpan atau update data pelanggan
         $pelanggan = Pelanggan::updateOrCreate(
             ['user_id' => $user->id],
             [
@@ -58,12 +48,10 @@ class CheckoutController extends Controller
             ]
         );
 
-        // ✅ Hitung total belanja
-        $total = $keranjangs->sum(function ($item) {
-            return $item->produk->harga * $item->jumlah;
-        });
+        // Hitung total
+        $total = $keranjangs->sum(fn($item) => $item->produk->harga * $item->jumlah);
 
-        // ✅ Simpan data penjualan
+        // Simpan data penjualan
         $penjualan = Penjualan::create([
             'user_id'      => $user->id,
             'pelanggan_id' => $pelanggan->id,
@@ -72,7 +60,7 @@ class CheckoutController extends Controller
             'status'       => 'pending',
         ]);
 
-        // ✅ Simpan transaksi dan hubungkan dengan penjualan
+        // Simpan data transaksi
         $transaksi = Transaksi::create([
             'user_id'      => $user->id,
             'penjualan_id' => $penjualan->id,
@@ -82,20 +70,40 @@ class CheckoutController extends Controller
             'status'       => 'pending',
         ]);
 
-        // ✅ Simpan detail transaksi dengan field subtotal
+        // Simpan detail transaksi (per produk)
         foreach ($keranjangs as $item) {
             DetailTransaksi::create([
                 'transaksi_id' => $transaksi->id,
                 'produk_id'    => $item->produk_id,
-                'jumlah'       => $item->jumlah,
+                'quantity'     => $item->jumlah, // ⚠ sesuaikan migration
                 'harga'        => $item->produk->harga,
-                'subtotal'     => $item->jumlah * $item->produk->harga,  // <== Tambahkan ini
+                'subtotal'     => $item->jumlah * $item->produk->harga,
             ]);
         }
 
-        // ✅ Kosongkan keranjang setelah checkout
+        // Tambahkan ke tabel pembelian
+        $supplier = Supplier::firstOrCreate(
+            ['nama' => $pelanggan->nama],
+            [
+                'alamat' => $pelanggan->alamat,
+                'no_hp'  => $pelanggan->no_hp, // ⚠ sesuaikan kolom
+            ]
+        );
+
+        Pembelian::create([
+            'supplier_id' => $supplier->id,
+            'tanggal'     => now(),
+            'total'       => $total,
+        ]);
+
+        // Kosongkan keranjang
         Keranjang::where('user_id', $user->id)->delete();
 
-        return redirect()->route('user.riwayat.index')->with('success', 'Checkout berhasil!');
+        // Redirect ke halaman checkout dengan session flash
+        return redirect()->route('user.checkout.index')->with([
+            'checkout_success' => true,
+            'total'            => $total,
+            'penjualan_id'     => $penjualan->id,
+        ]);
     }
 }

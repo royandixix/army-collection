@@ -31,8 +31,9 @@ class Penjualan extends Model
     }
 
     public function transaksi()
-    {
-        return $this->hasOne(Transaksi::class, 'penjualan_id');
-    }
+{
+    return $this->hasMany(Transaksi::class, 'penjualan_id');
+}
+
     
 }

@@ -65,18 +65,24 @@
                     @csrf
                     <div class="mb-3">
                         <label for="alamat" class="form-label">Alamat Pengiriman</label>
-                        <textarea name="alamat" id="alamat" class="form-control custom-input" rows="3" placeholder="Masukkan alamat lengkap..." required></textarea>
+                        <textarea name="alamat" id="alamat" class="form-control custom-input" rows="3" placeholder="Masukkan alamat lengkap..." required>{{ old('alamat') }}</textarea>
                         <small class="text-muted d-block mt-1">📍 Lokasi Anda akan diisi otomatis jika diizinkan.</small>
+                        @error('alamat')
+                            <div class="text-danger small mt-1">{{ $message }}</div>
+                        @enderror
                     </div>
 
                     <div class="mb-3">
                         <label for="metode" class="form-label">Metode Pembayaran</label>
                         <select name="metode" id="metode" class="form-select custom-input" required onchange="toggleQRIS()">
                             <option value="">-- Pilih Metode Pembayaran --</option>
-                            <option value="cod">Bayar di Tempat (COD)</option>
-                            <option value="transfer">Transfer Bank</option>
-                            <option value="qris">QRIS</option>
+                            <option value="cod" {{ old('metode')=='cod'?'selected':'' }}>Bayar di Tempat (COD)</option>
+                            <option value="transfer" {{ old('metode')=='transfer'?'selected':'' }}>Transfer Bank</option>
+                            <option value="qris" {{ old('metode')=='qris'?'selected':'' }}>QRIS</option>
                         </select>
+                        @error('metode')
+                            <div class="text-danger small mt-1">{{ $message }}</div>
+                        @enderror
                     </div>
 
                     <div id="qrisContainer" class="mb-4" style="display: none;">
@@ -101,14 +107,12 @@
 @push('style')
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
 <style>
-    .table th, .table td {
-        vertical-align: middle !important;
-    }
+    .table th, .table td { vertical-align: middle !important; }
     .checkout-btn {
         background-color: #4e54c8;
         color: white;
-        font-weight: 400;
-        padding: 6px 16px;
+        font-weight: 500;
+        padding: 8px 20px;
         font-size: 14px;
         border-radius: 6px;
         border: none;
@@ -131,76 +135,93 @@
         color: #adb5bd;
         font-style: italic;
     }
-    @media (max-width: 576px) {
-        .checkout-btn {
-            width: 100%;
-        }
-        .table td {
-            font-size: 13px;
-        }
-    }
 </style>
-@endpush
-
 @push('scripts')
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>
-    function toggleQRIS() {
-        const metode = document.getElementById('metode').value;
-        document.getElementById('qrisContainer').style.display = metode === 'qris' ? 'block' : 'none';
+function toggleQRIS() {
+    const metode = document.getElementById('metode').value;
+    document.getElementById('qrisContainer').style.display = metode === 'qris' ? 'block' : 'none';
+}
+
+document.addEventListener('DOMContentLoaded', function () {
+    toggleQRIS();
+
+    // Geolokasi otomatis
+    if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(async function(position) {
+            const lat = position.coords.latitude;
+            const lon = position.coords.longitude;
+            try {
+                const response = await fetch(`https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${lat}&lon=${lon}`);
+                const data = await response.json();
+                if (data && data.display_name) {
+                    document.getElementById('alamat').value = data.display_name;
+                }
+            } catch(err) {
+                console.warn('Error geolokasi:', err);
+            }
+        }, function(error) {
+            console.warn('Lokasi ditolak atau error:', error);
+        });
     }
 
-    document.addEventListener('DOMContentLoaded', function () {
-        toggleQRIS();
+    // STEP 0: Validasi keranjang & form sebelum submit
+    const form = document.getElementById('checkoutForm');
+    form.addEventListener('submit', function(e) {
+        e.preventDefault();
 
-        // Geolokasi otomatis
-        if (navigator.geolocation) {
-            navigator.geolocation.getCurrentPosition(function(position) {
-                const lat = position.coords.latitude;
-                const lon = position.coords.longitude;
-
-                fetch(`https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${lat}&lon=${lon}`)
-                    .then(response => response.json())
-                    .then(data => {
-                        if (data && data.display_name) {
-                            document.getElementById('alamat').value = data.display_name;
-                        }
-                    });
-            }, function(error) {
-                console.warn('Lokasi ditolak atau error:', error);
+        const totalItems = {{ $keranjangs->count() }};
+        if(totalItems === 0) {
+            Swal.fire({
+                icon: 'warning',
+                title: 'Keranjang Kosong!',
+                text: 'Silakan tambahkan produk terlebih dahulu.',
+                confirmButtonText: 'OK'
             });
+            return;
         }
 
-        // ✅ SweetAlert ketika proses checkout ditekan
-        const form = document.getElementById('checkoutForm');
-        form.addEventListener('submit', function(e) {
-            e.preventDefault();
-
-            Swal.fire({
-                title: 'Memproses...',
-                text: 'Mohon tunggu sebentar.',
-                icon: 'info',
-                allowOutsideClick: false,
-                showConfirmButton: false,
-                didOpen: () => {
-                    Swal.showLoading();
-                    setTimeout(() => {
-                        form.submit();
-                    }, 1200);
-                }
-            });
+        // STEP 1: Loading SweetAlert
+        Swal.fire({
+            title: 'Memproses...',
+            text: 'Mohon tunggu sebentar.',
+            icon: 'info',
+            allowOutsideClick: false,
+            showConfirmButton: false,
+            didOpen: () => {
+                Swal.showLoading();
+                setTimeout(() => form.submit(), 1200); // Submit form setelah delay agar loading terlihat
+            }
         });
+    });
 
-        // ✅ SweetAlert jika checkout berhasil (dari session)
-        @if(session('success'))
+    // STEP 2: SweetAlert sukses/error dari session
+    @if(session('checkout_success'))
         Swal.fire({
             icon: 'success',
-            title: 'Berhasil!',
-            text: '{{ session('success') }}',
-            timer: 3000,
+            title: 'Checkout Berhasil!',
+            html: `
+                <p>Pesanan Anda telah berhasil diproses.</p>
+                <p><strong>Total:</strong> Rp {{ number_format(session('total'), 0, ',', '.') }}</p>
+                <p><strong>ID Pesanan:</strong> #{{ session('penjualan_id') }}</p>
+            `,
+            confirmButtonText: 'Lanjut',
+            allowOutsideClick: false
+        }).then(() => {
+            window.location.href = "{{ route('user.riwayat.index') }}";
+        });
+    @endif
+
+    @if(session('error'))
+        Swal.fire({
+            icon: 'error',
+            title: 'Gagal!',
+            text: '{{ session('error') }}',
+            timer: 3500,
             showConfirmButton: false
         });
-        @endif
-    });
+    @endif
+});
 </script>
 @endpush

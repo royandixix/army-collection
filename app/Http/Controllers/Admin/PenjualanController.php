@@ -96,25 +96,27 @@ class PenjualanController extends Controller
 
     public function ubahStatus(Request $request, $id)
     {
-        // $item = Penjualan::find($id) ?? Transaksi::find($id);
-        $item = Transaksi::find($id) ?? Penjualan::find($id);
-
-
-        if (!$item) {
+        $penjualan = Penjualan::find($id);
+    
+        if (!$penjualan) {
             return redirect()->back()->with('error', 'Transaksi tidak ditemukan.');
         }
-
+    
         $request->validate([
-            'status' => $item instanceof Penjualan
-                ? 'required|in:lunas,pending,batal'
-                : 'required|in:pending,diproses,selesai,batal',
+            'status' => 'required|in:pending,diproses,selesai,batal,lunas',
         ]);
-
-        $item->status = $request->status;
-        $item->save();
-
+    
+        // Update status penjualan
+        $penjualan->status = $request->status;
+        $penjualan->save();
+    
+        // Sinkron ke semua transaksi terkait
+        $penjualan->transaksi()->update(['status' => $request->status]);
+    
         return redirect()->back()->with('success', 'Status transaksi berhasil diperbarui.');
     }
+    
+
 
 
 

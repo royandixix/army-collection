@@ -1,8 +1,7 @@
 <!DOCTYPE html>
-<html lang="id">
+<html>
 <head>
-    <meta charset="UTF-8">
-    <title>Laporan Penjualan</title>
+    <title>Laporan Pembelian</title>
     <style>
         body {
             font-family: 'Helvetica', Arial, sans-serif;
@@ -40,9 +39,12 @@
             font-weight: bold;
             border-top: 2px solid #000;
         }
-        .right { text-align: right; }
-        .center { text-align: center; }
-        ul { margin: 0; padding-left: 15px; }
+        .right {
+            text-align: right;
+        }
+        .center {
+            text-align: center;
+        }
     </style>
 </head>
 <body>
@@ -50,54 +52,43 @@
         <h1>Perusahaan Contoh</h1>
         <p>Jl. Contoh No.1, Kota Contoh</p>
         <p>Telp: 08123456789 | Email: info@perusahaan.com</p>
-        <h2>Laporan Penjualan</h2>
+        <h2>Laporan Pembelian</h2>
     </header>
 
     <table>
         <thead>
             <tr>
                 <th>No</th>
-                <th>Pelanggan</th>
-                <th>Produk</th>
-                <th>Total (Rp)</th>
-                <th>Status</th>
+                <th>Supplier</th>
+                <th>Alamat</th>
+                <th>Telepon</th>
                 <th>Tanggal</th>
+                <th>Total (Rp)</th>
             </tr>
         </thead>
         <tbody>
             @php $grandTotal = 0; @endphp
-            @forelse($penjualans as $index => $penjualan)
-                @php $grandTotal += $penjualan->total; @endphp
+            @forelse($pembelians as $index => $pembelian)
+                @php $grandTotal += $pembelian->total; @endphp
                 <tr>
                     <td class="center">{{ $index + 1 }}</td>
-                    <td>{{ $penjualan->pelanggan->user->username ?? '-' }}</td>
-                    <td>
-                        @if($penjualan->transaksi && $penjualan->transaksi->detailTransaksi)
-                            <ul>
-                                @foreach($penjualan->transaksi->detailTransaksi as $detail)
-                                    <li>{{ $detail->produk->nama ?? '-' }} (x{{ $detail->jumlah }})</li>
-                                @endforeach
-                            </ul>
-                        @else
-                            -
-                        @endif
-                    </td>
-                    <td class="right">{{ number_format($penjualan->total, 0, ',', '.') }}</td>
-                    <td class="center">{{ ucfirst($penjualan->status) }}</td>
-                    <td class="center">{{ $penjualan->created_at->format('d/m/Y H:i') }}</td>
+                    <td>{{ $pembelian->supplier->nama ?? '-' }}</td>
+                    <td>{{ $pembelian->supplier->alamat ?? '-' }}</td>
+                    <td>{{ $pembelian->supplier->telepon ?? '-' }}</td>
+                    <td class="center">{{ \Carbon\Carbon::parse($pembelian->tanggal)->format('d/m/Y') }}</td>
+                    <td class="right">{{ number_format($pembelian->total, 0, ',', '.') }}</td>
                 </tr>
             @empty
                 <tr>
-                    <td colspan="6" class="center">Tidak ada data penjualan</td>
+                    <td colspan="6" class="center">Tidak ada data pembelian</td>
                 </tr>
             @endforelse
         </tbody>
-        @if($penjualans->count() > 0)
+        @if($pembelians->count() > 0)
         <tfoot>
             <tr>
-                <td colspan="3" class="right">Total Keseluruhan</td>
+                <td colspan="5" class="right">Total Keseluruhan</td>
                 <td class="right">{{ number_format($grandTotal, 0, ',', '.') }}</td>
-                <td colspan="2"></td>
             </tr>
         </tfoot>
         @endif

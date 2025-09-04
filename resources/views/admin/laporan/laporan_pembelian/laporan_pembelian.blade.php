@@ -1,56 +1,50 @@
 @extends('admin.layouts.app')
 
-@section('title', 'Laporan Penjualan')
+@section('title', 'Laporan Pembelian')
 
 @section('content')
 <div class="cx-main-content">
     <div class="container-fluid">
         <div class="cx-page-title d-flex justify-content-between align-items-center flex-wrap mb-4">
-            <h4 class="mb-0">Laporan Penjualan</h4>
-            <a href="{{ route('admin.laporan.penjualan.cetak') }}" target="_blank" class="btn btn-danger">
+            <h4 class="mb-0">Laporan Pembelian</h4>
+            <a href="{{ route('admin.laporan.pembelian.cetak') }}" target="_blank" class="btn btn-danger">
                 <i class="bi bi-printer"></i> Cetak PDF
             </a>
         </div>
 
         <div class="cx-card card-default">
             <div class="cx-card-header">
-                <h5 class="mb-0">Data Penjualan</h5>
+                <h5 class="mb-0">Data Pembelian</h5>
             </div>
 
             <div class="cx-card-content">
                 <div class="table-responsive">
-                    <table class="table table-bordered table-striped" id="penjualan-table">
+                    <table class="table table-bordered table-striped" id="pembelian-table">
                         <thead class="table-dark">
                             <tr>
                                 <th>No</th>
-                                <th>Nama Produk</th>
+                                <th>Supplier</th>
+                                <th>Alamat</th>
+                                <th>Telepon</th>
                                 <th>Tanggal</th>
-                                <th>Jumlah</th>
-                                <th>Harga Satuan</th>
                                 <th>Total</th>
                             </tr>
                         </thead>
                         <tbody>
-                            @php $no = 1; @endphp
-                            @forelse($penjualans as $penjualan)
-    @if($penjualan->transaksi && $penjualan->transaksi->detailTransaksi)
-        @foreach($penjualan->transaksi->detailTransaksi as $detail)
-            <tr>
-                <td>{{ $loop->iteration }}</td>
-                <td>{{ $detail->produk->nama ?? '-' }}</td>
-                <td>{{ $penjualan->created_at->format('d/m/Y') }}</td>
-                <td>{{ $detail->jumlah }}</td>
-                <td>Rp {{ number_format($detail->harga, 0, ',', '.') }}</td>
-                <td>Rp {{ number_format($detail->jumlah * $detail->harga, 0, ',', '.') }}</td>
-            </tr>
-        @endforeach
-    @endif
-@empty
-    <tr>
-        <td colspan="6" class="text-center text-muted">Tidak ada data penjualan.</td>
-    </tr>
-@endforelse
-
+                            @forelse($pembelians as $index => $pembelian)
+                                <tr>
+                                    <td>{{ $index + 1 }}</td>
+                                    <td>{{ $pembelian->supplier->nama ?? '-' }}</td>
+                                    <td>{{ $pembelian->supplier->alamat ?? '-' }}</td>
+                                    <td>{{ $pembelian->supplier->telepon ?? '-' }}</td>
+                                    <td>{{ \Carbon\Carbon::parse($pembelian->tanggal)->format('d/m/Y') }}</td>
+                                    <td>Rp {{ number_format($pembelian->total, 0, ',', '.') }}</td>
+                                </tr>
+                            @empty
+                                <tr>
+                                    <td colspan="6" class="text-center text-muted">Tidak ada data pembelian.</td>
+                                </tr>
+                            @endforelse
                         </tbody>
                     </table>
                 </div>
@@ -71,13 +65,13 @@
 <script src="https://cdn.datatables.net/1.13.6/js/dataTables.bootstrap5.min.js"></script>
 <script>
     $(function() {
-        $('#penjualan-table').DataTable({
+        $('#pembelian-table').DataTable({
             pageLength: 10,
             language: {
-                searchPlaceholder: "🔍 Cari penjualan...",
+                searchPlaceholder: "🔍 Cari pembelian...",
                 zeroRecords: "Data tidak ditemukan",
                 lengthMenu: "Tampilkan _MENU_ entri",
-                info: "Menampilkan _START_ - _END_ dari _TOTAL_ penjualan",
+                info: "Menampilkan _START_ - _END_ dari _TOTAL_ pembelian",
                 paginate: { previous: "⬅️", next: "➡️" }
             }
         });

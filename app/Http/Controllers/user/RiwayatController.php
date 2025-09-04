@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Controllers\user;
+namespace App\Http\Controllers\User;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Auth;
@@ -10,7 +10,6 @@ class RiwayatController extends Controller
 {
     public function index()
     {
-        // Ambil semua transaksi user beserta detail produk dan penjualan
         $transaksis = Transaksi::with(['detailTransaksi.produk', 'penjualan'])
             ->where('user_id', Auth::id())
             ->latest()
@@ -18,4 +17,26 @@ class RiwayatController extends Controller
 
         return view('user.riwayat.riwayat', compact('transaksis'));
     }
+
+    public function destroy($id)
+    {
+        $transaksi = Transaksi::where('id', $id)
+            ->where('user_id', Auth::id())
+            ->first();
+
+        if (!$transaksi) {
+            return redirect()->back()->with('error', 'Transaksi tidak ditemukan.');
+        }
+
+        // Hapus detail transaksi dulu
+        $transaksi->detailTransaksi()->delete();
+
+        // Hapus transaksi
+        $transaksi->delete();
+
+        return redirect()->back()->with('success', 'Transaksi berhasil dihapus.');
+    }
+
+
+    
 }

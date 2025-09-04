@@ -6,7 +6,7 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\Penjualan;
 use App\Models\Pelanggan;
-use App\Models\Produk;
+use App\Models\Produk;                  
 
 class DashboardController extends Controller
 {

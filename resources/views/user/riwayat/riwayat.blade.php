@@ -4,7 +4,7 @@
 
 @section('content')
 <div class="container mt-4 animate__animated animate__fadeInUp">
-    <h4 class="mb-4 fw-bold  d-flex align-items-center gap-2 animate__animated animate__fadeInDown">
+    <h4 class="mb-4 fw-bold d-flex align-items-center gap-2 animate__animated animate__fadeInDown">
         <i class="bi bi-receipt-cutoff fs-4"></i> Riwayat Transaksi
     </h4>
 
@@ -29,17 +29,17 @@
                     <div class="card shadow-sm border-0 rounded-4 h-100 overflow-hidden">
                         <div class="card-body">
 
-                            {{-- Header: Tanggal & Status --}}
+                            {{-- Header: Tanggal & Status + Tombol Hapus --}}
                             <div class="d-flex justify-content-between align-items-center mb-3">
                                 @if($transaksi->penjualan)
                                     <div>
-                                        <h6 class="fw-semibold mb-1 text-">
+                                        <h6 class="fw-semibold mb-1">
                                             <i class="bi bi-calendar-check me-1"></i>
                                             {{ \Carbon\Carbon::parse($transaksi->penjualan->tanggal)->translatedFormat('l, d F Y H:i') }}
                                         </h6>
                                     </div>
                                     <span class="badge status-badge
-                                        @if($transaksi->penjualan->status == 'selesai') bg-
+                                        @if($transaksi->penjualan->status == 'selesai') bg-success
                                         @elseif($transaksi->penjualan->status == 'diproses') bg-warning text-dark
                                         @elseif($transaksi->penjualan->status == 'batal') bg-danger
                                         @else bg-secondary
@@ -55,6 +55,19 @@
                                 @else
                                     <span class="text-muted"><i class="bi bi-exclamation-circle me-1"></i> Data penjualan tidak tersedia</span>
                                 @endif
+
+                                {{-- Tombol Hapus --}}
+                                <form id="hapusTransaksiForm-{{ $transaksi->id }}" 
+                                    action="{{ route('user.riwayat.hapus', $transaksi->id) }}" 
+                                    method="POST" class="ms-2">
+                                  @csrf
+                                  @method('DELETE')
+                                  <button type="button" class="btn btn-sm btn-outline-danger btn-hapus">
+                                      <i class="bi bi-trash3-fill"></i>
+                                  </button>
+                              </form>
+                              
+                              
                             </div>
 
                             {{-- Daftar Produk --}}
@@ -65,7 +78,7 @@
                                             <strong>{{ $item->produk->nama ?? '-' }}</strong><br>
                                             <small class="text-muted">x{{ $item->jumlah }} @ Rp {{ number_format($item->harga, 0, ',', '.') }}</small>
                                         </div>
-                                        <div class=" fw-semibold">
+                                        <div class="fw-semibold">
                                             Rp {{ number_format($item->jumlah * $item->harga, 0, ',', '.') }}
                                         </div>
                                     </div>
@@ -82,7 +95,7 @@
                             {{-- Total --}}
                             <div class="d-flex justify-content-between align-items-center mt-3 border-top pt-3">
                                 <span class="text-muted fw-medium">Total Pembayaran</span>
-                                <h5 class="mb-0  fw-bold">
+                                <h5 class="mb-0 fw-bold">
                                     Rp {{ $transaksi->penjualan ? number_format($transaksi->penjualan->total, 0, ',', '.') : '-' }}
                                 </h5>
                             </div>
@@ -95,6 +108,8 @@
     @endif
 </div>
 @endsection
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
 
 @push('style')
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css" />
@@ -105,28 +120,23 @@
         transition: all 0.3s ease;
         text-transform: capitalize;
     }
-
     .status-badge:hover {
         transform: scale(1.05);
         box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
     }
-
     .card {
         transition: all 0.3s ease;
         border-radius: 1rem;
     }
-
     .card:hover {
         transform: translateY(-5px);
         box-shadow: 0 10px 20px rgba(0, 0, 0, 0.08);
     }
-
     #searchInput {
         padding: 12px 14px;
         font-size: 0.95rem;
         border-radius: 1rem;
     }
-
     .text-muted.small {
         font-size: 0.8rem;
     }
@@ -134,24 +144,50 @@
 @endpush
 
 @push('scripts')
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>
-    document.addEventListener('DOMContentLoaded', () => {
-        const searchInput = document.getElementById('searchInput');
-        const items = document.querySelectorAll('.riwayat-item');
+document.addEventListener('DOMContentLoaded', () => {
 
-        searchInput.addEventListener('keyup', function () {
-            const filter = this.value.toLowerCase();
-            items.forEach(item => {
-                const tanggal = item.getAttribute('data-tanggal');
-                const status = item.getAttribute('data-status');
+    // -----------------------------
+    // Filter Riwayat Transaksi
+    // -----------------------------
+    const searchInput = document.getElementById('searchInput');
+    const riwayatItems = document.querySelectorAll('.riwayat-item');
 
-                if (tanggal.includes(filter) || status.includes(filter)) {
-                    item.style.display = '';
-                } else {
-                    item.style.display = 'none';
-                }
-            });
+    searchInput?.addEventListener('keyup', (e) => {
+        const filter = e.target.value.toLowerCase();
+        riwayatItems.forEach(item => {
+            const tanggal = item.dataset.tanggal.toLowerCase();
+            const status = item.dataset.status.toLowerCase();
+            item.style.display = (tanggal.includes(filter) || status.includes(filter)) ? '' : 'none';
         });
     });
+
+    // -----------------------------
+    // Tombol Hapus dengan SweetAlert2
+    // -----------------------------
+    $(document).on('click', '.btn-hapus', function() {
+        const form = $(this).closest('form');
+
+        Swal.fire({
+            title: 'Hapus transaksi ini?',
+            text: "Data transaksi akan dihapus permanen!",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonText: 'Ya, hapus!',
+            cancelButtonText: 'Batal',
+            customClass: {
+                confirmButton: 'btn btn-danger px-4 ms-3 py-2',
+                cancelButton: 'btn btn-secondary px-4 py-2'
+            },
+            buttonsStyling: false
+        }).then((result) => {
+            if (result.isConfirmed) {
+                form.trigger('submit');
+            }
+        });
+    });
+
+});
 </script>
 @endpush

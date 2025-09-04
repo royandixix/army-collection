@@ -22,6 +22,8 @@ class AuthController extends Controller
         ], [
             'username.required' => 'Username wajib diisi.',
             'password.required' => 'Password wajib diisi.',
+            'role.required'     => 'Role wajib dipilih.',
+     
         ]);
 
         if (Auth::attempt($credentials)) {

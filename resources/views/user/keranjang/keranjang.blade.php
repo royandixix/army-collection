@@ -61,10 +61,10 @@
       <div class="d-flex justify-content-end align-items-center gap-3 mt-4 flex-wrap">
         <h4 class="m-0">Total:</h4>
         <h4 class="text-primary fw-bold mb-0" id="grandTotal">Rp {{ number_format($total, 0, ',', '.') }}</h4>
-        <button type="submit" class="btn checkout-btn position-relative">
+        {{-- <button type="submit" class="btn checkout-btn position-relative">
           <span class="btn-text"><i class="bi bi-bag-check-fill me-1"></i> Checkout Sekarang</span>
           <span class="spinner-border spinner-border-sm position-absolute end-0 me-3 d-none" role="status"></span>
-        </button>
+        </button> --}}
       </div>
     </form>
   @endif

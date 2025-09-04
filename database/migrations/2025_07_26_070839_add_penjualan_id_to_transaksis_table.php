@@ -33,4 +33,6 @@ return new class extends Migration
             $table->dropColumn('penjualan_id');
         });
     }
+
+    
 };
