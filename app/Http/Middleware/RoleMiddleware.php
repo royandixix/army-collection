@@ -15,7 +15,10 @@ class RoleMiddleware
             return redirect('/login');
         }
 
-        if (!in_array(Auth::user()->role, $roles)) {
+        $userRole = strtolower(Auth::user()->role); // Ubah ke huruf kecil
+        $allowedRoles = array_map('strtolower', $roles); // Semua role juga ke huruf kecil
+
+        if (!in_array($userRole, $allowedRoles)) {
             abort(403, 'Akses ditolak.');
         }
 

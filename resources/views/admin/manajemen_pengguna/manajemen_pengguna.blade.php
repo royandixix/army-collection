@@ -63,6 +63,7 @@
                                     <td>{{ $user->pelanggan->no_hp ?? '-' }}</td>
                                     <td>{{ $user->created_at->format('Y-m-d') }}</td>
                                     <td>{{ $user->role ?? 'N/A' }}</td>
+                                    
                                     <td>
                                         <span class="badge bg-{{ strtolower($user->status) === 'active' ? 'success' : 'warning' }}">
                                             {{ strtoupper($user->status) }}

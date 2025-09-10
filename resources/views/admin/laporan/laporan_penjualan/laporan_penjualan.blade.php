@@ -31,27 +31,26 @@
                             </tr>
                         </thead>
                         <tbody>
-                            @php $no = 1; @endphp
                             @forelse($penjualans as $penjualan)
-    @if($penjualan->transaksi && $penjualan->transaksi->detailTransaksi)
-        @foreach($penjualan->transaksi->detailTransaksi as $detail)
-            <tr>
-                <td>{{ $loop->iteration }}</td>
-                <td>{{ $detail->produk->nama ?? '-' }}</td>
-                <td>{{ $penjualan->created_at->format('d/m/Y') }}</td>
-                <td>{{ $detail->jumlah }}</td>
-                <td>Rp {{ number_format($detail->harga, 0, ',', '.') }}</td>
-                <td>Rp {{ number_format($detail->jumlah * $detail->harga, 0, ',', '.') }}</td>
-            </tr>
-        @endforeach
-    @endif
-@empty
-    <tr>
-        <td colspan="6" class="text-center text-muted">Tidak ada data penjualan.</td>
-    </tr>
-@endforelse
-
+                                @foreach($penjualan->transaksi as $transaksi)
+                                    @foreach($transaksi->detailTransaksi as $detail)
+                                        <tr>
+                                            <td>{{ $loop->parent->iteration }}.{{ $loop->iteration }}</td>
+                                            <td>{{ $detail->produk->nama ?? '-' }}</td>
+                                            <td>{{ $penjualan->created_at->format('d/m/Y') }}</td>
+                                            <td>{{ $detail->jumlah }}</td>
+                                            <td>Rp {{ number_format($detail->harga, 0, ',', '.') }}</td>
+                                            <td>Rp {{ number_format($detail->jumlah * $detail->harga, 0, ',', '.') }}</td>
+                                        </tr>
+                                    @endforeach
+                                @endforeach
+                            @empty
+                                <tr>
+                                    <td colspan="6" class="text-center text-muted">Tidak ada data penjualan.</td>
+                                </tr>
+                            @endforelse
                         </tbody>
+                        
                     </table>
                 </div>
             </div>

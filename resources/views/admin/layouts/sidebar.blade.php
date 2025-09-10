@@ -27,21 +27,21 @@
                 <li class="cx-sb-item sb-drop-item">
                     <a href="{{ route('admin.manajemen.manajemen_produk') }}" class="cx-drop-toggle">
                         <i class="ri-todo-line"></i>
-                        <span class="condense">Manajemen Produk</span>
+                        <span class="condense">Data Produk</span>
                     </a>
                 </li>
 
                 <li class="cx-sb-item sb-drop-item">
                     <a href="{{ route('admin.manajemen.manajemen_penjualan') }}" class="cx-drop-toggle">
                         <i class="ri-message-3-line"></i>
-                        <span class="condense">Manajemen Penjualan</span>
+                        <span class="condense">Data Penjualan</span>
                     </a>
                 </li>
 
                 <li class="cx-sb-item sb-drop-item">
                     <a href="{{ route('admin.manajemen.manajemen_pelanggan') }}" class="cx-drop-toggle">
                         <i class="ri-calendar-2-line"></i>
-                        <span class="condense">Manajemen Pelanggan</span>
+                        <span class="condense">Data Pelanggan</span>
                     </a>
                 </li>
 
@@ -49,7 +49,7 @@
                 <li class="cx-sb-item sb-drop-item">
                     <a href="javascript:void(0)" class="cx-drop-toggle">
                         <i class="ri-file-chart-line"></i>
-                        <span class="condense">Laporan <i class="drop-arrow ri-arrow-down-s-line"></i></span>
+                        <span class="condense">Data Laporan <i class="drop-arrow ri-arrow-down-s-line"></i></span>
                     </a>
                     <ul class="cx-submenu">
                         <li>
@@ -164,6 +164,9 @@
             </div>
         </div>
     </div>
+</div>
+
+
 </div>
 
 <!-- SweetAlert2 CDN -->
