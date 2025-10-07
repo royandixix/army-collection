@@ -21,7 +21,7 @@
                 <ul class="dropdown-menu dropdown-menu-end shadow profile-dropdown mt-3" aria-labelledby="userDropdown">
                     <li class="px-3 pt-2 pb-1 text-muted small">Akun Saya</li>
                     <li>
-                        <a class="dropdown-item d-flex align-items-center gap-2" href="{{ route('user.profil.profil') }}">
+                        <a class="dropdown-item d-flex align-items-center gap-2" href="{{ route('user.profil') }}">
                             <i class="bi bi-person-fill-gear text-primary fs-5"></i>
                             <span>Profil & Pengaturan</span>
                         </a>

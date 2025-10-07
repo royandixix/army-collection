@@ -14,6 +14,10 @@ class Penjualan extends Model
         'tanggal',
         'total',
         'status',
+        'metode_pembayaran',
+        'user_id',
+        'bukti_pembayaran',
+        'bukti_tf',
     ];
 
     protected $casts = [
@@ -31,9 +35,13 @@ class Penjualan extends Model
     }
 
     public function transaksi()
-{
-    return $this->hasMany(Transaksi::class, 'penjualan_id');
-}
+    {
+        return $this->hasMany(Transaksi::class, 'penjualan_id');
+    }
 
-    
+    // 🔥 Tambahkan accessor ini di sini (bukan di Transaksi)
+    public function getMetodePembayaranAttribute($value)
+    {
+        return $value ?? $this->attributes['metode'] ?? null;
+    }
 }

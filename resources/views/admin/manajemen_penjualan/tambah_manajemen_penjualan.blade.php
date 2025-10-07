@@ -1,38 +1,40 @@
 @extends('admin.layouts.app')
 
-@section('title', 'Tambah Manajemen Penjualan')
+@section('title', 'Manajemen Penjualan')
 
 @section('content')
 <div class="cx-main-content">
-    <!-- Judul halaman -->
+
     <div class="cx-page-title d-flex justify-content-between align-items-center flex-wrap mb-3">
-        <h4 class="mb-0">Tambah Transaksi Penjualan</h4>
-        <a href="{{ route('admin.manajemen.manajemen_penjualan') }}" class="btn btn-sm btn-secondary">← Kembali</a>
+        <h4 class="mb-0">Tambah Transaksi Penjualan Manual</h4>
+        <button class="btn btn-sm btn-light" id="btnRefresh"><i class="ri-refresh-line"></i> Refresh</button>
     </div>
 
-    <!-- Form tambah penjualan -->
-    <div class="cx-card card-default p-4">
-        <form action="{{ route('admin.manajemen.manajemen_penjualan_store') }}" method="POST">
+    <div class="cx-card card-default p-4 mb-4">
+        <h5 class="mb-3">Input Data Pelanggan & Transaksi</h5>
+        <form action="{{ route('admin.manajemen.manajemen_penjualan_store_manual') }}" method="POST" class="row g-3 align-items-end">
             @csrf
 
-            <!-- Pelanggan -->
-            <div class="mb-3">
-                <label for="pelanggan_id" class="form-label">Pelanggan</label>
-                <select name="pelanggan_id" id="pelanggan_id" class="form-select @error('pelanggan_id') is-invalid @enderror" required>
-                    <option value="">-- Pilih Pelanggan --</option>
-                    @foreach($pelanggans as $pelanggan)
-                        <option value="{{ $pelanggan->id }}" {{ old('pelanggan_id') == $pelanggan->id ? 'selected' : '' }}>
-                            {{ $pelanggan->nama }} ({{ $pelanggan->email }})
-                        </option>
-                    @endforeach
-                </select>
-                @error('pelanggan_id')
+            {{-- Input Nama Pelanggan --}}
+            <div class="col-md-3">
+                <label for="nama" class="form-label">Nama Pelanggan</label>
+                <input type="text" name="nama" id="nama" class="form-control @error('nama') is-invalid @enderror" value="{{ old('nama') }}" required placeholder="Masukkan nama pelanggan">
+                @error('nama')
                     <div class="invalid-feedback">{{ $message }}</div>
                 @enderror
             </div>
 
-            <!-- Tanggal -->
-            <div class="mb-3">
+            {{-- Input Email Pelanggan --}}
+            <div class="col-md-3">
+                <label for="email" class="form-label">Email Pelanggan</label>
+                <input type="email" name="email" id="email" class="form-control @error('email') is-invalid @enderror" value="{{ old('email') }}" required placeholder="Masukkan email pelanggan">
+                @error('email')
+                    <div class="invalid-feedback">{{ $message }}</div>
+                @enderror
+            </div>
+
+            {{-- Input Tanggal Transaksi --}}
+            <div class="col-md-2">
                 <label for="tanggal" class="form-label">Tanggal Transaksi</label>
                 <input type="date" name="tanggal" id="tanggal" class="form-control @error('tanggal') is-invalid @enderror" value="{{ old('tanggal') ?? date('Y-m-d') }}" required>
                 @error('tanggal')
@@ -40,8 +42,8 @@
                 @enderror
             </div>
 
-            <!-- Total -->
-            <div class="mb-3">
+            {{-- Input Total --}}
+            <div class="col-md-2">
                 <label for="total" class="form-label">Total (Rp)</label>
                 <input type="number" name="total" id="total" class="form-control @error('total') is-invalid @enderror" placeholder="Masukkan total pembayaran" value="{{ old('total') }}" required>
                 @error('total')
@@ -49,8 +51,8 @@
                 @enderror
             </div>
 
-            <!-- Status -->
-            <div class="mb-3">
+            {{-- Input Status Pembayaran --}}
+            <div class="col-md-2">
                 <label for="status" class="form-label">Status Pembayaran</label>
                 <select name="status" id="status" class="form-select @error('status') is-invalid @enderror" required>
                     <option value="">-- Pilih Status --</option>
@@ -63,47 +65,43 @@
                 @enderror
             </div>
 
-            <!-- Tombol Submit -->
-            <div class="mt-4">
-                <button type="submit" class="btn btn-primary">
+            {{-- Input Metode Pembayaran --}}
+            <div class="col-md-3">
+                <label for="metode_pembayaran" class="form-label">Metode Pembayaran</label>
+                <select name="metode_pembayaran" id="metode_pembayaran" class="form-select @error('metode_pembayaran') is-invalid @enderror" required>
+                    <option value="">-- Pilih Metode Pembayaran --</option>
+                    <option value="cod" {{ old('metode_pembayaran') == 'cod' ? 'selected' : '' }}>Cash On Delivery (COD)</option>
+                    <option value="qris" {{ old('metode_pembayaran') == 'qris' ? 'selected' : '' }}>QRIS</option>
+                    <option value="transfer" {{ old('metode_pembayaran') == 'transfer' ? 'selected' : '' }}>Transfer</option>
+                </select>
+                @error('metode_pembayaran')
+                    <div class="invalid-feedback">{{ $message }}</div>
+                @enderror
+            </div>
+
+            {{-- Tombol Simpan --}}
+            <div class="col-md-2">
+                <button type="submit" class="btn btn-primary w-100">
                     <i class="ri-check-line me-1"></i> Simpan Transaksi
                 </button>
-                <a href="{{ route('admin.manajemen.manajemen_penjualan') }}" class="btn btn-outline-secondary">Batal</a>
             </div>
         </form>
     </div>
+
+    {{-- Tabel data penjualan (optional) --}}
+    {{-- ... --}}
 </div>
 @endsection
 
 @push('styles')
-<link href="https://cdn.datatables.net/1.13.6/css/dataTables.bootstrap5.min.css" rel="stylesheet" />
 <link href="https://cdn.jsdelivr.net/npm/remixicon/fonts/remixicon.css" rel="stylesheet" />
 @endpush
 
 @push('scripts')
-<script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
-<script src="https://cdn.datatables.net/1.13.6/js/dataTables.bootstrap5.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
 <script>
-    // Format harga ke format Rupiah
-    document.addEventListener("DOMContentLoaded", function () {
-        const priceInput = document.getElementById('price');
-        if (priceInput) {
-            priceInput.addEventListener('input', function (e) {
-                let angka = e.target.value.replace(/\D/g, '');
-                if (angka.length > 9) angka = angka.substring(0, 9);
-                e.target.value = new Intl.NumberFormat('id-ID').format(angka);
-            });
-        }
-    });
-
-    // Inisialisasi DataTable
-    $(document).ready(function () {
-        $('#produk-table').DataTable();
-    });
-
-    // Toast Notification
+    // Notifikasi dan refresh
     const Toast = Swal.mixin({
         toast: true,
         position: 'top',
@@ -113,9 +111,7 @@
         background: '#fff',
         color: '#333',
         iconColor: '#4f46e5',
-        customClass: {
-            popup: 'rounded-xl shadow-md text-sm px-4 py-3 mt-4'
-        },
+        customClass: { popup: 'rounded-xl shadow-md text-sm px-4 py-3 mt-4' },
         didOpen: (toast) => {
             toast.addEventListener('mouseenter', Swal.stopTimer)
             toast.addEventListener('mouseleave', Swal.resumeTimer)
@@ -134,24 +130,8 @@
         Toast.fire({ icon: 'warning', title: 'Periksa form kamu', text: @js($errors->first()) });
     @endif
 
-    // Hapus produk dengan konfirmasi
-    $('.delete-btn').on('click', function (e) {
-        e.preventDefault();
-        const id = $(this).data('id');
-
-        Swal.fire({
-            title: 'Hapus Produk?',
-            text: "Tindakan ini tidak dapat dibatalkan.",
-            icon: 'warning',
-            showCancelButton: true,
-            confirmButtonColor: '#d33',
-            cancelButtonColor: '#3085d6',
-            confirmButtonText: 'Ya, hapus'
-        }).then((result) => {
-            if (result.isConfirmed) {
-                window.location.href = `/admin/manajemen/produk/${id}/delete`;
-            }
-        });
+    document.getElementById('btnRefresh').addEventListener('click', function(){
+        location.reload();
     });
 </script>
 @endpush

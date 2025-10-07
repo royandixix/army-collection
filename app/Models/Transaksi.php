@@ -6,7 +6,6 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use App\Models\DetailTransaksi;
 
-
 class Transaksi extends Model
 {
     use HasFactory;
@@ -18,6 +17,7 @@ class Transaksi extends Model
         'status',
         'total',
         'penjualan_id',
+        'bukti_tf'
     ];
 
     public function user()
@@ -25,23 +25,15 @@ class Transaksi extends Model
         return $this->belongsTo(User::class);
     }
 
-    public function detail()
+    public function detailTransaksi()
     {
         return $this->hasMany(DetailTransaksi::class);
     }
+
     public function penjualan()
     {
         return $this->belongsTo(Penjualan::class, 'penjualan_id');
     }
-    // Di Penjualan.php
-    // public function transaksi()
-    // {
-    //     return $this->hasOne(Transaksi::class);
-    // }
 
-    public function detailTransaksi()
-{
-    return $this->hasMany(DetailTransaksi::class);
-}
-
+    // Accessor agar
 }

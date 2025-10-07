@@ -82,34 +82,26 @@ class PelangganController extends Controller
      * Update data pelanggan.
      */
     public function update(Request $request, $id)
-    {
-        $pelanggan = Pelanggan::findOrFail($id);
-        $user = $pelanggan->user;
+{
+    $pelanggan = Pelanggan::findOrFail($id);
+    $user = $pelanggan->user;
 
-        $validated = $request->validate([
-            'nama'   => 'required|string|max:255',
-            'email'  => ['required', 'email', Rule::unique('users', 'email')->ignore($user->id)],
-            'alamat' => 'nullable|string|max:500',
-            'no_hp'  => 'nullable|string|max:20',
-        ]);
+    $validated = $request->validate([
+        'nama'   => 'required|string|max:255',
+        'email'  => ['required','email', Rule::unique('users','email')->ignore($user->id)],
+        'alamat' => 'nullable|string|max:500',
+        'no_hp'  => 'nullable|string|max:20',
+    ]);
 
-        // Update tabel users
-        $user->update([
-            'username' => $validated['nama'],
-            'email'    => $validated['email'],
-        ]);
+    $user->update([
+        'username' => $validated['nama'],
+        'email'    => $validated['email'],
+    ]);
 
-        // Update tabel pelanggans
-        $pelanggan->update([
-            'nama'   => $validated['nama'],
-            'email'  => $validated['email'],
-            'alamat' => $validated['alamat'],
-            'no_hp'  => $validated['no_hp'],
-        ]);
+    $pelanggan->update($validated);
 
-        return redirect()->route('admin.manajemen.manajemen_pelanggan')
-            ->with('success', 'Data pelanggan berhasil diperbarui.');
-    }
+    return redirect()->back()->with('success', 'Profil pelanggan berhasil diperbarui.');
+}
 
     /**
      * Hapus pelanggan.

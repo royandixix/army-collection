@@ -4,30 +4,34 @@ namespace Database\Seeders;
 
 use Illuminate\Database\Seeder;
 use App\Models\Kategori;
+use Illuminate\Support\Facades\DB;
 
 class KategoriSeeder extends Seeder
 {
-    /**
-     * Run the database seeds.
-     */
     public function run(): void
     {
+        // Matikan foreign key check
+        DB::statement('SET FOREIGN_KEY_CHECKS=0;');
+
+        // Kosongkan tabel kategori
+        Kategori::truncate();
+
+        // Nyalakan lagi foreign key check
+        DB::statement('SET FOREIGN_KEY_CHECKS=1;');
+
+        // Isi data kategori
         $data = [
-            'Pakaian Tempur',
-            'Sepatu Tactical',
-            'Aksesoris Militer',
-            'Perlengkapan Camping',
-            'Tas Tactical',
-            'Rompi & Armor',
-            'Topi & Headgear',
-            'Sarung Tangan',
-            'Alat Survival',
-            'Perlengkapan Tembak',
-            'Senjata', // ✅ Tambahan baru
+            'Pakaian',
+            'Aksesoris',
+            'Sepatu',
+            'Topi',
+            'Rompi',
+            'Tas',
+            'Lainnya',
         ];
 
         foreach ($data as $name) {
-            Kategori::firstOrCreate(['name' => $name]);
+            Kategori::create(['name' => $name]);
         }
     }
 }

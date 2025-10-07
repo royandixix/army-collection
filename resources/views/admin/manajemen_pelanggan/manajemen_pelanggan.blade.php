@@ -6,9 +6,9 @@
 <div class="cx-main-content">
     <!-- Judul Halaman -->
     <div class="cx-page-title d-flex justify-content-between align-items-center flex-wrap mb-3">
-        <h4 class="mb-0">Daftar Pelanggan</h4>
+        <h4 class="mb-0">Daftar Pembelian</h4>
         <a href="{{ route('admin.manajemen.manajemen_pelanggan_create') }}" class="btn btn-outline-primary rounded-pill">
-            <i class="ri-add-line me-1"></i> Tambah Pelanggan
+            <i class="ri-add-line me-1"></i> Tambah Pembelian
         </a>
     </div>
 

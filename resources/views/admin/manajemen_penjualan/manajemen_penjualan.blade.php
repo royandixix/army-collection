@@ -24,7 +24,8 @@
         </div>
         <div class="col-md-8">
             <label for="global-search" class="form-label">Pencarian Cepat:</label>
-            <input type="text" id="global-search" class="form-control form-control-lg" placeholder="Cari berdasarkan pelanggan, tanggal, atau total...">
+            <input type="text" id="global-search" class="form-control form-control-lg"
+                   placeholder="Cari berdasarkan pelanggan, tanggal, atau total...">
         </div>
     </div>
 
@@ -39,7 +40,8 @@
             </div>
 
             <div>
-                <a href="{{ route('admin.manajemen.manajemen_penjualan_create') }}" class="btn btn-outline-primary rounded-pill d-inline-flex align-items-center mb-3">
+                <a href="{{ route('admin.manajemen.manajemen_penjualan_create') }}"
+                   class="btn btn-outline-primary rounded-pill d-inline-flex align-items-center mb-3">
                     <i class="ri-add-line me-1"></i>
                     Tambah Penjualan
                 </a>
@@ -55,99 +57,135 @@
                                 <th>Tanggal</th>
                                 <th>Total</th>
                                 <th>Status</th>
-                                <th>Jenis</th>
+                                <th>Metode Pembayaran</th>
+                                <th>Bukti Pembayaran</th>
                                 <th>Aksi</th>
                             </tr>
                         </thead>
-                        <tbody>
-                            @php $no = 1; @endphp
-                            @foreach($penjualans->concat($transaksis) as $item)
-                            <tr>
-                                <td>{{ $no++ }}</td>
-                                <td>
-                                    <div class="d-flex align-items-center gap-2">
-                                        @php
-                                        $user = $item->user ?? null;
-                                        $fotoUrl = $user?->profile_photo_url ?? asset('img/default-user.png');
-                                        $nama = $item->pelanggan->nama
-                                        ?? $user?->name
-                                        ?? $user?->username
-                                        ?? $user?->email
-                                        ?? 'Pengguna';
-                                        @endphp
-                                        <img src="{{ $fotoUrl }}" alt="Foto" class="rounded-circle" width="40" height="40" style="object-fit: cover;">
-                                        <span>{{ $nama }}</span>
-                                    </div>
-                                </td>
-                                <td>
-                                    @php
-                                    // Ambil nilai tanggal dari properti 'tanggal' jika ada, jika tidak gunakan 'created_at'
-                                    \Carbon\Carbon::setLocale('id');
-                                    $waktu = $item->tanggal ?? $item->created_at;
-                                    @endphp
-                                    <!-- Format: Sabtu, 26 Juli 2025 14:30 -->
-                                    <span>{{ \Carbon\Carbon::parse($waktu)->translatedFormat('l, d F Y H:i') }}</span>
-                                </td>
+                       <tbody>
+    @php $no = 1; @endphp
+    @foreach ($items as $item)
+        @php
+            $type = $item instanceof \App\Models\Penjualan ? 'penjualan' : 'transaksi';
+            $uniqueId = $type . '-' . $item->id;
 
+            $defaultImg = asset('img/default-user.png');
+            $fotoUrl = $defaultImg;
 
-                                <td>Rp {{ number_format($item->total, 0, ',', '.') }}</td>
-                                <td>
-                                    @php $isPenjualan = isset($item->pelanggan); @endphp
-                                    <form id="status-form-{{ $item->id }}" action="{{ route('admin.manajemen.penjualan_ubah_status', $item->id) }}" method="POST">
-                                        @csrf
-                                        @method('PATCH')
-                                        <select name="status" class="form-select form-select-sm status-select" data-id="{{ $item->id }}">
-                                            @if ($isPenjualan)
-                                            <option value="lunas" {{ $item->status == 'lunas' ? 'selected' : '' }}>LUNAS</option>
-                                            <option value="pending" {{ $item->status == 'pending' ? 'selected' : '' }}>PENDING</option>
-                                            <option value="batal" {{ $item->status == 'batal' ? 'selected' : '' }}>BATAL</option>
-                                            @else
-                                            <option value="pending" {{ $item->status == 'pending' ? 'selected' : '' }}>PENDING</option>
-                                            <option value="diproses" {{ $item->status == 'diproses' ? 'selected' : '' }}>DIPROSES</option>
-                                            <option value="selesai" {{ $item->status == 'selesai' ? 'selected' : '' }}>SELESAI</option>
-                                            <option value="batal" {{ $item->status == 'batal' ? 'selected' : '' }}>BATAL</option>
-                                            @endif
-                                        </select>
-                                    </form>
-                                </td>
-                                <td>
-                                    @php
-                                    $role = $item->user->role ?? 'unknown';
-                                    @endphp
+            // Ambil nama dari pelanggan atau user
+            $nama = $item->pelanggan->nama ?? $item->pelanggan->user->name ?? $item->user->name ?? null;
 
-                                    @if ($role === 'admin')
-                                    <span class="badge bg-dark">Admin</span>
-                                    @elseif ($role === 'user')
-                                    <span class="badge bg-secondary">User</span>
-                                    @else
-                                    <span class="badge bg-danger">Unknown</span>
-                                    @endif
-                                </td>
+            if ($item instanceof \App\Models\Penjualan) {
+                if (!empty($item->pelanggan->user->img) && file_exists(public_path('storage/' . $item->pelanggan->user->img))) {
+                    $fotoUrl = asset('storage/' . $item->pelanggan->user->img);
+                }
+            } elseif ($item instanceof \App\Models\Transaksi) {
+                if (!empty($item->user->img) && file_exists(public_path('storage/' . $item->user->img))) {
+                    $fotoUrl = asset('storage/' . $item->user->img);
+                }
+            }
+        @endphp
 
+        @if($nama) {{-- Hanya tampilkan jika nama ada --}}
+        <tr>
+            <td>{{ $no++ }}</td>
 
-                                <td>
-                                    <div class="d-flex gap-2">
-                                        <!-- Tombol Edit -->
-                                        <a href="{{ route('admin.manajemen.manajemen_penjualan_edit', $item->id) }}" class="btn btn-sm btn-outline-primary" title="Edit">
-                                            <i class="ri-edit-line"></i>
-                                        </a>
-                                        <form id="delete-form-{{ $item->id }}" action="{{ route('admin.manajemen.manajemen_penjualan_destroy', $item->id) }}" method="POST" class="d-inline">
-                                            @csrf
-                                            @method('DELETE')
-                                            <button type="button" class="btn btn-sm btn-outline-danger delete-btn" data-id="{{ $item->id }}" title="Hapus">
-                                                <i class="ri-delete-bin-6-line"></i>
-                                            </button>
-                                        </form>
-                                    </div>
-                                </td>
-                            </tr>
-                            @endforeach
-                        </tbody>
+            {{-- Nama & Foto --}}
+            <td>
+                <div class="d-flex align-items-center gap-2">
+                    <img src="{{ $fotoUrl }}" alt="Foto Profil"
+                         class="rounded-circle" width="40" height="40"
+                         style="object-fit: cover;">
+                    <span>{{ $nama }}</span>
+                </div>
+            </td>
+
+            {{-- Tanggal --}}
+            <td>
+                @php
+                    \Carbon\Carbon::setLocale('id');
+                    $waktu = $item->tanggal ?? $item->created_at;
+                @endphp
+                <span>{{ \Carbon\Carbon::parse($waktu)->translatedFormat('l, d F Y H:i') }}</span>
+            </td>
+
+            {{-- Total --}}
+            <td>Rp {{ number_format($item->total ?? 0, 0, ',', '.') }}</td>
+
+            {{-- Status --}}
+            <td>
+                @if($item instanceof \App\Models\Penjualan)
+                    <form id="status-form-{{ $uniqueId }}"
+                          action="{{ route('admin.manajemen.penjualan_ubah_status', $item->id) }}"
+                          method="POST">
+                        @csrf
+                        @method('PATCH')
+                        <select name="status" class="form-select form-select-sm status-select"
+                                data-id="{{ $uniqueId }}">
+                            <option value="lunas" {{ $item->status == 'lunas' ? 'selected' : '' }}>LUNAS</option>
+                            <option value="pending" {{ $item->status == 'pending' ? 'selected' : '' }}>PENDING</option>
+                            <option value="batal" {{ $item->status == 'batal' ? 'selected' : '' }}>BATAL</option>
+                        </select>
+                    </form>
+                @else
+                    <span class="text-muted">{{ ucfirst($item->status ?? '-') }}</span>
+                @endif
+            </td>
+
+            {{-- Metode Pembayaran --}}
+            <td>{{ ucfirst(str_replace('_', ' ', $item->metode_pembayaran ?? '-')) }}</td>
+
+            {{-- Bukti Pembayaran --}}
+            <td>
+                @if(!empty($item->bukti_tf) && file_exists(public_path('storage/' . $item->bukti_tf)))
+                    <a href="{{ asset('storage/' . $item->bukti_tf) }}" target="_blank">
+                        <img src="{{ asset('storage/' . $item->bukti_tf) }}" width="60" height="60" class="rounded shadow-sm border" style="object-fit: cover;">
+                    </a>
+                @elseif(!empty($item->bukti_pembayaran) && file_exists(public_path('storage/' . $item->bukti_pembayaran)))
+                    <a href="{{ asset('storage/' . $item->bukti_pembayaran) }}" target="_blank">
+                        <img src="{{ asset('storage/' . $item->bukti_pembayaran) }}" width="60" height="60" class="rounded shadow-sm border" style="object-fit: cover;">
+                    </a>
+                @elseif(($item->metode_pembayaran ?? '') === 'qris')
+                    <img src="{{ asset('images/qiris/qris.jpeg') }}" width="60" height="60"
+                         class="rounded shadow-sm border" style="object-fit: cover;">
+                @else
+                    <span class="text-muted small">Belum upload</span>
+                @endif
+            </td>
+
+            {{-- Aksi --}}
+            <td>
+                <div class="d-flex gap-2">
+                    @if($item instanceof \App\Models\Penjualan)
+                        <a href="{{ route('admin.manajemen.manajemen_penjualan_edit', $item->id) }}"
+                           class="btn btn-sm btn-outline-primary" title="Edit">
+                            <i class="ri-edit-line"></i>
+                        </a>
+                        <form id="delete-form-{{ $uniqueId }}"
+                              action="{{ route('admin.manajemen.manajemen_penjualan_destroy', $item->id) }}"
+                              method="POST" class="d-inline">
+                            @csrf
+                            @method('DELETE')
+                            <button type="button" class="btn btn-sm btn-outline-danger delete-btn"
+                                    data-id="{{ $uniqueId }}" title="Hapus">
+                                <i class="ri-delete-bin-6-line"></i>
+                            </button>
+                        </form>
+                    @else
+                        <span class="text-muted">-</span>
+                    @endif
+                </div>
+            </td>
+        </tr>
+        @endif
+    @endforeach
+</tbody>
+
                     </table>
                 </div>
-            </div> <!-- /.cx-card-content -->
-        </div> <!-- /.cx-card -->
-    </div> <!-- /.col-md-12 -->
+            </div>
+        </div>
+    </div>
 </div>
 @endsection
 
@@ -162,100 +200,59 @@
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
 <script>
-    document.querySelectorAll('.status-select').forEach(function(select) {
-        select.addEventListener('change', function() {
-            const id = this.dataset.id;
-            const form = document.getElementById(`status-form-${id}`);
-            if (form) {
-                form.submit();
-            }
-        });
+$(document).ready(function() {
+    const table = $('#penjualan-table').DataTable({
+        language: {
+            search: "INPUT",
+            searchPlaceholder: "🔍 Cari penjualan...",
+            lengthMenu: "Tampilkan MENU entri",
+            zeroRecords: "Tidak ditemukan data",
+            info: "Menampilkan START hingga END dari TOTAL entri",
+            infoEmpty: "Tidak ada data",
+            paginate: { next: "➡", previous: "⬅" }
+        },
+        pageLength: 10,
+        responsive: true
     });
 
-    $(document).ready(function() {
-        const table = $('#penjualan-table').DataTable({
-            language: {
-                search: "_INPUT_"
-                , searchPlaceholder: "🔍 Cari penjualan..."
-                , lengthMenu: "Tampilkan _MENU_ entri"
-                , zeroRecords: "Tidak ditemukan data"
-                , info: "Menampilkan _START_ hingga _END_ dari _TOTAL_ entri"
-                , infoEmpty: "Tidak ada data"
-                , paginate: {
-                    next: "➡️"
-                    , previous: "⬅️"
-                }
-            }
-            , pageLength: 10
-            , responsive: true
-        });
+    $('#statusFilter').on('change', function() { table.column(4).search($(this).val()).draw(); });
+    $('#global-search').on('keyup', function() { table.search(this.value).draw(); });
 
-        $('#statusFilter').on('change', function() {
-            table.column(4).search($(this).val()).draw();
-        });
+    $('.status-select').on('change', function() {
+        const id = this.dataset.id;
+        document.getElementById(`status-form-${id}`).submit();
+    });
 
-        $('#global-search').on('keyup', function() {
-            table.search(this.value).draw();
-        });
-
-        $('.delete-btn').on('click', function() {
-            const id = $(this).data('id');
-            Swal.fire({
-                title: 'Yakin ingin menghapus?'
-                , text: "Data penjualan tidak bisa dikembalikan."
-                , icon: 'warning'
-                , showCancelButton: true
-                , confirmButtonColor: '#ef4444'
-                , cancelButtonColor: '#3b82f6'
-                , confirmButtonText: 'Ya, hapus!'
-                , cancelButtonText: 'Batal'
-            }).then((result) => {
-                if (result.isConfirmed) {
-                    $(`#delete-form-${id}`).submit();
-                }
-            });
+    $('.delete-btn').on('click', function() {
+        const id = $(this).data('id');
+        Swal.fire({
+            title: 'Yakin ingin menghapus?',
+            text: "Data penjualan tidak bisa dikembalikan.",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#ef4444',
+            cancelButtonColor: '#3b82f6',
+            confirmButtonText: 'Ya, hapus!',
+            cancelButtonText: 'Batal'
+        }).then((result) => {
+            if(result.isConfirmed) $(`#delete-form-${id}`).submit();
         });
     });
 
     const Toast = Swal.mixin({
-        toast: true
-        , position: 'top-end'
-        , showConfirmButton: false
-        , timer: 3000
-        , timerProgressBar: true
-        , background: '#f9f9f9'
-        , color: '#1e293b'
-        , iconColor: '#10b981'
-        , customClass: {
-            popup: 'rounded-xl shadow-md text-sm px-4 py-3 mt-4 border border-gray-200'
-        }
-        , didOpen: (toast) => {
-            toast.addEventListener('mouseenter', Swal.stopTimer);
-            toast.addEventListener('mouseleave', Swal.resumeTimer);
-        }
+        toast: true,
+        position: 'top-end',
+        showConfirmButton: false,
+        timer: 3000,
+        timerProgressBar: true,
+        background: '#f9f9f9',
+        color: '#1e293b',
+        iconColor: '#10b981'
     });
 
     @if(session('success'))
-    Toast.fire({
-        icon: 'success'
-        , title: @js(session('success'))
-    });
+        Toast.fire({ icon: 'success', title: @js(session('success')) });
     @endif
-
-    @if(session('error'))
-    Toast.fire({
-        icon: 'error'
-        , title: @js(session('error'))
-    });
-    @endif
-
-    @if($errors->any())
-    Toast.fire({
-        icon: 'warning'
-        , title: 'Form belum lengkap'
-        , text: @js($errors->first())
-    });
-    @endif
-
+});
 </script>
 @endpush

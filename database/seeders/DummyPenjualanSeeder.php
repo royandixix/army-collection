@@ -11,33 +11,39 @@ class DummyPenjualanSeeder extends Seeder
 {
     public function run(): void
     {
-        // 1. Buat user admin
-        $user = User::firstOrCreate([
-            'email' => 'admin@example.com',
-        ], [
-            'username' => 'admin',
-            'password' => bcrypt('password'),
-            'role' => 'admin',
-            'status' => 'active',
-        ]);
+        // 1️⃣ Buat user admin (hindari duplicate)
+        $user = User::firstOrCreate(
+            ['email' => 'admin@example.com'],
+            [
+                'username' => 'admin',
+                'password' => bcrypt('password'),
+                'role' => 'admin',
+                'status' => 'active',
+            ]
+        );
 
-        // 2. Buat pelanggan
-        $pelanggan = Pelanggan::firstOrCreate([
-            'email' => 'pelanggan@example.com',
-        ], [
-            'nama' => 'Pelanggan Satu',
-            'alamat' => 'Jl. Contoh',
-            'no_hp' => '08123456789',
-            'user_id' => $user->id,
-        ]);
+        // 2️⃣ Buat pelanggan
+        $pelanggan = Pelanggan::firstOrCreate(
+            ['email' => 'pelanggan@example.com'],
+            [
+                'nama' => 'Pelanggan Satu',
+                'alamat' => 'Jl. Contoh',
+                'no_hp' => '08123456789',
+                'user_id' => $user->id,
+            ]
+        );
 
-        // 3. Buat penjualan
-        Penjualan::create([
-            'pelanggan_id' => $pelanggan->id,
-            'user_id' => $user->id,
-            'tanggal' => now(),
-            'total' => 200000,
-            'status' => 'lunas',
-        ]);
+        // 3️⃣ Buat penjualan dummy
+        Penjualan::firstOrCreate(
+            [
+                'pelanggan_id' => $pelanggan->id,
+                'user_id' => $user->id,
+                'total' => 200000,
+            ],
+            [
+                'tanggal' => now(),
+                'status' => 'lunas',
+            ]
+        );
     }
 }

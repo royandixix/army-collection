@@ -17,9 +17,9 @@ use App\Http\Controllers\Admin\RekapController;
 // USER
 use App\Http\Controllers\User\ProdukUserController;
 use App\Http\Controllers\User\KeranjangController;
-use App\Http\Controllers\User\CheckoutController;
 use App\Http\Controllers\User\RiwayatController;
 use App\Http\Controllers\User\ProfilController;
+
 
 
 // ==============================
@@ -71,6 +71,8 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'role:admin'])->grou
     Route::put('/manajemen/penjualan/{id}', [PenjualanController::class, 'update'])->name('manajemen.manajemen_penjualan_update');
     Route::delete('/manajemen/penjualan/{id}', [PenjualanController::class, 'destroy'])->name('manajemen.manajemen_penjualan_destroy');
     Route::patch('/manajemen/penjualan/{id}/status', [PenjualanController::class, 'ubahStatus'])->name('manajemen.penjualan_ubah_status');
+    Route::post('/manajemen/penjualan/store-manual', [PenjualanController::class, 'storeManual'])->name('manajemen.manajemen_penjualan_store_manual');
+
 
     // 👤 Pelanggan
     Route::get('/manajemen/pelanggan', [PelangganController::class, 'index'])->name('manajemen.manajemen_pelanggan');
@@ -82,53 +84,50 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'role:admin'])->grou
 
     Route::prefix('laporan')->name('laporan.')->group(function () {
         // Laporan Produk
+
         Route::get('/produk', [\App\Http\Controllers\Admin\LaporanDataController::class, 'produk'])->name('produk');
-    
+        Route::get('/produk/cetak', [\App\Http\Controllers\Admin\LaporanDataController::class, 'cetakProduk'])->name('produk.cetak');
+
         // Laporan Pelanggan
         Route::get('/pelanggan', [\App\Http\Controllers\Admin\LaporanDataController::class, 'pelanggan'])->name('pelanggan');
-    
+
         // Pembelian
         Route::get('/pembelian', [\App\Http\Controllers\Admin\LaporanDataController::class, 'pembelian'])->name('pembelian');
         Route::get('/pembelian/cetak', [\App\Http\Controllers\Admin\LaporanDataController::class, 'cetakPembelian'])->name('pembelian.cetak');
-    
+
         // Penjualan
         Route::get('/penjualan', [\App\Http\Controllers\Admin\LaporanDataController::class, 'penjualan'])->name('penjualan');
         Route::get('/penjualan/cetak', [\App\Http\Controllers\Admin\LaporanDataController::class, 'cetakPenjualan'])->name('penjualan.cetak');
     });
-    
+
 
     // 📊 Rekap
     Route::get('/rekap', [RekapController::class, 'index'])->name('rekap.index');
 });
 
 
-// ==============================
+
 // 👤 USER ROUTES
-// ==============================
+
 Route::prefix('user')->name('user.')->middleware(['auth', 'role:user'])->group(function () {
 
-    // 🛍️ Produk
+    /// 🛍️ Produk
     Route::get('/produk', [ProdukUserController::class, 'index'])->name('produk.index');
     Route::get('/produk/{id}', [ProdukUserController::class, 'show'])->name('produk.show');
 
-    // 🛒 Tambah ke Keranjang
-    Route::post('/keranjang', [ProdukUserController::class, 'tambahKeKeranjang'])->name('keranjang.store');
-
-    // 🛒 Keranjang
+    // 🛒 Keranjang & Checkout
     Route::get('/keranjang', [KeranjangController::class, 'index'])->name('keranjang.index');
-    Route::delete('/keranjang/{id}', [KeranjangController::class, 'destroy'])->name('keranjang.hapus');
+    Route::post('/keranjang', [ProdukUserController::class, 'tambahKeKeranjang'])->name('keranjang.tambah');
     Route::post('/keranjang/update', [KeranjangController::class, 'updateJumlah'])->name('keranjang.update');
-
-    // 💳 Checkout
-    Route::get('/checkout', [CheckoutController::class, 'index'])->name('checkout.index');
-    Route::post('/checkout/proses', [CheckoutController::class, 'proses'])->name('checkout.proses');
+    Route::delete('/keranjang/{id}', [KeranjangController::class, 'destroy'])->name('keranjang.destroy'); // rename agar konsisten
+    Route::post('/keranjang/checkout', [KeranjangController::class, 'prosesCheckout'])->name('keranjang.checkout');
 
     // 📄 Riwayat Transaksi
     Route::get('/riwayat', [RiwayatController::class, 'index'])->name('riwayat.index');
-    Route::delete('/riwayat/{id}', [RiwayatController::class, 'destroy'])->name('riwayat.hapus'); // <--- gunakan ini
+    Route::delete('/riwayat/{id}', [RiwayatController::class, 'destroy'])->name('riwayat.hapus');
 
     // 👤 Profil
-    Route::get('/profil', [ProfilController::class, 'index'])->name('profil.profil');
+    Route::get('/profil', [ProfilController::class, 'index'])->name('profil');
     Route::get('/profil/edit', [ProfilController::class, 'edit'])->name('profil.edit');
     Route::post('/profil/update', [ProfilController::class, 'update'])->name('profil.update');
 });

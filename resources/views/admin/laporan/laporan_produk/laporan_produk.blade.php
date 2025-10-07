@@ -70,11 +70,11 @@
                 language: {
                     searchPlaceholder: "🔍 Cari produk...",
                     zeroRecords: "Data tidak ditemukan",
-                    lengthMenu: "Tampilkan _MENU_ entri",
-                    info: "Menampilkan _START_ - _END_ dari _TOTAL_ produk",
+                    lengthMenu: "Tampilkan MENU entri",
+                    info: "Menampilkan START - END dari TOTAL produk",
                     paginate: {
-                        previous: "⬅️",
-                        next: "➡️"
+                        previous: "⬅",
+                        next: "➡"
                     }
                 }
             });

@@ -35,7 +35,7 @@
                     </a>
 
                     {{-- Tombol Tambah ke Keranjang --}}
-                    <form action="{{ url('/user/keranjang') }}" method="POST" class="mt-auto">
+                    <form action="{{ route('user.keranjang.tambah') }}" method="POST" class="mt-auto">
                         @csrf
                         <input type="hidden" name="produk_id" value="{{ $produk->id }}">
                         <button type="submit" class="btn btn-outline-gradient btn-sm w-100 d-flex align-items-center justify-content-start gap-2">
@@ -210,14 +210,132 @@
         box-shadow: 0 3px 10px rgba(0, 123, 255, 0.25);
     }
 
+    /* Custom SweetAlert Styling */
+    .swal2-popup.swal-custom-success {
+        border-radius: 20px !important;
+        padding: 2rem 1.5rem !important;
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15) !important;
+        border: none !important;
+        background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%) !important;
+    }
 
-    /* Tambahan efek sticky untuk pencarian */
-    .position-sticky {
-   
-}
+    .swal2-icon.swal2-success {
+        border-color: #10b981 !important;
+        color: #10b981 !important;
+        width: 70px !important;
+        height: 70px !important;
+        margin: 1.5rem auto 1rem !important;
+    }
 
+    .swal2-icon.swal2-success .swal2-success-ring {
+        border: 4px solid rgba(16, 185, 129, 0.2) !important;
+    }
 
+    .swal2-icon.swal2-success [class^='swal2-success-line'] {
+        background-color: #10b981 !important;
+    }
 
+    .swal-custom-icon {
+        width: 80px !important;
+        height: 80px !important;
+        margin: 1rem auto 1.5rem !important;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        box-shadow: 0 8px 25px rgba(16, 185, 129, 0.3);
+        animation: scaleIn 0.5s ease-out;
+    }
+
+    @keyframes scaleIn {
+        0% {
+            transform: scale(0);
+            opacity: 0;
+        }
+        50% {
+            transform: scale(1.1);
+        }
+        100% {
+            transform: scale(1);
+            opacity: 1;
+        }
+    }
+
+    @keyframes checkmark {
+        0% {
+            stroke-dashoffset: 100;
+        }
+        100% {
+            stroke-dashoffset: 0;
+        }
+    }
+
+    .swal-checkmark {
+        width: 45px;
+        height: 45px;
+        stroke: white;
+        stroke-width: 3;
+        stroke-dasharray: 100;
+        stroke-dashoffset: 100;
+        animation: checkmark 0.6s ease-out 0.2s forwards;
+    }
+
+    .swal2-title {
+        font-size: 1.75rem !important;
+        font-weight: 700 !important;
+        color: #1f2937 !important;
+        margin: 0.5rem 0 !important;
+        text-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+    }
+
+    .swal2-html-container {
+        font-size: 1.05rem !important;
+        color: #6b7280 !important;
+        margin: 0.5rem 0 1.5rem !important;
+        font-weight: 500 !important;
+    }
+
+    .swal2-timer-progress-bar {
+        background: linear-gradient(90deg, #10b981 0%, #059669 100%) !important;
+        height: 4px !important;
+    }
+
+    @keyframes slideInDown {
+        from {
+            transform: translate(-50%, -100%);
+            opacity: 0;
+        }
+        to {
+            transform: translate(-50%, 0);
+            opacity: 1;
+        }
+    }
+
+    @keyframes slideOutUp {
+        from {
+            transform: translate(-50%, 0);
+            opacity: 1;
+        }
+        to {
+            transform: translate(-50%, -100%);
+            opacity: 0;
+        }
+    }
+
+    .swal2-show {
+        animation: slideInDown 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) !important;
+    }
+
+    .swal2-hide {
+        animation: slideOutUp 0.3s ease-out !important;
+    }
+
+    /* Backdrop blur effect */
+    .swal2-container {
+        backdrop-filter: blur(4px);
+        background-color: rgba(0, 0, 0, 0.4) !important;
+    }
 </style>
 @endpush
 
@@ -227,31 +345,41 @@
     document.addEventListener('DOMContentLoaded', () => {
         @if(session('success'))
         Swal.fire({
-            iconHtml: '<i class="bi bi-cart-check-fill fs-2 text-success"></i>'
-            , title: 'Berhasil!'
-            , text: '{{ session('
-            success ') }}'
-            , position: 'center'
-            , showConfirmButton: false
-            , timer: 2200
-            , timerProgressBar: true
-            , background: '#ffffff'
-            , color: '#333'
-            , customClass: {
-                popup: 'rounded-4 shadow px-4 py-3 animate__animated animate__fadeInDown'
-                , title: 'fw-bold text-success mb-2'
-                , htmlContainer: 'text-dark fs-6'
-            }
-            , hideClass: {
-                popup: 'animate__animated animate__fadeOutUp'
-            }
-            , didOpen: (popup) => {
+            html: `
+                <div class="swal-custom-icon">
+                    <svg class="swal-checkmark" viewBox="0 0 52 52">
+                        <path fill="none" d="M14 27l7.5 7.5L38 18"/>
+                    </svg>
+                </div>
+                <div style="margin-top: 1rem;">
+                    <h2 style="font-size: 1.75rem; font-weight: 700; color: #1f2937; margin: 0.5rem 0;">
+                        Berhasil Ditambahkan!
+                    </h2>
+                    <p style="font-size: 1.05rem; color: #6b7280; margin: 0.5rem 0 0 0; font-weight: 500;">
+                        {{ session('success') }}
+                    </p>
+                </div>
+            `,
+            position: 'top',
+            showConfirmButton: false,
+            timer: 2800,
+            timerProgressBar: true,
+            customClass: {
+                popup: 'swal-custom-success',
+                timerProgressBar: 'swal2-timer-progress-bar'
+            },
+            showClass: {
+                popup: 'swal2-show'
+            },
+            hideClass: {
+                popup: 'swal2-hide'
+            },
+            didOpen: (popup) => {
                 popup.addEventListener('mouseenter', Swal.stopTimer);
                 popup.addEventListener('mouseleave', Swal.resumeTimer);
             }
         });
         @endif
     });
-
 </script>
 @endpush

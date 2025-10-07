@@ -7,7 +7,6 @@
     <!-- Judul halaman -->
     <div class="cx-page-title d-flex justify-content-between align-items-center flex-wrap mb-3">
         <h4 class="mb-0">Edit Transaksi Penjualan</h4>
-        <a href="{{ route('admin.manajemen.manajemen_penjualan') }}" class="btn btn-sm btn-secondary">← Kembali</a>
     </div>
 
     <!-- Form edit penjualan -->
@@ -16,26 +15,22 @@
             @csrf
             @method('PUT')
 
-            <!-- Pelanggan -->
+            <!-- Pelanggan (readonly) -->
             <div class="mb-3">
                 <label for="pelanggan_id" class="form-label">Pelanggan</label>
-                <select name="pelanggan_id" id="pelanggan_id" class="form-select @error('pelanggan_id') is-invalid @enderror" required>
-                    <option value="">-- Pilih Pelanggan --</option>
-                    @foreach($pelanggans as $pelanggan)
-                        <option value="{{ $pelanggan->id }}" {{ old('pelanggan_id', $penjualan->pelanggan_id) == $pelanggan->id ? 'selected' : '' }}>
-                            {{ $pelanggan->nama }} ({{ $pelanggan->email }})
-                        </option>
-                    @endforeach
+                <select name="pelanggan_id" id="pelanggan_id" class="form-select" disabled>
+                    <option value="{{ $penjualan->pelanggan_id }}">
+                        {{ $penjualan->pelanggan->nama ?? 'Pelanggan' }}
+                    </option>
                 </select>
-            @error('pelanggan_id')
-                    <div class="invalid-feedback">{{ $message }}</div>
-                @enderror
             </div>
 
             <!-- Tanggal -->
             <div class="mb-3">
                 <label for="tanggal" class="form-label">Tanggal Transaksi</label>
-                <input type="date" name="tanggal" id="tanggal" class="form-control @error('tanggal') is-invalid @enderror" value="{{ old('tanggal', $penjualan->tanggal->format('Y-m-d')) }}" required>
+                <input type="date" name="tanggal" id="tanggal" 
+                       class="form-control @error('tanggal') is-invalid @enderror" 
+                       value="{{ old('tanggal', $penjualan->tanggal->format('Y-m-d')) }}" required>
                 @error('tanggal')
                     <div class="invalid-feedback">{{ $message }}</div>
                 @enderror
@@ -44,7 +39,9 @@
             <!-- Total -->
             <div class="mb-3">
                 <label for="total" class="form-label">Total (Rp)</label>
-                <input type="number" name="total" id="total" class="form-control @error('total') is-invalid @enderror" value="{{ old('total', $penjualan->total) }}" required>
+                <input type="number" name="total" id="total" 
+                       class="form-control @error('total') is-invalid @enderror" 
+                       value="{{ old('total', $penjualan->total) }}" required>
                 @error('total')
                     <div class="invalid-feedback">{{ $message }}</div>
                 @enderror
@@ -53,13 +50,29 @@
             <!-- Status -->
             <div class="mb-3">
                 <label for="status" class="form-label">Status Pembayaran</label>
-                <select name="status" id="status" class="form-select @error('status') is-invalid @enderror" required>
+                <select name="status" id="status" 
+                        class="form-select @error('status') is-invalid @enderror" required>
                     <option value="">-- Pilih Status --</option>
-                    <option value="lunas" {{ old('status', $penjualan->status) == 'lunas' ? 'selected' : '' }}>Lunas</option>
-                    <option value="pending" {{ old('status', $penjualan->status) == 'pending' ? 'selected' : '' }}>Pending</option>
-                    <option value="batal" {{ old('status', $penjualan->status) == 'batal' ? 'selected' : '' }}>Batal</option>
+                    <option value="lunas" {{ old('status', $penjualan->status) == 'lunas' ? 'selected' : '' }}>LUNAS</option>
+                    <option value="pending" {{ old('status', $penjualan->status) == 'pending' ? 'selected' : '' }}>PENDING</option>
+                    <option value="batal" {{ old('status', $penjualan->status) == 'batal' ? 'selected' : '' }}>BATAL</option>
                 </select>
                 @error('status')
+                    <div class="invalid-feedback">{{ $message }}</div>
+                @enderror
+            </div>
+
+            <!-- Metode Pembayaran -->
+            <div class="mb-3">
+                <label for="metode_pembayaran" class="form-label">Metode Pembayaran</label>
+                <select name="metode_pembayaran" id="metode_pembayaran" 
+                        class="form-select @error('metode_pembayaran') is-invalid @enderror" required>
+                    <option value="">-- Pilih Metode Pembayaran --</option>
+                    <option value="cod" {{ old('metode_pembayaran', $penjualan->metode_pembayaran) == 'cod' ? 'selected' : '' }}>COD</option>
+                    <option value="qris" {{ old('metode_pembayaran', $penjualan->metode_pembayaran) == 'qris' ? 'selected' : '' }}>QIRIS</option>
+                    <option value="transfer" {{ old('metode_pembayaran', $penjualan->metode_pembayaran) == 'transfer' ? 'selected' : '' }}>Transfer</option>
+                </select>
+                @error('metode_pembayaran')
                     <div class="invalid-feedback">{{ $message }}</div>
                 @enderror
             </div>
@@ -87,21 +100,17 @@
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
 <script>
-    $(document).ready(function () {
-        $('#produk-table').DataTable();
-    });
-
     const Toast = Swal.mixin({
         toast: true,
-        position: 'top',
+        position: 'top-end',
         showConfirmButton: false,
         timer: 3000,
         timerProgressBar: true,
-        background: '#fff',
-        color: '#333',
-        iconColor: '#4f46e5',
+        background: '#f9f9f9',
+        color: '#1e293b',
+        iconColor: '#10b981',
         customClass: {
-            popup: 'rounded-xl shadow-md text-sm px-4 py-3 mt-4'
+            popup: 'rounded-xl shadow-md text-sm px-4 py-3 mt-4 border border-gray-200'
         },
         didOpen: (toast) => {
             toast.addEventListener('mouseenter', Swal.stopTimer);
@@ -110,47 +119,15 @@
     });
 
     @if(session('success'))
-    Toast.fire({ icon: 'success', title: @js(session('success')) });
+        Toast.fire({ icon: 'success', title: @js(session('success')) });
     @endif
 
     @if(session('error'))
-    Toast.fire({ icon: 'error', title: @js(session('error')) });
+        Toast.fire({ icon: 'error', title: @js(session('error')) });
     @endif
 
     @if($errors->any())
-    Toast.fire({ icon: 'warning', title: 'Periksa form kamu', text: @js($errors->first()) });
+        Toast.fire({ icon: 'warning', title: 'Periksa form kamu', text: @js($errors->first()) });
     @endif
-
-    // Hapus produk (kalau ada tombol hapus)
-    $('.delete-btn').on('click', function (e) {
-        e.preventDefault();
-        const id = $(this).data('id');
-
-        Swal.fire({
-            title: 'Hapus Produk?',
-            text: "Tindakan ini tidak dapat dibatalkan.",
-            icon: 'warning',
-            showCancelButton: true,
-            confirmButtonColor: '#d33',
-            cancelButtonColor: '#3085d6',
-            confirmButtonText: 'Ya, hapus'
-        }).then((result) => {
-            if (result.isConfirmed) {
-                window.location.href = `/admin/manajemen/produk/${id}/delete`;
-            }
-        });
-    });
-
-    // Format otomatis (jika ada input ID 'price')
-    document.addEventListener("DOMContentLoaded", function () {
-        const priceInput = document.getElementById('price');
-        if (priceInput) {
-            priceInput.addEventListener('input', function (e) {
-                let angka = e.target.value.replace(/\D/g, '');
-                if (angka.length > 9) angka = angka.substring(0, 9);
-                e.target.value = new Intl.NumberFormat('id-ID').format(angka);
-            });
-        }
-    });
 </script>
 @endpush

@@ -2,9 +2,8 @@
 
 namespace Database\Seeders;
 
-use App\Models\User;
-// use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
+use App\Models\User;
 
 class DatabaseSeeder extends Seeder
 {
@@ -13,12 +12,21 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        // User::factory(10)->create();
+        // 🔹 Buat user test (hindari duplicate)
+        \App\Models\User::firstOrCreate(
+            ['username' => 'testuser'],
+            [
+                'email' => 'test@example.com',
+                'password' => bcrypt('password'),
+                'role' => 'user',
+                'status' => 'active',
+            ]
+        );
 
-        User::factory()->create([
-            'username' => 'testuser',
-            'email' => 'test@example.com',
+        // 🔹 Jalankan seeder lain
+        $this->call([
+            KategoriSeeder::class,
+            DummyPenjualanSeeder::class,
         ]);
-        
     }
 }

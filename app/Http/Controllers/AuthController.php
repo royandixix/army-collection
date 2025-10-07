@@ -1,6 +1,7 @@
 <?php
 
 namespace App\Http\Controllers;
+
 namespace App\Http\Controllers;
 
 use App\Models\User;
@@ -59,13 +60,14 @@ class AuthController extends Controller
             'username' => 'required|string|max:255|unique:users',
             'email'    => 'required|email|unique:users',
             'no_hp'    => 'required|string|max:20',
-            'password' => 'required|confirmed', // password harus dikonfirmasi
+            'password' => 'required|confirmed',
             'profile_image' => 'nullable|image',
+            'role'     => 'required|in:user,admin', // ✅ tambahkan validasi role
         ]);
 
         $imagePath = null;
         if ($request->hasFile('profile_image')) {
-            $folder = 'profile_images/user'; // default folder user
+            $folder = $validated['role'] === 'admin' ? 'profile_images/admin' : 'profile_images/user';
             $imagePath = $request->file('profile_image')->store($folder, 'public');
         }
 
@@ -74,11 +76,10 @@ class AuthController extends Controller
             'email'    => $validated['email'],
             'no_hp'    => $validated['no_hp'],
             'password' => bcrypt($validated['password']),
-            'role'     => 'user', // ⛔ otomatis user
+            'role'     => $validated['role'], // ✅ ambil dari form
             'img'      => $imagePath,
         ]);
 
-        // otomatis buat data pelanggan
         Pelanggan::create([
             'user_id' => $user->id,
             'nama'    => $user->username,
@@ -88,6 +89,7 @@ class AuthController extends Controller
 
         return redirect()->route('login')->with('success', 'Registrasi berhasil. Silakan login.');
     }
+
 
     // metode admin/manajemen pengguna tetap bisa digunakan seperti sebelumnya
 }

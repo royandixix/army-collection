@@ -112,6 +112,16 @@
                     </div>
 
                     <div>
+                        <label class="block text-sm font-medium text-gray-700">Role</label>
+                        <select name="role" required
+                            class="mt-1 w-full px-4 py-2 border border-gray-300 rounded-lg bg-gray-100 glow-focus">
+                            <option value="user" selected>User</option>
+                            <option value="admin">Admin</option>
+                        </select>
+                    </div>
+
+
+                    <div>
                         <label class="block text-sm font-medium text-gray-700">Password</label>
                         <input type="password" name="password" required autocomplete="off"
                             class="mt-1 w-full px-4 py-2 border border-gray-300 rounded-lg bg-gray-100 glow-focus" />

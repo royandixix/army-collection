@@ -4,12 +4,15 @@
         <div class="cx-sidebar-head text-center py-4">
             @auth
                 @if (Auth::user()->img)
-                    <img src="{{ asset('storage/' . Auth::user()->img) }}" alt="Profile" width="40" height="40"
-                        class="rounded-circle">
+                    <img src="{{ asset('storage/' . Auth::user()->img) }}" 
+                         alt="Profile" width="60" height="60" class="rounded-circle">
                 @else
-                    <img src="{{ asset('assets/img/default-profile.png') }}" alt="Default Profile" width="40"
-                        height="40" class="rounded-circle">
+                    <img src="{{ asset('img/logo.jpg') }}" 
+                         alt="Logo" width="60" height="60" class="rounded-circle">
                 @endif
+            @else
+                <img src="{{ asset('img/logo.jpg') }}" 
+                     alt="Logo" width="60" height="60" class="rounded-circle">
             @endauth
         </div>
 
@@ -41,12 +44,12 @@
                 <li class="cx-sb-item sb-drop-item">
                     <a href="{{ route('admin.manajemen.manajemen_pelanggan') }}" class="cx-drop-toggle">
                         <i class="ri-calendar-2-line"></i>
-                        <span class="condense">Data Pelanggan</span>
+                        <span class="condense">Data Pembelian</span>
                     </a>
                 </li>
 
                 <!-- Grup Laporan -->
-                <li class="cx-sb-item sb-drop-item">
+                <li class="cx-sb-item sb-drop-item has-submenu">
                     <a href="javascript:void(0)" class="cx-drop-toggle">
                         <i class="ri-file-chart-line"></i>
                         <span class="condense">Data Laporan <i class="drop-arrow ri-arrow-down-s-line"></i></span>
@@ -56,17 +59,20 @@
                             <a href="{{ route('admin.laporan.penjualan') }}">
                                 <i class="ri-shopping-cart-line"></i> Laporan Penjualan
                             </a>
-                            
                         </li>
                         <li>
                             <a href="{{ route('admin.laporan.pembelian') }}">
                                 <i class="ri-wallet-3-line"></i> Laporan Pembelian
                             </a>
                         </li>
+                        <li>
+                            <a href="{{ route('admin.laporan.produk') }}">
+                                <i class="ri-wallet-3-line"></i> Laporan Produk
+                            </a>
+                        </li>
                     </ul>
                 </li>
                 <!-- End Grup Laporan -->
-
             </ul>
         </div>
     </div>
@@ -74,99 +80,8 @@
     <!-- Notify Sidebar -->
     <div class="cx-notify-bar-overlay"></div>
     <div class="cx-notify-bar">
-        <div class="cx-bar-title">
-            <h6>Notifications <span class="label">12</span></h6>
-            <a href="javascript:void(0)" class="close-notify"><i class="ri-close-line"></i></a>
-        </div>
-
-        <div class="cx-bar-content">
-            <!-- Tabs -->
-            <ul class="nav nav-tabs" id="myTab" role="tablist">
-                <li class="nav-item" role="presentation">
-                    <button class="nav-link active" id="alert-tab" data-bs-toggle="tab" data-bs-target="#alert"
-                        type="button" role="tab">Alert</button>
-                </li>
-                <li class="nav-item" role="presentation">
-                    <button class="nav-link" id="messages-tab" data-bs-toggle="tab" data-bs-target="#messages"
-                        type="button" role="tab">Messages</button>
-                </li>
-                <li class="nav-item" role="presentation">
-                    <button class="nav-link" id="log-tab" data-bs-toggle="tab" data-bs-target="#log" type="button"
-                        role="tab">Log</button>
-                </li>
-            </ul>
-
-            <!-- Tab Content -->
-            <div class="tab-content" id="myTabContent">
-                <!-- Alerts -->
-                <div class="tab-pane fade show active" id="alert" role="tabpanel">
-                    <div class="cx-alert-list">
-                        <ul>
-                            <li>
-                                <div class="icon cx-alert"><i class="ri-alarm-warning-line"></i></div>
-                                <div class="detail">
-                                    <div class="title">Your final report is overdue</div>
-                                    <p class="time">Just now</p>
-                                    <p class="message">Please submit your quarterly report before - June 15.</p>
-                                </div>
-                            </li>
-                            <li class="check"><a class="cx-primary-btn" href="#">View all</a></li>
-                        </ul>
-                    </div>
-                </div>
-
-                <!-- Messages -->
-                <div class="tab-pane fade" id="messages" role="tabpanel">
-                    <div class="cx-message-list">
-                        <ul>
-                            <li>
-                                <a href="#" class="reply">Reply</a>
-                                <div class="user">
-                                    <img src="assets/img/user/9.jpg" alt="user">
-                                    <span class="label online"></span>
-                                </div>
-                                <div class="detail">
-                                    <a href="#" class="name">Nama Pengguna</a>
-                                    <p class="time">5:30AM, Today</p>
-                                    <p class="message">Hello, I am sending some file. Please use this in landing page.
-                                    </p>
-                                    <span class="download-files">
-                                        <span class="download">
-                                            <img src="assets/img/other/1.jpg" alt="image">
-                                            <a href="javascript:void(0)"><i class="ri-download-2-line"></i></a>
-                                        </span>
-                                    </span>
-                                </div>
-                            </li>
-                            <li class="check"><a class="cx-primary-btn" href="#">View all</a></li>
-                        </ul>
-                    </div>
-                </div>
-
-                <!-- Log -->
-                <div class="tab-pane fade" id="log" role="tabpanel">
-                    <div class="cx-activity-list activity-list">
-                        <ul>
-                            <li>
-                                <span class="date-time">8 Thu <span class="time">11:30 AM - 05:10 PM</span></span>
-                                <p class="title">Project Submitted from Smith</p>
-                                <p class="detail">Lorem Ipsum is simply dummy text of the printing.</p>
-                                <span class="download-files">
-                                    <span class="download">
-                                        <img src="assets/img/other/1.jpg" alt="image">
-                                        <a href="javascript:void(0)"><i class="ri-download-2-line"></i></a>
-                                    </span>
-                                </span>
-                            </li>
-                        </ul>
-                    </div>
-                </div>
-            </div>
-        </div>
+        ...
     </div>
-</div>
-
-
 </div>
 
 <!-- SweetAlert2 CDN -->
@@ -196,4 +111,29 @@
             }
         });
     }
+
+    // Script buat dropdown sidebar
+    document.querySelectorAll('.has-submenu > .cx-drop-toggle').forEach(toggle => {
+        toggle.addEventListener('click', function () {
+            const parent = this.parentElement;
+            parent.classList.toggle('open');
+        });
+    });
 </script>
+
+<style>
+    /* Supaya submenu hidden default */
+    .cx-submenu {
+        display: none;
+        padding-left: 1.5rem;
+    }
+    .has-submenu.open > .cx-submenu {
+        display: block;
+    }
+    .drop-arrow {
+        transition: transform 0.3s;
+    }
+    .has-submenu.open .drop-arrow {
+        transform: rotate(180deg);
+    }
+</style>

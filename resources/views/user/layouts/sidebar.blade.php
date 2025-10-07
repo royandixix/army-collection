@@ -4,7 +4,7 @@
             $navItems = [
                 ['name' => 'Produk', 'url' => '/user/produk', 'icon' => 'bi-box'],
                 ['name' => 'Keranjang', 'url' => '/user/keranjang', 'icon' => 'bi-cart'],
-                ['name' => 'Checkout', 'url' => '/user/checkout', 'icon' => 'bi-bag-check'],
+                // ['name' => 'Checkout', 'url' => '/user/checkout', 'icon' => 'bi-bag-check'],
                 ['name' => 'Riwayat', 'url' => '/user/riwayat', 'icon' => 'bi-clock-history'],
             ];
         @endphp
