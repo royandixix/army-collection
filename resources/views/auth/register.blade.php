@@ -141,7 +141,7 @@
                         <input type="file" name="profile_image" id="profile_image" accept="image/*"
                             class="mt-1 w-full px-4 py-2 border border-gray-300 rounded-lg bg-gray-50 glow-focus 
                                  file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 
-                                 file:text-sm file:font-semibold file:bg-indigo-50 file:text-indigo-700 
+                                  file:text-sm file:font-semibold file:bg-indigo-50 file:text-indigo-700 
                                  hover:file:bg-indigo-100" />
                         @error('profile_image')
                             <p class="text-sm text-red-500 mt-1">{{ $message }}</p>

@@ -21,7 +21,7 @@ class User extends Authenticatable
     ];
 
     protected $hidden = [
-        'password', 
+        'password',
         'remember_token',
     ];
 
@@ -46,11 +46,4 @@ class User extends Authenticatable
             ? asset('storage/' . $this->img)
             : asset('img/default-user.png');
     }
-    public function transaksi()
-{
-    return $this->hasMany(\App\Models\Transaksi::class);
-}
-
-    
-    // Tidak ada accessor no_hp di sini
 }

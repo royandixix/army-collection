@@ -5,6 +5,7 @@ namespace App\Http\Controllers\User;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Storage;
 use App\Models\Keranjang;
 use App\Models\Pelanggan;
 use App\Models\Penjualan;
@@ -13,14 +14,17 @@ use App\Models\DetailTransaksi;
 
 class KeranjangController extends Controller
 {
-    // Menampilkan halaman keranjang & checkout
+    // 🛒 Halaman Keranjang
     public function index()
     {
-        $keranjang = Keranjang::where('user_id', Auth::id())->with('produk.kategori')->get();
+        $keranjang = Keranjang::where('user_id', Auth::id())
+            ->with('produk.kategori')
+            ->get();
+
         return view('user.keranjang.keranjang', compact('keranjang'));
     }
 
-    // Update jumlah item keranjang (AJAX)
+    // 🔄 Update jumlah item (AJAX)
     public function updateJumlah(Request $request)
     {
         $request->validate([
@@ -28,7 +32,10 @@ class KeranjangController extends Controller
             'jumlah' => 'required|integer|min:1'
         ]);
 
-        $item = Keranjang::where('user_id', Auth::id())->where('id', $request->id)->firstOrFail();
+        $item = Keranjang::where('user_id', Auth::id())
+            ->where('id', $request->id)
+            ->firstOrFail();
+
         $item->update(['jumlah' => $request->jumlah]);
 
         $subtotal = $item->produk->harga * $item->jumlah;
@@ -36,34 +43,44 @@ class KeranjangController extends Controller
         return response()->json(['subtotal' => $subtotal]);
     }
 
-    // Hapus item dari keranjang
+    // ❌ Hapus item dari keranjang
     public function destroy($id)
-{
-    $item = Keranjang::where('user_id', Auth::id())->where('id', $id)->firstOrFail();
-    $item->delete();
+    {
+        $item = Keranjang::where('user_id', Auth::id())
+            ->where('id', $id)
+            ->firstOrFail();
 
-    // return JSON agar Ajax sukses
-    return response()->json(['success' => true, 'message' => 'Produk berhasil dihapus dari keranjang.']);
-}
+        $item->delete();
 
+        return response()->json([
+            'success' => true,
+            'message' => 'Produk berhasil dihapus dari keranjang.'
+        ]);
+    }
 
-    // Proses checkout
+    // ✅ Proses Checkout
     public function prosesCheckout(Request $request)
     {
         $request->validate([
             'alamat' => 'required|string|min:5|max:255',
             'metode' => 'required|in:cod,transfer,qris',
-            'bukti_tf' => 'nullable|image'
+            'bukti_tf' => 'nullable|image|max:2048',
         ]);
 
         $user = Auth::user();
-        $keranjang = Keranjang::where('user_id', $user->id)->with('produk')->get();
+
+        // Ambil produk yang dipilih user
+        $keranjang = Keranjang::where('user_id', $user->id)
+            ->with('produk')
+            ->get();
 
         if ($keranjang->isEmpty()) {
-            return redirect()->route('user.keranjang.index')->with('error', 'Keranjang kosong.');
+            return redirect()
+                ->route('user.keranjang.index')
+                ->with('error', 'Keranjang masih kosong.');
         }
 
-        // Simpan data pelanggan
+        // 🧍 Simpan / update data pelanggan
         $pelanggan = Pelanggan::updateOrCreate(
             ['user_id' => $user->id],
             [
@@ -74,19 +91,20 @@ class KeranjangController extends Controller
             ]
         );
 
+        // 💰 Hitung total
         $total = $keranjang->sum(fn($item) => $item->produk->harga * $item->jumlah);
 
-        // ✅ Buat penjualan & isi metode_pembayaran juga
+        // 💾 Buat penjualan baru
         $penjualan = Penjualan::create([
             'user_id' => $user->id,
             'pelanggan_id' => $pelanggan->id,
             'tanggal' => now(),
             'total' => $total,
             'status' => 'pending',
-            'metode_pembayaran' => $request->metode, // <-- tambahkan baris ini
+            'metode_pembayaran' => $request->metode,
         ]);
 
-        // Buat transaksi
+        // 💾 Buat transaksi utama
         $transaksi = Transaksi::create([
             'user_id' => $user->id,
             'penjualan_id' => $penjualan->id,
@@ -96,19 +114,21 @@ class KeranjangController extends Controller
             'status' => 'pending',
         ]);
 
-        // Upload bukti transfer jika ada
-if ($request->hasFile('bukti_tf')) {
-    $path = $request->file('bukti_tf')->store('bukti_tf', 'public');
+        // // 📸 Upload bukti transfer jika metode = transfer/qris
+        // if ($request->hasFile('bukti_tf')) {
+        //     $path = $request->file('bukti_tf')->store('bukti_tf', 'public');
+        //     $transaksi->update(['bukti_tf' => $path]);
+        //     $penjualan->update(['bukti_pembayaran' => $path]);
+        // }
 
-    // Simpan ke tabel transaksi (kolom: bukti_tf)
-    $transaksi->update(['bukti_tf' => $path]);
+        if ($request->hasFile('bukti_tf')) {
+            $path = $request->file('bukti_tf')->store('bukti_tf', 'public');
+            $transaksi->update(['bukti_tf' => $path]);
+            $penjualan->update(['bukti_tf' => $path]); // 🟢 perbaikan nama kolom
+        }
 
-    // Simpan ke tabel penjualan (kolom: bukti_pembayaran)
-    $penjualan->update(['bukti_pembayaran' => $path]);
-}
 
-
-        // Simpan detail transaksi
+        // 🧾 Simpan detail transaksi
         foreach ($keranjang as $item) {
             DetailTransaksi::create([
                 'transaksi_id' => $transaksi->id,
@@ -117,11 +137,15 @@ if ($request->hasFile('bukti_tf')) {
                 'harga' => $item->produk->harga,
                 'subtotal' => $item->produk->harga * $item->jumlah,
             ]);
+
+            // Kurangi stok produk
+            $item->produk->decrement('stok', $item->jumlah);
         }
 
-        // Kosongkan keranjang
+        // 🧹 Kosongkan keranjang user
         Keranjang::where('user_id', $user->id)->delete();
 
+        // 🎉 Redirect ke halaman riwayat dengan notifikasi sukses
         return redirect()->route('user.riwayat.index')->with([
             'checkout_success' => true,
             'total' => $total,

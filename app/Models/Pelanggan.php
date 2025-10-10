@@ -14,9 +14,9 @@ class Pelanggan extends Model
         'nama',
         'alamat',
         'no_hp',
-        'email', // ← WAJIB ADA INI
+        'email',
+        'foto_profil'
     ];
-    
 
     public function user()
     {

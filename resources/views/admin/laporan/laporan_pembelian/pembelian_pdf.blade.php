@@ -123,6 +123,8 @@
             $grandTotal += $total;
         @endphp
 
+       
+
         <tr>
             <td class="center">{{ $index + 1 }}</td>
             <td>{{ $nama }}</td>

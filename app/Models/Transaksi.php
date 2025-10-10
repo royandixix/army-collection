@@ -4,7 +4,6 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use App\Models\DetailTransaksi;
 
 class Transaksi extends Model
 {
@@ -34,6 +33,4 @@ class Transaksi extends Model
     {
         return $this->belongsTo(Penjualan::class, 'penjualan_id');
     }
-
-    // Accessor agar
 }

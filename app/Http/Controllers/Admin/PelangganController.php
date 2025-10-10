@@ -3,42 +3,41 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
-use App\Models\Pelanggan;
 use App\Models\User;
+use App\Models\Pelanggan;
+use App\Models\Penjualan;
+use App\Models\Transaksi;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 use Illuminate\Support\Facades\Hash;
 
 class PelangganController extends Controller
 {
-    /**
-     * Tampilkan daftar pelanggan.
-     */
     public function index()
     {
-        $pelanggans = User::with(['pelanggan', 'transaksis'])
-            ->where('role', 'user')                  // ✅ hanya role user
-            ->whereHas('pelanggan')                  // ✅ ada relasi pelanggan
-            ->whereHas('transaksis')                 // ✅ hanya jika punya transaksi
-            ->withCount('transaksis')                // ✅ tampilkan jumlah transaksi
+        // Ambil user dengan role 'user' beserta relasinya
+        $userPelanggan = User::where('role', 'user')
+            ->with(['pelanggan.penjualans', 'transaksis'])
             ->get();
-    
+
+        // Ambil pelanggan manual yang tidak punya user_id
+        $manualPelanggan = Pelanggan::whereNull('user_id')
+            ->with('penjualans')
+            ->get();
+
+        // Gabungkan keduanya (collection)
+        $pelanggans = $userPelanggan->concat($manualPelanggan);
+
+        // Kirim ke view
         return view('admin.manajemen_pelanggan.manajemen_pelanggan', compact('pelanggans'));
     }
-    
 
 
-    /**
-     * Tampilkan form tambah pelanggan.
-     */
     public function create()
     {
         return view('admin.manajemen_pelanggan.tambah_manajemen_pelanggan');
     }
 
-    /**
-     * Simpan pelanggan baru.
-     */
     public function store(Request $request)
     {
         $validated = $request->validate([
@@ -48,71 +47,113 @@ class PelangganController extends Controller
             'no_hp'  => 'nullable|string|max:20',
         ]);
 
-        // Simpan ke tabel users
         $user = User::create([
             'username' => $validated['nama'],
             'email'    => $validated['email'],
-            'password' => Hash::make('password123'), // Password default
-            'role'     => 'pelanggan',
+            'password' => Hash::make('password123'),
+            'role'     => 'user',
             'status'   => 'active',
         ]);
 
-        // Simpan ke tabel pelanggans
         $user->pelanggan()->create([
-            'nama'   => $validated['nama'],  // ⬅ WAJIB agar tidak error
+            'nama'   => $validated['nama'],
             'email'  => $validated['email'],
             'alamat' => $validated['alamat'] ?? null,
             'no_hp'  => $validated['no_hp'] ?? null,
+            'jumlah_transaksi_manual' => 0, // default
         ]);
 
         return redirect()->route('admin.manajemen.manajemen_pelanggan')
             ->with('success', 'Pelanggan berhasil ditambahkan.');
     }
 
-    /**
-     * Tampilkan form edit pelanggan.
-     */
     public function edit($id)
     {
-        $pelanggan = Pelanggan::with('user')->findOrFail($id);
-        return view('admin.manajemen_pelanggan.edit_manajemen_pelanggan', compact('pelanggan'));
+        $pelanggan = User::with(['pelanggan', 'transaksis'])->find($id);
+
+        if (!$pelanggan) {
+            $pelanggan = Pelanggan::with('penjualans')->findOrFail($id);
+        }
+
+        $transaksiTerakhir = null;
+        if (!empty($pelanggan->transaksis) && $pelanggan->transaksis->isNotEmpty()) {
+            $transaksiTerakhir = $pelanggan->transaksis->sortByDesc('created_at')->first();
+        } elseif (!empty($pelanggan->penjualans) && $pelanggan->penjualans->isNotEmpty()) {
+            $transaksiTerakhir = $pelanggan->penjualans->sortByDesc('tanggal')->first();
+        }
+
+        $jumlahTransaksi = $pelanggan->jumlah_transaksi_manual ?? collect([
+            optional($pelanggan->transaksis)->count(),
+            optional($pelanggan->penjualans)->count(),
+        ])->filter()->sum();
+
+        return view('admin.manajemen_pelanggan.edit_manajemen_pelanggan', compact(
+            'pelanggan',
+            'transaksiTerakhir',
+            'jumlahTransaksi'
+        ));
     }
 
-    /**
-     * Update data pelanggan.
-     */
     public function update(Request $request, $id)
-{
-    $pelanggan = Pelanggan::findOrFail($id);
-    $user = $pelanggan->user;
+    {
+        $user = User::with('pelanggan', 'transaksis')->find($id);
+        $pelanggan = null;
 
-    $validated = $request->validate([
-        'nama'   => 'required|string|max:255',
-        'email'  => ['required','email', Rule::unique('users','email')->ignore($user->id)],
-        'alamat' => 'nullable|string|max:500',
-        'no_hp'  => 'nullable|string|max:20',
-    ]);
+        if ($user) {
+            $pelanggan = $user->pelanggan;
+        } else {
+            $pelanggan = Pelanggan::findOrFail($id);
+        }
 
-    $user->update([
-        'username' => $validated['nama'],
-        'email'    => $validated['email'],
-    ]);
+        $validated = $request->validate([
+            'nama' => 'required|string|max:255',
+            'email' => ['required', 'email', Rule::unique('users', 'email')->ignore($user?->id)],
+            'alamat' => 'nullable|string|max:500',
+            'no_hp' => 'nullable|string|max:20',
+            'jumlah_transaksi' => 'nullable|numeric|min:0',
+        ]);
 
-    $pelanggan->update($validated);
+        // Update data pelanggan/user
+        if ($user) {
+            $user->update([
+                'username' => $validated['nama'],
+                'email' => $validated['email'],
+            ]);
+            if ($pelanggan) {
+                $pelanggan->update([
+                    'nama' => $validated['nama'],
+                    'email' => $validated['email'],
+                    'alamat' => $validated['alamat'] ?? $pelanggan->alamat,
+                    'no_hp' => $validated['no_hp'] ?? $pelanggan->no_hp,
+                    'jumlah_transaksi_manual' => $validated['jumlah_transaksi'] ?? $pelanggan->jumlah_transaksi_manual,
+                ]);
+            }
+        } else {
+            $pelanggan->update([
+                'nama' => $validated['nama'],
+                'email' => $validated['email'],
+                'alamat' => $validated['alamat'] ?? $pelanggan->alamat,
+                'no_hp' => $validated['no_hp'] ?? $pelanggan->no_hp,
+                'jumlah_transaksi_manual' => $validated['jumlah_transaksi'] ?? $pelanggan->jumlah_transaksi_manual,
+            ]);
+        }
 
-    return redirect()->back()->with('success', 'Profil pelanggan berhasil diperbarui.');
-}
+        return redirect()->route('admin.manajemen.manajemen_pelanggan')
+            ->with('success', 'Data pelanggan berhasil diperbarui tanpa mengubah Penjualan.');
+    }
 
-    /**
-     * Hapus pelanggan.
-     */
+
+
     public function destroy($id)
     {
-        $pelanggan = Pelanggan::findOrFail($id);
-        $user = $pelanggan->user;
+        $user = User::find($id);
 
-        $pelanggan->delete();
-        $user->delete();
+        if ($user) {
+            $user->pelanggan()->delete();
+            $user->delete();
+        } else {
+            Pelanggan::find($id)?->delete();
+        }
 
         return redirect()->route('admin.manajemen.manajemen_pelanggan')
             ->with('success', 'Pelanggan berhasil dihapus.');

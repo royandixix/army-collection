@@ -11,6 +11,9 @@ return new class extends Migration {
            $table->string('bukti_pembayaran')->nullable();
 
         });
+        // Schema::table('penjualans', function (Blueprint $table){
+        //     $table->string('bukti_pembayaran')->nullable();
+        // });
     }
 
     public function down(): void

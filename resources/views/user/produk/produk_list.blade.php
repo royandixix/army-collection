@@ -68,6 +68,12 @@
                             <i class="bi bi-arrow-left btn-outline-secondary"></i>
                             Kembali
                         </button>
+
+
+    
+                        <button class=" btn btn-close-white btn-sm rounded-none w-100 d-flex align-items-center">
+                            
+                        </button>
                 </div>
             </div>
         </div>

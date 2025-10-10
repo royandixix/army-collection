@@ -85,6 +85,7 @@ class AuthController extends Controller
             'nama'    => $user->username,
             'email'   => $user->email,
             'no_hp'   => $user->no_hp,
+            'foto_profil' => $imagePath,
         ]);
 
         return redirect()->route('login')->with('success', 'Registrasi berhasil. Silakan login.');

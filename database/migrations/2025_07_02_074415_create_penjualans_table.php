@@ -10,7 +10,8 @@ return new class extends Migration {
         Schema::create('penjualans', function (Blueprint $table) {
             $table->id();
             $table->foreignId('pelanggan_id')->constrained('pelanggans')->onDelete('cascade');
-            $table->date('tanggal');
+            $table->dateTime('tanggal')->nullable();
+
             $table->integer('total');
             $table->enum('status', ['lunas', 'pending', 'batal'])->default('pending');
             $table->timestamps();

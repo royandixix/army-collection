@@ -11,19 +11,19 @@ class Penjualan extends Model
 
     protected $fillable = [
         'pelanggan_id',
+        'user_id',
         'tanggal',
         'total',
         'status',
         'metode_pembayaran',
-        'user_id',
-        'bukti_pembayaran',
-        'bukti_tf',
+        'bukti_tf', // hanya ini yang dipakai
     ];
 
     protected $casts = [
         'tanggal' => 'datetime',
     ];
 
+    // === RELASI ===
     public function pelanggan()
     {
         return $this->belongsTo(Pelanggan::class);
@@ -34,14 +34,15 @@ class Penjualan extends Model
         return $this->belongsTo(User::class);
     }
 
+    // Ubah menjadi
     public function transaksi()
     {
-        return $this->hasMany(Transaksi::class, 'penjualan_id');
+        return $this->hasOne(Transaksi::class, 'penjualan_id');
     }
 
-    // 🔥 Tambahkan accessor ini di sini (bukan di Transaksi)
-    public function getMetodePembayaranAttribute($value)
+    // app/Models/Penjualan.php
+    public function detailPenjualans()
     {
-        return $value ?? $this->attributes['metode'] ?? null;
+        return $this->hasMany(DetailPenjualan::class);
     }
 }
