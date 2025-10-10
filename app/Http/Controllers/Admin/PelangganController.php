@@ -95,40 +95,31 @@ class PelangganController extends Controller
     }
 
     public function update(Request $request, $id)
-    {
-        $user = User::with('pelanggan', 'transaksis')->find($id);
-        $pelanggan = null;
+{
+    $user = User::with('pelanggan', 'transaksis')->find($id);
+    $pelanggan = $user ? $user->pelanggan : Pelanggan::findOrFail($id);
 
-        if ($user) {
-            $pelanggan = $user->pelanggan;
-        } else {
-            $pelanggan = Pelanggan::findOrFail($id);
-        }
+    $rules = [
+        'nama' => 'required|string|max:255',
+        'alamat' => 'nullable|string|max:500',
+        'no_hp' => 'nullable|string|max:20',
+        'jumlah_transaksi' => 'nullable|numeric|min:0',
+    ];
 
-        $validated = $request->validate([
-            'nama' => 'required|string|max:255',
-            'email' => ['required', 'email', Rule::unique('users', 'email')->ignore($user?->id)],
-            'alamat' => 'nullable|string|max:500',
-            'no_hp' => 'nullable|string|max:20',
-            'jumlah_transaksi' => 'nullable|numeric|min:0',
+    if ($user) {
+        $rules['email'] = ['required', 'email', Rule::unique('users', 'email')->ignore($user->id)];
+    } else {
+        $rules['email'] = 'nullable|email';
+    }
+
+    $validated = $request->validate($rules);
+
+    if ($user) {
+        $user->update([
+            'username' => $validated['nama'],
+            'email' => $validated['email'],
         ]);
-
-        // Update data pelanggan/user
-        if ($user) {
-            $user->update([
-                'username' => $validated['nama'],
-                'email' => $validated['email'],
-            ]);
-            if ($pelanggan) {
-                $pelanggan->update([
-                    'nama' => $validated['nama'],
-                    'email' => $validated['email'],
-                    'alamat' => $validated['alamat'] ?? $pelanggan->alamat,
-                    'no_hp' => $validated['no_hp'] ?? $pelanggan->no_hp,
-                    'jumlah_transaksi_manual' => $validated['jumlah_transaksi'] ?? $pelanggan->jumlah_transaksi_manual,
-                ]);
-            }
-        } else {
+        if ($pelanggan) {
             $pelanggan->update([
                 'nama' => $validated['nama'],
                 'email' => $validated['email'],
@@ -137,10 +128,20 @@ class PelangganController extends Controller
                 'jumlah_transaksi_manual' => $validated['jumlah_transaksi'] ?? $pelanggan->jumlah_transaksi_manual,
             ]);
         }
-
-        return redirect()->route('admin.manajemen.manajemen_pelanggan')
-            ->with('success', 'Data pelanggan berhasil diperbarui tanpa mengubah Penjualan.');
+    } else {
+        $pelanggan->update([
+            'nama' => $validated['nama'],
+            'email' => $validated['email'] ?? $pelanggan->email,
+            'alamat' => $validated['alamat'] ?? $pelanggan->alamat,
+            'no_hp' => $validated['no_hp'] ?? $pelanggan->no_hp,
+            'jumlah_transaksi_manual' => $validated['jumlah_transaksi'] ?? $pelanggan->jumlah_transaksi_manual,
+        ]);
     }
+
+    return redirect()->route('admin.manajemen.manajemen_pelanggan')
+        ->with('success', 'Data pelanggan berhasil diperbarui tanpa mengubah Penjualan.');
+}
+
 
 
 
