@@ -5,6 +5,7 @@
 @section('content')
 <div class="cx-main-content">
     <div class="container-fluid">
+        <!-- Judul & tombol cetak -->
         <div class="cx-page-title d-flex justify-content-between align-items-center flex-wrap mb-4">
             <h4 class="mb-0">Laporan Penjualan</h4>
             <a href="{{ route('admin.laporan.penjualan.cetak') }}" target="_blank" class="btn btn-danger">
@@ -12,74 +13,123 @@
             </a>
         </div>
 
-        <div class="cx-card card-default">
-            <div class="cx-card-header">
+        <!-- Card tabel -->
+        <div class="cx-card card-default shadow-sm">
+            <div class="cx-card-header d-flex justify-content-between align-items-center">
                 <h5 class="mb-0">Data Penjualan</h5>
+                <input type="text" id="global-search" class="form-control form-control-sm w-auto"
+                       placeholder="🔍 Cari penjualan...">
             </div>
 
-            <div class="cx-card-content">
+            <div class="cx-card-content p-3">
                 <div class="table-responsive">
-                    <table class="table table-bordered table-striped" id="penjualan-table">
+                    <table class="table table-bordered table-striped table-hover" id="penjualan-table">
                         <thead class="table-dark">
-                            <tr>
-                                <th>No</th>
-                                <th>Nama Produk</th>
-                                <th>Tanggal</th>
-                                <th>Jumlah</th>
-                                <th>Harga Satuan</th>
-                                <th>Total</th>
-                            </tr>
+                        <tr>
+                            <th>No</th>
+                            <th>Nama User</th>
+                            <th>Nama Produk</th>
+                            <th>Tanggal</th>
+                            <th>Jumlah</th>
+                            <th>Harga Satuan</th>
+                            <th>Total</th>
+                        </tr>
                         </thead>
                         <tbody>
-                            @forelse($penjualans as $penjualan)
-                                @foreach($penjualan->transaksi as $transaksi)
-                                    @foreach($transaksi->detailTransaksi as $detail)
-                                        <tr>
-                                            <td>{{ $loop->parent->iteration }}.{{ $loop->iteration }}</td>
-                                            <td>{{ $detail->produk->nama ?? '-' }}</td>
-                                            <td>{{ $penjualan->created_at->format('d/m/Y') }}</td>
-                                            <td>{{ $detail->jumlah }}</td>
-                                            <td>Rp {{ number_format($detail->harga, 0, ',', '.') }}</td>
-                                            <td>Rp {{ number_format($detail->jumlah * $detail->harga, 0, ',', '.') }}</td>
-                                        </tr>
-                                    @endforeach
+                        @php $no = 1; @endphp
+                        @forelse ($items as $item)
+                            @php
+                                $isPenjualan = $item instanceof \App\Models\Penjualan;
+                                $details = $isPenjualan ? $item->detailPenjualans : $item->detailTransaksi;
+                                $userName = $isPenjualan 
+                                            ? $item->pelanggan->nama ?? $item->pelanggan->user->username ?? '-' 
+                                            : $item->user->username ?? '-';
+                            @endphp
+
+                            @if ($details && $details->count() > 0)
+                                @foreach ($details as $detail)
+                                    @php
+                                        $hargaSatuan = $isPenjualan ? $detail->produk->harga ?? 0 : $detail->harga ?? 0;
+                                        $total = ($detail->jumlah ?? 0) * $hargaSatuan;
+                                        $tanggal = $item->tanggal ?? $item->created_at;
+                                    @endphp
+                                    <tr>
+                                        <td>{{ $no++ }}</td>
+                                        <td>{{ $userName }}</td>
+                                        <td>{{ $detail->produk->nama ?? '-' }}</td>
+                                        <td>{{ $tanggal?->format('d/m/Y') ?? '-' }}</td>
+                                        <td>{{ $detail->jumlah ?? 0 }}</td>
+                                        <td>Rp {{ number_format($hargaSatuan, 0, ',', '.') }}</td>
+                                        <td>Rp {{ number_format($total, 0, ',', '.') }}</td>
+                                    </tr>
                                 @endforeach
-                            @empty
+                            @else
                                 <tr>
-                                    <td colspan="6" class="text-center text-muted">Tidak ada data penjualan.</td>
+                                    <td colspan="7" class="text-center text-muted">
+                                        {{ $isPenjualan ? 'Tidak ada detail penjualan.' : 'Tidak ada detail transaksi.' }}
+                                    </td>
                                 </tr>
-                            @endforelse
+                            @endif
+                        @empty
+                            <tr>
+                                <td colspan="7" class="text-center text-muted">
+                                    Tidak ada data penjualan atau transaksi.
+                                </td>
+                            </tr>
+                        @endforelse
                         </tbody>
-                        
                     </table>
                 </div>
             </div>
         </div>
-
     </div>
 </div>
 @endsection
 
 @push('styles')
 <link href="https://cdn.datatables.net/1.13.6/css/dataTables.bootstrap5.min.css" rel="stylesheet" />
+<style>
+    #global-search {
+        margin-bottom: 10px;
+    }
+
+    .table-hover tbody tr:hover {
+        background-color: #f1f5f9;
+    }
+
+    table.dataTable th, table.dataTable td {
+        vertical-align: middle;
+    }
+</style>
 @endpush
 
 @push('scripts')
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
 <script src="https://cdn.datatables.net/1.13.6/js/dataTables.bootstrap5.min.js"></script>
+
 <script>
-    $(function() {
-        $('#penjualan-table').DataTable({
-            pageLength: 10,
-            language: {
-                searchPlaceholder: "🔍 Cari penjualan...",
-                zeroRecords: "Data tidak ditemukan",
-                lengthMenu: "Tampilkan _MENU_ entri",
-                info: "Menampilkan _START_ - _END_ dari _TOTAL_ penjualan",
-                paginate: { previous: "⬅️", next: "➡️" }
+$(document).ready(function() {
+    const table = $('#penjualan-table').DataTable({
+        pageLength: 10,
+        responsive: true,
+        searching: false, // matikan search default DataTables
+        language: {
+            zeroRecords: "Data tidak ditemukan",
+            lengthMenu: "Tampilkan _MENU_ entri",
+            info: "Menampilkan _START_ - _END_ dari _TOTAL_ penjualan",
+            infoEmpty: "Tidak ada data",
+            paginate: {
+                previous: "⬅️",
+                next: "➡️"
             }
-        });
+        }
     });
+
+    // Pencarian global via input sendiri
+    $('#global-search').on('keyup', function() {
+        table.search(this.value).draw();
+    });
+});
 </script>
 @endpush

@@ -1,117 +1,69 @@
 <!DOCTYPE html>
 <html lang="id">
-
 <head>
     <meta charset="UTF-8">
     <title>Laporan Penjualan</title>
     <style>
-        /* Mengatur dasar dokumen */
         body {
             font-family: 'Helvetica', Arial, sans-serif;
-            font-size: 10pt; /* Ukuran font lebih kecil untuk cetak */
+            font-size: 10pt;
             color: #333;
             margin: 25px;
-            padding: 0;
             line-height: 1.5;
         }
-
-        /* Variabel Warna */
-        :root {
-            --primary-color: #004d99; /* Biru gelap untuk aksen */
-            --header-bg: #eaf6ff;     /* Latar belakang header tabel */
-            --footer-bg: #d9edf7;     /* Latar belakang total */
-            --highlight-bg: #fffacd;  /* Latar belakang kolom total */
-        }
-
-        /* Bagian Header/Kop */
         header {
             text-align: center;
-            margin-bottom: 30px;
-            border-bottom: 4px solid var(--primary-color);
-            padding-bottom: 15px;
+            margin-bottom: 25px;
+            border-bottom: 3px solid #004d99;
+            padding-bottom: 10px;
         }
         header h1 {
             margin: 0;
-            font-size: 26pt;
-            color: var(--primary-color);
+            font-size: 22pt;
+            color: #004d99;
             font-weight: 800;
             text-transform: uppercase;
         }
         header p {
-            margin: 3px 0 0 0;
-            font-size: 10pt;
+            margin: 2px 0;
+            font-size: 9pt;
             color: #555;
         }
         header h2 {
-            font-size: 18pt; /* Judul laporan */
-            margin: 20px 0 0;
-            font-weight: 700;
-            color: var(--primary-color);
+            font-size: 14pt;
+            margin-top: 10px;
+            color: #004d99;
             border-bottom: 1px dashed #ccc;
             padding-bottom: 5px;
         }
-
-        /* Bagian Tabel */
         table {
             width: 100%;
             border-collapse: collapse;
-            margin-top: 20px;
-            border: 1px solid #ccc;
+            margin-top: 15px;
         }
         th, td {
-            border: 1px solid #e0e0e0;
-            padding: 8px 10px; /* Padding disesuaikan */
-            text-align: left;
-            vertical-align: top; /* Penting untuk kolom produk */
+            border: 1px solid #ccc;
+            padding: 6px 8px;
+            vertical-align: middle;
         }
         th {
-            background-color: var(--header-bg);
-            color: var(--primary-color);
-            font-weight: 700;
-            font-size: 10pt;
-            text-transform: uppercase;
-        }
-
-        /* Baris ganjil/genap (zebra-striping) */
-        tbody tr:nth-child(odd) {
-            background-color: #fcfcfc;
-        }
-        
-        /* Footer Tabel (Total) */
-        tfoot td {
+            background-color: #eaf6ff;
+            color: #004d99;
             font-weight: bold;
-            border-top: 4px double var(--primary-color);
-            background-color: var(--footer-bg);
-            font-size: 12pt;
-            color: var(--primary-color);
+            text-transform: uppercase;
+            font-size: 9pt;
         }
-        
-        /* Penataan Teks */
+        tbody tr:nth-child(odd) { background-color: #fcfcfc; }
         .right { text-align: right; }
         .center { text-align: center; }
-        
-        /* Highlight kolom Total */
-        .total-col {
-            font-weight: 700;
-            background-color: var(--highlight-bg); /* Warna kuning muda */
+        tfoot td {
+            font-weight: bold;
+            border-top: 2px solid #004d99;
+            background-color: #d9edf7;
+            color: #004d99;
         }
-        th.total-col {
-            background-color: var(--header-bg);
-            color: #d9534f; /* Warna merah/aksen kuat untuk header Total */
-        }
-
-        /* Penyesuaian List Produk */
-        ul {
-            margin: 0;
-            padding-left: 15px;
-            list-style-type: square; /* Menggunakan square atau disc kecil */
-            font-size: 9pt; /* Ukuran font detail produk sedikit lebih kecil */
-            line-height: 1.3;
-        }
-        
-        /* Keterangan Cetak */
         .print-info {
-            margin-top: 30px;
+            margin-top: 20px;
             text-align: right;
             font-size: 9pt;
             color: #777;
@@ -121,58 +73,85 @@
 
 <body>
     <header>
-        <h1>ARMY COLLECTION</h1> <p>Jl. Perintis Kemerdekaan Vll, Perumahan Green Hasanuddin Blok D1 No 3</p>
-        <p>Telp: 085299006996 | Email: Army-Collection@email.com (Contoh)</p>
+        <h1>ARMY COLLECTION</h1>
+        <p>Jl. Perintis Kemerdekaan VII, Green Hasanuddin Blok D1 No 3</p>
+        <p>Telp: 085299006996 | Email: Army-Collection@email.com</p>
         <h2>LAPORAN PENJUALAN</h2>
     </header>
 
     <table>
         <thead>
             <tr>
-                <th class="center" style="width: 5%;">No</th>
-                <th style="width: 15%;">Pelanggan</th>
-                <th style="width: 40%;">Produk</th> <th class="right total-col" style="width: 15%;">Total (Rp)</th>
-                <th class="center" style="width: 10%;">Status</th>
-                <th class="center" style="width: 15%;">Tanggal</th>
+                <th class="center" style="width:5%;">No</th>
+                <th style="width:20%;">Nama User</th>
+                <th style="width:35%;">Produk</th>
+                <th class="center" style="width:10%;">Jumlah</th>
+                <th class="right" style="width:15%;">Harga (Rp)</th>
+                <th class="right" style="width:15%;">Subtotal (Rp)</th>
+                <th class="center" style="width:15%;">Tanggal</th>
             </tr>
         </thead>
         <tbody>
-            @php $grandTotal = 0; @endphp
-            @forelse($penjualans as $index => $penjualan)
-            @php $grandTotal += $penjualan->total_harga; @endphp
-            <tr>
-                <td class="center">{{ $index + 1 }}</td>
-                <td>{{ $penjualan->user->name ?? '-' }}</td>
-                <td>
-                    @if(isset($penjualan->detailPesanans) && $penjualan->detailPesanans->count())
-                    <ul>
-                        @foreach($penjualan->detailPesanans as $detail)
-                        <li>**{{ $detail->kambing->jenis_kambing ?? 'Produk Dihapus' }}** (x{{ $detail->jumlah }})</li>
-                        @endforeach
-                    </ul>
-                    @else
-                    -
-                    @endif
-                </td>
-                <td class="right total-col">{{ number_format($penjualan->total_harga, 0, ',', '.') }}</td>
-                <td class="center">{{ ucfirst($penjualan->status) }}</td>
-                <td class="center">{{ $penjualan->created_at->format('d/m/Y H:i') }}</td>
-            </tr>
+            @php $no = 1; $grandTotal = 0; @endphp
+            @forelse($items as $item)
+                @php
+                    $isPenjualan = $item instanceof \App\Models\Penjualan;
+                    $details = $isPenjualan ? $item->detailPenjualans : $item->detailTransaksi;
+                    $tanggal = $item->tanggal ?? $item->created_at;
+                @endphp
+
+                @if($details && $details->count() > 0)
+                    @foreach($details as $detail)
+                        @php
+                            $produkNama = $detail->produk->nama ?? $detail->nama ?? '-';
+                            $harga = $detail->produk->harga ?? $detail->harga ?? 0;
+                            $jumlah = $detail->jumlah ?? 0;
+                            $subtotal = $harga * $jumlah;
+                            $grandTotal += $subtotal;
+
+                            $userName = $isPenjualan
+                                ? ($item->pelanggan->nama ?? $item->pelanggan->user->username ?? '-')
+                                : ($item->user->username ?? '-');
+                        @endphp
+                        <tr>
+                            <td class="center">{{ $no++ }}</td>
+                            <td>{{ $userName }}</td>
+                            <td>{{ $produkNama }}</td>
+                            <td class="center">{{ $jumlah }}</td>
+                            <td class="right">{{ number_format($harga, 0, ',', '.') }}</td>
+                            <td class="right">{{ number_format($subtotal, 0, ',', '.') }}</td>
+                            <td class="center">{{ \Carbon\Carbon::parse($tanggal)->format('d/m/Y') }}</td>
+                        </tr>
+                    @endforeach
+                @else
+                    <tr>
+                        @php
+                            $userName = $isPenjualan
+                                ? ($item->pelanggan->nama ?? $item->pelanggan->user->username ?? '-')
+                                : ($item->user->username ?? '-');
+                        @endphp
+                        <td class="center">{{ $no++ }}</td>
+                        <td>{{ $userName }}</td>
+                        <td colspan="5" class="center text-muted">
+                            {{ $isPenjualan ? 'Tidak ada detail penjualan.' : 'Tidak ada detail transaksi.' }}
+                        </td>
+                    </tr>
+                @endif
             @empty
-            <tr>
-                <td colspan="6" class="center">Tidak ada data penjualan</td>
-            </tr>
+                <tr>
+                    <td colspan="7" class="center text-muted">Tidak ada data penjualan atau transaksi.</td>
+                </tr>
             @endforelse
         </tbody>
 
-        @if(isset($penjualans) && $penjualans->count() > 0)
-        <tfoot>
-            <tr>
-                <td colspan="3" class="right">TOTAL KESELURUHAN</td>
-                <td class="right total-col">{{ number_format($grandTotal, 0, ',', '.') }}</td>
-                <td colspan="2"></td>
-            </tr>
-        </tfoot>
+        @if($grandTotal > 0)
+            <tfoot>
+                <tr>
+                    <td colspan="5" class="right">TOTAL KESELURUHAN</td>
+                    <td class="right">{{ number_format($grandTotal, 0, ',', '.') }}</td>
+                    <td></td>
+                </tr>
+            </tfoot>
         @endif
     </table>
 
@@ -180,5 +159,4 @@
         Dicetak pada: {{ \Carbon\Carbon::now()->format('d/m/Y H:i') }}
     </p>
 </body>
-
 </html>
