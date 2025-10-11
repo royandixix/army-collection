@@ -17,11 +17,12 @@ class LaporanDataController extends Controller
      * LAPORAN PRODUK
      */
     public function produk()
-    {
-        $produks = Produk::orderBy('created_at', 'desc')->get();
+{
+    $produks = Produk::with(['kategori', 'detailPenjualans'])->get();
 
-        return view('admin.laporan.laporan_produk.laporan_produk', compact('produks'));
-    }
+    return view('admin.laporan.laporan_produk.laporan_produk', compact('produks'));
+}
+
 
     public function cetakProduk()
     {
@@ -134,7 +135,7 @@ class LaporanDataController extends Controller
 
         $pdf = Pdf::loadView('admin.laporan.laporan_pembelian.pembelian_pdf', [
             'pembelians' => $laporanGabungan,
-        ])->setPaper('a4', 'landscape');
+        ])->setPaper('a4', 'andscape');
 
         return $pdf->stream('laporan_pembelian.pdf');
     }

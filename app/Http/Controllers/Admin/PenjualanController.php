@@ -19,11 +19,11 @@ class PenjualanController extends Controller
      */
     public function index()
     {
-        $penjualans = Penjualan::with(['pelanggan.user', 'transaksi.detailTransaksi'])
+        $penjualans = Penjualan::with(['pelanggan.user', 'detailPenjualans.produk'])
             ->latest('tanggal')
             ->get();
 
-        $transaksis = Transaksi::with(['user', 'detailTransaksi'])
+        $transaksis = Transaksi::with(['user', 'detailTransaksi.produk'])
             ->latest('created_at')
             ->get();
 
@@ -47,7 +47,7 @@ class PenjualanController extends Controller
     }
 
     /**
-     * 🧾 Simpan penjualan manual
+     * 🧾 Simpan penjualan manual (✅ versi fix & diterapkan)
      */
     public function storeManual(Request $request)
     {
@@ -62,7 +62,7 @@ class PenjualanController extends Controller
             'jumlah'             => 'required|array',
         ]);
 
-        // Upload foto profil pelanggan
+        // Upload foto profil pelanggan jika ada
         $fotoPath = $request->hasFile('foto_profil')
             ? $request->file('foto_profil')->store('foto_profil', 'public')
             : null;
@@ -84,7 +84,7 @@ class PenjualanController extends Controller
 
         DB::beginTransaction();
         try {
-            // Hitung total penjualan
+            // Hitung total harga semua produk
             $total = 0;
             foreach ($request->produk_id as $index => $produkId) {
                 $produk = Produk::findOrFail($produkId);
@@ -92,7 +92,7 @@ class PenjualanController extends Controller
                 $total += $produk->harga * $jumlah;
             }
 
-            // Simpan penjualan
+            // Simpan data penjualan utama
             $penjualan = Penjualan::create([
                 'pelanggan_id'      => $pelanggan->id,
                 'tanggal'           => $validated['tanggal'] ?? now(),
@@ -102,18 +102,19 @@ class PenjualanController extends Controller
                 'user_id'           => Auth::id(),
             ]);
 
-            // Upload bukti transfer / QRIS
+            // Upload bukti transfer jika ada
             if (in_array($validated['metode_pembayaran'], ['transfer', 'qris']) && $request->hasFile('bukti_tf')) {
                 $penjualan->update([
                     'bukti_tf' => $this->uploadBukti($request->file('bukti_tf'))
                 ]);
             }
 
-            // Simpan detail produk
+            // ✅ Simpan detail produk & kurangi stok
             foreach ($request->produk_id as $index => $produkId) {
                 $produk = Produk::findOrFail($produkId);
                 $jumlah = $request->jumlah[$index] ?? 1;
 
+                // Simpan detail penjualan
                 DB::table('detail_penjualans')->insert([
                     'penjualan_id' => $penjualan->id,
                     'produk_id'    => $produkId,
@@ -122,11 +123,18 @@ class PenjualanController extends Controller
                     'created_at'   => now(),
                     'updated_at'   => now(),
                 ]);
+
+                // 🔹 Kurangi stok produk sesuai jumlah
+                if ($produk->stok >= $jumlah) {
+                    $produk->decrement('stok', $jumlah);
+                } else {
+                    throw new \Exception("Stok produk {$produk->nama} tidak mencukupi.");
+                }
             }
 
             DB::commit();
             return redirect()->route('admin.manajemen.manajemen_penjualan')
-                ->with('success', 'Penjualan berhasil ditambahkan.');
+                ->with('success', '✅ Penjualan berhasil ditambahkan & stok diperbarui.');
         } catch (\Throwable $e) {
             DB::rollBack();
             return back()->with('error', 'Gagal menyimpan data: ' . $e->getMessage());
@@ -140,15 +148,15 @@ class PenjualanController extends Controller
     {
         $penjualan = Penjualan::with(['pelanggan'])->findOrFail($id);
 
-        // Pastikan objek pelanggan selalu ada agar Blade tidak error
         $penjualan->pelanggan ??= new \App\Models\Pelanggan();
-
-        // Pastikan bukti_tf selalu string
         $penjualan->bukti_tf ??= '';
 
         return view('admin.manajemen_penjualan.edit_manajemen_penjualan', compact('penjualan'));
     }
 
+    /**
+     * 🔧 Update data penjualan
+     */
     public function update(Request $request, $id)
     {
         $penjualan = Penjualan::with('pelanggan')->findOrFail($id);
@@ -166,37 +174,27 @@ class PenjualanController extends Controller
             'bukti_tf' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
         ]);
 
-        // ========== UPDATE DATA PELANGGAN ==========
-        $pelanggan = $penjualan->pelanggan;
+        // Update data pelanggan
+        $pelanggan = $penjualan->pelanggan ?? Pelanggan::create([
+            'nama' => $request->nama,
+            'email' => $request->email,
+            'no_hp' => $request->no_hp,
+            'alamat' => $request->alamat,
+        ]);
 
-        if (!$pelanggan) {
-            // Jika pelanggan belum ada
-            $pelanggan = Pelanggan::create([
-                'nama' => $request->nama,
-                'email' => $request->email,
-                'no_hp' => $request->no_hp,
-                'alamat' => $request->alamat,
-                'user_id' => null,
-            ]);
-            $penjualan->pelanggan_id = $pelanggan->id;
-            $penjualan->save();
-        } else {
-            // Jika pelanggan sudah ada
-            $pelanggan->update([
-                'nama' => $request->nama,
-                'email' => $request->email,
-                'no_hp' => $request->no_hp,
-                'alamat' => $request->alamat,
-            ]);
-        }
+        $pelanggan->update([
+            'nama' => $request->nama,
+            'email' => $request->email,
+            'no_hp' => $request->no_hp,
+            'alamat' => $request->alamat,
+        ]);
 
-        // Upload foto profil jika ada
         if ($request->hasFile('foto_profil')) {
             $path = $request->file('foto_profil')->store('foto_profil', 'public');
             $pelanggan->update(['foto_profil' => $path]);
         }
 
-        // ========== UPDATE DATA PENJUALAN ==========
+        // Update penjualan
         $penjualan->update([
             'tanggal' => $request->tanggal,
             'status' => $request->status,
@@ -204,18 +202,14 @@ class PenjualanController extends Controller
             'metode_pembayaran' => $request->metode_pembayaran,
         ]);
 
-        // Upload bukti pembayaran jika ada
         if ($request->hasFile('bukti_tf')) {
             $path = $request->file('bukti_tf')->store('bukti_tf', 'public');
             $penjualan->update(['bukti_tf' => $path]);
         }
 
         return redirect()->route('admin.manajemen.manajemen_penjualan')
-            ->with('success', 'Data penjualan berhasil diupdate.');
+            ->with('success', '✅ Data penjualan berhasil diperbarui.');
     }
-
-
-
 
     /**
      * 🗑️ Hapus penjualan
@@ -231,11 +225,11 @@ class PenjualanController extends Controller
         $penjualan->delete();
 
         return redirect()->route('admin.manajemen.manajemen_penjualan')
-            ->with('success', 'Data penjualan berhasil dihapus.');
+            ->with('success', '🗑️ Data penjualan berhasil dihapus.');
     }
 
     /**
-     * 🔄 Ubah status penjualan & sinkron transaksi
+     * 🔄 Ubah status penjualan
      */
     public function ubahStatus(Request $request, $id)
     {
@@ -255,7 +249,7 @@ class PenjualanController extends Controller
             $penjualan->transaksi()->update(['status' => $mappedStatus]);
         }
 
-        return back()->with('success', 'Status transaksi berhasil diperbarui.');
+        return back()->with('success', '🔁 Status transaksi berhasil diperbarui.');
     }
 
     /**

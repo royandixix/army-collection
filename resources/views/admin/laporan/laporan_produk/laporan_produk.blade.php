@@ -38,7 +38,8 @@
                                     <td>{{ $produk->kategori->name ?? '-' }}</td>
                                     <td>Rp {{ number_format($produk->harga, 0, ',', '.') }}</td>
                                     <td>{{ $produk->stok }}</td>
-                                    <td>{{ $produk->detailTransaksis->sum('jumlah') ?? 0 }}</td>
+                                    <td>{{ $produk->detailPenjualans->sum('jumlah') ?? 0 }}</td>
+
                                 </tr>
                             @empty
                                 <tr>

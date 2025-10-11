@@ -9,7 +9,6 @@ class DetailPenjualan extends Model
 {
     use HasFactory;
 
-    // Kolom yang boleh diisi massal
     protected $fillable = [
         'penjualan_id',
         'produk_id',
@@ -17,13 +16,11 @@ class DetailPenjualan extends Model
         'subtotal',
     ];
 
-    // Relasi ke Penjualan
     public function penjualan()
     {
         return $this->belongsTo(Penjualan::class);
     }
 
-    // Relasi ke Produk
     public function produk()
     {
         return $this->belongsTo(Produk::class);

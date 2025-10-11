@@ -23,13 +23,18 @@ class Produk extends Model
         return $this->belongsTo(Kategori::class);
     }
 
+    public function detailPenjualans()
+    {
+        return $this->hasMany(DetailPenjualan::class, 'produk_id', 'id');
+    }
+
     public function detailTransaksis()
     {
-        return $this->hasMany(DetailTransaksi::class);
+        return $this->hasMany(DetailTransaksi::class, 'produk_id', 'id');
     }
 
     public function keranjangs()
     {
-        return $this->hasMany(Keranjang::class);
+        return $this->hasMany(Keranjang::class, 'produk_id', 'id');
     }
 }
