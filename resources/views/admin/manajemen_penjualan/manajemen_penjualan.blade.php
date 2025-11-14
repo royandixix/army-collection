@@ -64,133 +64,169 @@
                                 </tr>
                             </thead>
                             <tbody>
-    @php
-        $no = 1;
-        $shownIds = [];
-    @endphp
-    @foreach ($items as $item)
-        @php
-            $type = $item instanceof \App\Models\Penjualan ? 'penjualan' : 'transaksi';
-            $uniqueId = $type . '-' . $item->id;
+                                @php
+                                    $no = 1;
+                                    $shownIds = [];
+                                @endphp
+                                @foreach ($items as $item)
+                                    @php
+                                        $type = $item instanceof \App\Models\Penjualan ? 'penjualan' : 'transaksi';
+                                        $uniqueId = $type . '-' . $item->id;
 
-            // Skip transaksi yang punya penjualan agar tidak duplikat
-            if ($item instanceof \App\Models\Transaksi && $item->penjualan) {
-                continue;
-            }
+                                        // Skip transaksi yang punya penjualan agar tidak duplikat
+                                        if ($item instanceof \App\Models\Transaksi && $item->penjualan) {
+                                            continue;
+                                        }
 
-            // Ambil nama pelanggan
-            $nama = $item->pelanggan->nama 
-                    ?? ($item->pelanggan?->user?->name 
-                        ?? ($item->user?->name ?? 'Tidak diketahui'));
-            if (!$nama || in_array($nama, $shownIds)) {
-                continue; // skip jika duplikat atau tidak ada nama
-            }
-            $shownIds[] = $nama;
+                                        // Ambil nama pelanggan
+                                        $nama =
+                                            $item->pelanggan->nama ??
+                                            ($item->pelanggan?->user?->name ??
+                                                ($item->user?->name ?? 'Tidak diketahui'));
+                                        if (!$nama || in_array($nama, $shownIds)) {
+                                            continue; // skip jika duplikat atau tidak ada nama
+                                        }
+                                        $shownIds[] = $nama;
 
-            // Ambil foto profil
-            $defaultImg = asset('img/default-user.png');
-            $fotoUrl = $defaultImg;
+                                        // Ambil foto profil
+                                        $defaultImg = asset('img/default-user.png');
+                                        $fotoUrl = $defaultImg;
 
-            if (!empty($item->pelanggan?->foto_profil) && file_exists(public_path('storage/' . $item->pelanggan->foto_profil))) {
-                $fotoUrl = asset('storage/' . $item->pelanggan->foto_profil);
-            } elseif (!empty($item->pelanggan?->user?->img) && file_exists(public_path('storage/' . $item->pelanggan->user->img))) {
-                $fotoUrl = asset('storage/' . $item->pelanggan->user->img);
-            } elseif (!empty($item->user?->img) && file_exists(public_path('storage/' . $item->user->img))) {
-                $fotoUrl = asset('storage/' . $item->user->img);
-            }
+                                        if (
+                                            !empty($item->pelanggan?->foto_profil) &&
+                                            file_exists(public_path('storage/' . $item->pelanggan->foto_profil))
+                                        ) {
+                                            $fotoUrl = asset('storage/' . $item->pelanggan->foto_profil);
+                                        } elseif (
+                                            !empty($item->pelanggan?->user?->img) &&
+                                            file_exists(public_path('storage/' . $item->pelanggan->user->img))
+                                        ) {
+                                            $fotoUrl = asset('storage/' . $item->pelanggan->user->img);
+                                        } elseif (
+                                            !empty($item->user?->img) &&
+                                            file_exists(public_path('storage/' . $item->user->img))
+                                        ) {
+                                            $fotoUrl = asset('storage/' . $item->user->img);
+                                        }
 
-            // Ambil detail produk dengan pengecekan nullsafe
-            $details = collect();
-            if ($item instanceof \App\Models\Penjualan && $item->detailPenjualans?->count() > 0) {
-                $details = $item->detailPenjualans;
-            } elseif ($item instanceof \App\Models\Transaksi && $item->detailTransaksi?->count() > 0) {
-                $details = $item->detailTransaksi;
-            } elseif ($item instanceof \App\Models\Penjualan && $item->transaksi?->detailTransaksi?->count() > 0) {
-                $details = $item->transaksi->detailTransaksi;
-            }
+                                        // Ambil detail produk dengan pengecekan nullsafe
+                                        $details = collect();
+                                        if (
+                                            $item instanceof \App\Models\Penjualan &&
+                                            $item->detailPenjualans?->count() > 0
+                                        ) {
+                                            $details = $item->detailPenjualans;
+                                        } elseif (
+                                            $item instanceof \App\Models\Transaksi &&
+                                            $item->detailTransaksi?->count() > 0
+                                        ) {
+                                            $details = $item->detailTransaksi;
+                                        } elseif (
+                                            $item instanceof \App\Models\Penjualan &&
+                                            $item->transaksi?->detailTransaksi?->count() > 0
+                                        ) {
+                                            $details = $item->transaksi->detailTransaksi;
+                                        }
 
-            $totalJumlah = $details->sum('jumlah');
-        @endphp
+                                        $totalJumlah = $details->sum('jumlah');
+                                    @endphp
 
-        <tr>
-            <td>{{ $no++ }}</td>
-            <td>
-                <div class="d-flex align-items-center gap-2">
-                    <img src="{{ $fotoUrl }}" alt="Foto Profil" class="rounded-circle border" width="45" height="45" style="object-fit: cover;">
-                    <span>{{ $nama }}</span>
-                </div>
-            </td>
-            <td>
-                <div><strong>Jumlah Total: {{ $totalJumlah }}</strong></div>
-                <ul class="m-0 p-0" style="list-style:none;">
-                    @foreach ($details as $detail)
-                        <li>
-                            <span>{{ $detail->produk?->nama ?? '-' }}</span>
-                            <span style="font-weight:bold;"> x{{ $detail->jumlah }}</span>
-                        </li>
-                    @endforeach
-                </ul>
-            </td>
-            <td>{{ \Carbon\Carbon::parse($item->tanggal ?? $item->created_at)->translatedFormat('l, d F Y H:i') }}</td>
-            <td>Rp {{ number_format($item->total ?? 0, 0, ',', '.') }}</td>
-            <td>
-                @if ($item instanceof \App\Models\Penjualan)
-                    <form id="status-form-{{ $uniqueId }}" action="{{ route('admin.manajemen.penjualan_ubah_status', $item->id) }}" method="POST">
-                        @csrf
-                        @method('PATCH')
-                        <select name="status" class="form-select form-select-sm status-select" data-id="{{ $uniqueId }}">
-                            <option value="lunas" {{ $item->status == 'lunas' ? 'selected' : '' }}>LUNAS</option>
-                            <option value="pending" {{ $item->status == 'pending' ? 'selected' : '' }}>PENDING</option>
-                            <option value="batal" {{ $item->status == 'batal' ? 'selected' : '' }}>BATAL</option>
-                        </select>
-                    </form>
-                @else
-                    <span class="text-muted">{{ ucfirst($item->status ?? '-') }}</span>
-                @endif
-            </td>
-            <td>{{ ucfirst(str_replace('_', ' ', $item->metode_pembayaran ?? '-')) }}</td>
-            <td>
-                @php
-                    $buktiPath = $item->bukti_tf ?? ($item->transaksi?->bukti_tf ?? null);
-                    if ($buktiPath) {
-                        $buktiPath = preg_replace('/^storage\//', '', $buktiPath);
-                    }
-                @endphp
-                @if ($buktiPath && file_exists(public_path('storage/' . $buktiPath)))
-                    <a href="{{ asset('storage/' . $buktiPath) }}" target="_blank">
-                        <img src="{{ asset('storage/' . $buktiPath) }}" width="60" height="60" class="rounded shadow-sm border" style="object-fit: cover;" alt="Bukti Pembayaran">
-                    </a>
-                @elseif(($item->metode_pembayaran ?? '') === 'qris')
-                    <img src="{{ asset('images/qiris/qris.jpeg') }}" width="60" height="60" class="rounded shadow-sm border" style="object-fit: cover;" alt="QRIS">
-                @else
-                    <span class="text-muted small">Belum upload</span>
-                @endif
-            </td>
-            <td>
-                <div class="d-flex gap-2">
-                    @if ($item instanceof \App\Models\Penjualan)
-                        <a href="{{ route('admin.manajemen.manajemen_penjualan_edit', ['id' => $item->id]) }}" class="btn btn-sm btn-outline-primary" title="Edit">
-                            <i class="ri-edit-line"></i>
-                        </a>
-                        <form id="delete-form-{{ $uniqueId }}" action="{{ route('admin.manajemen.manajemen_penjualan_destroy', ['id' => $item->id]) }}" method="POST" class="d-inline">
-                            @csrf
-                            @method('DELETE')
-                            <button type="button" class="btn btn-sm btn-outline-danger delete-btn" data-id="{{ $uniqueId }}" title="Hapus">
-                                <i class="ri-delete-bin-6-line"></i>
-                            </button>
-                        </form>
-                    @else
-                        <span class="text-muted">-</span>
-                    @endif
-                </div>
-            </td>
-        </tr>
-    @endforeach
-</tbody>
+                                    <tr>
+                                        <td>{{ $no++ }}</td>
+                                        <td>
+                                            <div class="d-flex align-items-center gap-2">
+                                                <img src="{{ $fotoUrl }}" alt="Foto Profil"
+                                                    class="rounded-circle border" width="45" height="45"
+                                                    style="object-fit: cover;">
+                                                <span>{{ $nama }}</span>
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <div><strong>Jumlah Total: {{ $totalJumlah }}</strong></div>
+                                            <ul class="m-0 p-0" style="list-style:none;">
+                                                @foreach ($details as $detail)
+                                                    <li>
+                                                        <span>{{ $detail->produk?->nama ?? '-' }}</span>
+                                                        <span style="font-weight:bold;"> x{{ $detail->jumlah }}</span>
+                                                    </li>
+                                                @endforeach
+                                            </ul>
+                                        </td>
+                                        <td>{{ \Carbon\Carbon::parse($item->tanggal ?? $item->created_at)->translatedFormat('l, d F Y H:i') }}
+                                        </td>
+                                        <td>Rp {{ number_format($item->total ?? 0, 0, ',', '.') }}</td>
+                                        <td>
+                                            @if ($item instanceof \App\Models\Penjualan)
+                                                <form id="status-form-{{ $uniqueId }}"
+                                                    action="{{ route('admin.manajemen.penjualan_ubah_status', $item->id) }}"
+                                                    method="POST">
+                                                    @csrf
+                                                    @method('PATCH')
+                                                    <select name="status" class="form-select form-select-sm status-select"
+                                                        data-id="{{ $uniqueId }}">
+                                                        <option value="lunas"
+                                                            {{ $item->status == 'lunas' ? 'selected' : '' }}>LUNAS</option>
+                                                        <option value="pending"
+                                                            {{ $item->status == 'pending' ? 'selected' : '' }}>PENDING
+                                                        </option>
+                                                        <option value="batal"
+                                                            {{ $item->status == 'batal' ? 'selected' : '' }}>BATAL</option>
+                                                    </select>
+                                                </form>
+                                            @else
+                                                <span class="text-muted">{{ ucfirst($item->status ?? '-') }}</span>
+                                            @endif
+                                        </td>
+                                        <td>{{ ucfirst(str_replace('_', ' ', $item->metode_pembayaran ?? '-')) }}</td>
+                                        <td>
+                                            @php
+                                                $buktiPath = $item->bukti_tf ?? ($item->transaksi?->bukti_tf ?? null);
+                                                if ($buktiPath) {
+                                                    $buktiPath = preg_replace('/^storage\//', '', $buktiPath);
+                                                }
+                                            @endphp
+                                            @if ($buktiPath && file_exists(public_path('storage/' . $buktiPath)))
+                                                <a href="{{ asset('storage/' . $buktiPath) }}" target="_blank">
+                                                    <img src="{{ asset('storage/' . $buktiPath) }}" width="60"
+                                                        height="60" class="rounded shadow-sm border"
+                                                        style="object-fit: cover;" alt="Bukti Pembayaran">
+                                                </a>
+                                            @elseif(($item->metode_pembayaran ?? '') === 'qris')
+                                                <img src="{{ asset('images/qiris/qris.jpeg') }}" width="60"
+                                                    height="60" class="rounded shadow-sm border"
+                                                    style="object-fit: cover;" alt="QRIS">
+                                            @else
+                                                @if (($item->metode_pembayaran ?? '') === 'cod')
+                                                    <span class="badge bg-warning text-dark">COD — tidak memerlukan bukti
+                                                        pembayaran</span>
+                                                @else
+                                                    <span class="text-muted small">Belum upload</span>
+                                                @endif
+                                            @endif
 
-
-
-
+                                        </td>
+                                        <td>
+                                            <div class="d-flex gap-2">
+                                                @if ($item instanceof \App\Models\Penjualan)
+                                                    <a href="{{ route('admin.manajemen.manajemen_penjualan_edit', ['id' => $item->id]) }}"
+                                                        class="btn btn-sm btn-outline-primary" title="Edit">
+                                                        <i class="ri-edit-line"></i>
+                                                    </a>
+                                                    <!-- <form id="delete-form-{{ $uniqueId }}" action="{{ route('admin.manajemen.manajemen_penjualan_destroy', ['id' => $item->id]) }}" method="POST" class="d-inline">
+                                                    @csrf
+                                                    @method('DELETE')
+                                                    <button type="button" class="btn btn-sm btn-outline-danger delete-btn" data-id="{{ $uniqueId }}" title="Hapus">
+                                                        <i class="ri-delete-bin-6-line"></i>
+                                                    </button>
+                                                </form> -->
+                                                @else
+                                                    <span class="text-muted">-</span>
+                                                @endif
+                                            </div>
+                                        </td>
+                                    </tr>
+                                @endforeach
+                            </tbody>
 
                         </table>
                     </div>
@@ -278,4 +314,3 @@
         });
     </script>
 @endpush
-≈

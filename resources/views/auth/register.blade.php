@@ -110,7 +110,7 @@
                         <input type="text" name="no_hp" value="{{ old('no_hp') }}" required
                             class="mt-1 w-full px-4 py-2 border border-gray-300 rounded-lg bg-gray-100 glow-focus" />
                     </div>
-
+<!-- 
                     <div>
                         <label class="block text-sm font-medium text-gray-700">Role</label>
                         <select name="role" required
@@ -118,7 +118,7 @@
                             <option value="user" selected>User</option>
                             <option value="admin">Admin</option>
                         </select>
-                    </div>
+                    </div> -->
 
 
                     <div>

@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Controllers\user;
+namespace App\Http\Controllers\User;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
@@ -10,7 +10,6 @@ use App\Models\Keranjang;
 
 class ProdukUserController extends Controller
 {
-    // ✅ Menampilkan semua produk (dengan pencarian + AJAX tanpa partial)
     public function index(Request $request)
     {
         $query = Produk::with('kategori');
@@ -23,7 +22,6 @@ class ProdukUserController extends Controller
 
         $produks = $query->latest()->get();
 
-        // 🔁 AJAX response langsung berupa HTML
         if ($request->ajax()) {
             $html = '';
             foreach ($produks as $produk) {
@@ -58,11 +56,9 @@ class ProdukUserController extends Controller
             return response($html);
         }
 
-        // Jika bukan AJAX, render halaman penuh
         return view('user.produk.produk', compact('produks'));
     }
 
-    // ✅ Tambah ke keranjang
     public function tambahKeKeranjang(Request $request)
     {
         $request->validate([
@@ -89,11 +85,9 @@ class ProdukUserController extends Controller
         return redirect()->back()->with('success', 'Produk berhasil ditambahkan ke keranjang.');
     }
 
-
     public function show($id)
-{
-    $produk = Produk::findOrFail($id);
-    return view('user.produk.produk_list', compact('produk'));
-}
-
+    {
+        $produk = Produk::findOrFail($id);
+        return view('user.produk.produk_list', compact('produk'));
+    }
 }

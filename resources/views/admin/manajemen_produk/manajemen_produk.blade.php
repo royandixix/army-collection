@@ -30,8 +30,6 @@
         </div>
     </div>
 
-
-
     <div class="mb-4 ms-3">
         <h5>Manajemen Produk</h5>
     </div>
@@ -67,9 +65,17 @@
                         </thead>
                         <tbody>
                             @foreach($produks as $produk)
+                            @php
+                                $hariSejakDibuat = \Carbon\Carbon::parse($produk->created_at)->diffInDays(now());
+                            @endphp
                             <tr>
                                 <td>{{ $loop->iteration }}</td>
-                                <td>{{ $produk->nama }}</td>
+                                <td>
+                                    {{ $produk->nama }}
+                                    @if($hariSejakDibuat <= 7)
+                                        <span class="badge bg-success ms-1">Baru</span>
+                                    @endif
+                                </td>
                                 <td>{{ $produk->kategori->name ?? '-' }}</td>
                                 <td>Rp {{ number_format($produk->harga, 0, ',', '.') }}</td>
                                 <td>{{ $produk->stok }}</td>
@@ -86,9 +92,17 @@
                                         <a href="{{ route('admin.manajemen.manajemen_produk_edit', $produk->id) }}" class="btn btn-sm btn-outline-primary" title="Edit">
                                             <i class="ri-edit-line"></i>
                                         </a>
-                                        <a href="#" class="btn btn-sm btn-outline-danger delete-btn" data-id="{{ $produk->id }}" title="Hapus">
-                                            <i class="ri-delete-bin-6-line"></i>
-                                        </a>
+
+                                        {{-- Tombol hapus hanya muncul jika produk dibuat <= 7 hari --}}
+                                        @if($hariSejakDibuat <= 7)
+                                            <a href="#" class="btn btn-sm btn-outline-danger delete-btn" data-id="{{ $produk->id }}" title="Hapus">
+                                                <i class="ri-delete-bin-6-line"></i>
+                                            </a>
+                                        @else
+                                            <button class="btn btn-sm btn-outline-secondary" title="Tidak dapat dihapus (data lama)" disabled>
+                                                <i class="ri-lock-line"></i>
+                                            </button>
+                                        @endif
                                     </div>
                                 </td>
                             </tr>

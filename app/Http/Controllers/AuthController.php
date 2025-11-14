@@ -2,8 +2,6 @@
 
 namespace App\Http\Controllers;
 
-namespace App\Http\Controllers;
-
 use App\Models\User;
 use App\Models\Pelanggan;
 use Illuminate\Http\Request;
@@ -34,7 +32,7 @@ class AuthController extends Controller
                 return redirect()->intended('/admin/dashboard')->with('success', 'Selamat datang, Admin!');
             }
 
-            // default semua user adalah 'user'
+            // default semua user biasa
             return redirect()->intended('/user/produk')->with('success', 'Selamat datang, ' . $user->username . '!');
         }
 
@@ -54,6 +52,8 @@ class AuthController extends Controller
         return view('auth.register');
     }
 
+   
+
     public function register(Request $request)
     {
         $validated = $request->validate([
@@ -62,21 +62,20 @@ class AuthController extends Controller
             'no_hp'    => 'required|string|max:20',
             'password' => 'required|confirmed',
             'profile_image' => 'nullable|image',
-            'role'     => 'required|in:user,admin', // ✅ tambahkan validasi role
         ]);
 
         $imagePath = null;
         if ($request->hasFile('profile_image')) {
-            $folder = $validated['role'] === 'admin' ? 'profile_images/admin' : 'profile_images/user';
-            $imagePath = $request->file('profile_image')->store($folder, 'public');
+            $imagePath = $request->file('profile_image')->store('profile_images/user', 'public');
         }
 
+        // ✅ Role otomatis user
         $user = User::create([
             'username' => $validated['username'],
             'email'    => $validated['email'],
             'no_hp'    => $validated['no_hp'],
             'password' => bcrypt($validated['password']),
-            'role'     => $validated['role'], // ✅ ambil dari form
+            'role'     => 'user', // <-- otomatis user
             'img'      => $imagePath,
         ]);
 
@@ -90,7 +89,4 @@ class AuthController extends Controller
 
         return redirect()->route('login')->with('success', 'Registrasi berhasil. Silakan login.');
     }
-
-
-    // metode admin/manajemen pengguna tetap bisa digunakan seperti sebelumnya
 }

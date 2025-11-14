@@ -12,10 +12,11 @@ class Produk extends Model
     protected $fillable = [
         'nama',
         'kategori_id',
+        'supplier_id',
         'deskripsi',
         'harga',
         'stok',
-        'gambar',
+        'gambar'
     ];
 
     public function kategori()
@@ -23,18 +24,28 @@ class Produk extends Model
         return $this->belongsTo(Kategori::class);
     }
 
+    public function supplier()
+    {
+        return $this->belongsTo(\App\Models\Supplier::class);
+    }
+
     public function detailPenjualans()
     {
-        return $this->hasMany(DetailPenjualan::class, 'produk_id', 'id');
+        return $this->hasMany(DetailPenjualan::class);
     }
 
     public function detailTransaksis()
     {
-        return $this->hasMany(DetailTransaksi::class, 'produk_id', 'id');
+        return $this->hasMany(DetailTransaksi::class);
     }
 
     public function keranjangs()
     {
-        return $this->hasMany(Keranjang::class, 'produk_id', 'id');
+        return $this->hasMany(Keranjang::class);
+    }
+
+    public function pembelianSuppliers()
+    {
+        return $this->hasMany(PembelianSupplier::class);
     }
 }

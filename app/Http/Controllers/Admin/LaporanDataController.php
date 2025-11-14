@@ -9,7 +9,9 @@ use App\Models\Penjualan;
 use App\Models\Pembelian;
 use App\Models\Transaksi;
 use Barryvdh\DomPDF\Facade\Pdf;
+use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
+use Carbon\Carbon;
 
 class LaporanDataController extends Controller
 {
@@ -17,12 +19,11 @@ class LaporanDataController extends Controller
      * LAPORAN PRODUK
      */
     public function produk()
-{
-    $produks = Produk::with(['kategori', 'detailPenjualans'])->get();
+    {
+        $produks = Produk::with(['kategori', 'detailPenjualans'])->get();
 
-    return view('admin.laporan.laporan_produk.laporan_produk', compact('produks'));
-}
-
+        return view('admin.laporan.laporan_produk.laporan_produk', compact('produks'));
+    }
 
     public function cetakProduk()
     {
@@ -60,7 +61,6 @@ class LaporanDataController extends Controller
 
     /**
      * LAPORAN PEMBELIAN
-     * (Gabungan antara pembelian supplier dan transaksi user)
      */
     public function pembelian()
     {
@@ -69,7 +69,6 @@ class LaporanDataController extends Controller
 
         $laporanGabungan = collect();
 
-        // Pembelian Supplier
         foreach ($pembelians as $p) {
             $laporanGabungan->push((object) [
                 'supplier' => $p->supplier->nama ?? '-',
@@ -81,10 +80,8 @@ class LaporanDataController extends Controller
             ]);
         }
 
-        // Transaksi User
         foreach ($penjualans as $pj) {
             $laporanGabungan->push((object) [
-                // Gunakan nama pelanggan jika ada, baru fallback ke username
                 'supplier' => $pj->pelanggan->nama ?? $pj->pelanggan->user->username ?? '-',
                 'alamat'   => $pj->pelanggan->alamat ?? '-',
                 'telepon'  => $pj->pelanggan->no_hp ?? '-',
@@ -108,7 +105,6 @@ class LaporanDataController extends Controller
 
         $laporanGabungan = collect();
 
-        // Pembelian Supplier
         foreach ($pembelians as $p) {
             $laporanGabungan->push((object) [
                 'supplier' => $p->supplier->nama ?? '-',
@@ -120,10 +116,8 @@ class LaporanDataController extends Controller
             ]);
         }
 
-        // Transaksi User
         foreach ($penjualans as $pj) {
             $laporanGabungan->push((object) [
-                // Perbaikan: tampilkan nama pelanggan, bukan literal 'Pelanggan'
                 'supplier' => $pj->pelanggan->nama ?? $pj->pelanggan->user->username ?? '-',
                 'alamat'   => $pj->pelanggan->alamat ?? '-',
                 'telepon'  => $pj->pelanggan->no_hp ?? '-',
@@ -135,45 +129,72 @@ class LaporanDataController extends Controller
 
         $pdf = Pdf::loadView('admin.laporan.laporan_pembelian.pembelian_pdf', [
             'pembelians' => $laporanGabungan,
-        ])->setPaper('a4', 'andscape');
+        ])->setPaper('a4', 'landscape');
 
         return $pdf->stream('laporan_pembelian.pdf');
     }
 
     /**
-     * LAPORAN PENJUALAN
+     * LAPORAN PENJUALAN (dengan filter per bulan)
      */
-    public function penjualan()
+    public function penjualan(Request $request)
     {
-        $penjualans = Penjualan::with(['pelanggan.user', 'detailPenjualans.produk'])->get();
-        $transaksis = Transaksi::with(['user', 'detailTransaksi.produk'])->get();
+        $bulan = $request->get('bulan');
 
-        $items = $penjualans->concat($transaksis)
+        $penjualans = Penjualan::with(['pelanggan.user', 'detailPenjualans.produk']);
+        $transaksis = Transaksi::with(['user', 'detailTransaksi.produk']);
+
+        // Filter berdasarkan bulan jika dipilih
+        if ($bulan) {
+            $penjualans->whereMonth('tanggal', $bulan);
+            $transaksis->whereMonth('created_at', $bulan);
+        }
+
+        $items = $penjualans->get()->concat($transaksis->get())
             ->sortByDesc(fn($item) => $item->tanggal ?? $item->created_at)
             ->values();
 
-        return view('admin.laporan.laporan_penjualan.laporan_penjualan', compact('items'));
+        return view('admin.laporan.laporan_penjualan.laporan_penjualan', compact('items', 'bulan'));
     }
 
-    public function cetakPenjualan()
+    public function cetakPenjualan(Request $request)
     {
-        $penjualans = Penjualan::with([
-            'pelanggan.user',
-            'detailPenjualans.produk'
-        ])->orderBy('created_at', 'desc')->get();
+        $bulan = $request->get('bulan');
 
-        $transaksis = Transaksi::with([
-            'user',
-            'detailTransaksi.produk'
-        ])->orderBy('created_at', 'desc')->get();
+        $penjualans = Penjualan::with(['pelanggan.user', 'detailPenjualans.produk']);
+        $transaksis = Transaksi::with(['user', 'detailTransaksi.produk']);
 
-        $items = $penjualans->concat($transaksis)
+        if ($bulan) {
+            $penjualans->whereMonth('tanggal', $bulan);
+            $transaksis->whereMonth('created_at', $bulan);
+        }
+
+        $items = $penjualans->get()->concat($transaksis->get())
             ->sortByDesc(fn($item) => $item->tanggal ?? $item->created_at)
             ->values();
 
-        $pdf = Pdf::loadView('admin.laporan.laporan_penjualan.penjualan_pdf', compact('items'))
+        $pdf = Pdf::loadView('admin.laporan.laporan_penjualan.penjualan_pdf', compact('items', 'bulan'))
             ->setPaper('a4', 'landscape');
 
-        return $pdf->stream('laporan_penjualan.pdf');
+        $namaBulan = $bulan ? Carbon::create()->month($bulan)->translatedFormat('F') : 'Semua';
+        return $pdf->stream("laporan_penjualan_{$namaBulan}.pdf");
     }
+    public function supplier()
+{
+    $suppliers = \App\Models\Supplier::latest()->get();
+    return view('admin.laporan.laporan_supplier.laporan_supplier', compact('suppliers'));
+}
+
+public function cetakSupplier()
+{
+    $suppliers = \App\Models\Supplier::latest()->get();
+
+    $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView(
+        'admin.laporan.laporan_supplier.supplier_pdf',
+        compact('suppliers')
+    )->setPaper('a4', 'portrait');
+
+    return $pdf->stream('laporan_supplier.pdf');
+}
+
 }

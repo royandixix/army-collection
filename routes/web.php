@@ -13,6 +13,7 @@ use App\Http\Controllers\Admin\PelangganController;
 use App\Http\Controllers\Admin\LaporanController;
 use App\Http\Controllers\Admin\SearchController;
 use App\Http\Controllers\Admin\RekapController;
+use App\Http\Controllers\Admin\SupplierController;
 
 // USER
 use App\Http\Controllers\User\ProdukUserController;
@@ -83,23 +84,35 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'role:admin'])->grou
     Route::put('/manajemen/pelanggan/{id}', [PelangganController::class, 'update'])->name('manajemen.manajemen_pelanggan_update');
     Route::delete('/manajemen/pelanggan/{id}', [PelangganController::class, 'destroy'])->name('manajemen.manajemen_pelanggan_destroy');
 
-    Route::prefix('laporan')->name('laporan.')->group(function () {
-        // Laporan Produk
 
-        Route::get('/produk', [\App\Http\Controllers\Admin\LaporanDataController::class, 'produk'])->name('produk');
-        Route::get('/produk/cetak', [\App\Http\Controllers\Admin\LaporanDataController::class, 'cetakProduk'])->name('produk.cetak');
+    // suplier
+    Route::get('/supplier', [SupplierController::class, 'index'])->name('supplier.index');
+Route::get('/supplier/create', [SupplierController::class, 'create'])->name('supplier.create');
+Route::post('/supplier', [SupplierController::class, 'store'])->name('supplier.store');
+Route::get('/supplier/{id}', [SupplierController::class, 'show'])->name('supplier.show');
+Route::get('/supplier/{id}/edit', [SupplierController::class, 'edit'])->name('supplier.edit');
+Route::put('/supplier/{id}', [SupplierController::class, 'update'])->name('supplier.update');
+Route::delete('/supplier/{id}', [SupplierController::class, 'destroy'])->name('supplier.destroy');
+Route::prefix('laporan')->name('laporan.')->group(function () {
+    // Laporan Produk
+    Route::get('/produk', [\App\Http\Controllers\Admin\LaporanDataController::class, 'produk'])->name('produk');
+    Route::get('/produk/cetak', [\App\Http\Controllers\Admin\LaporanDataController::class, 'cetakProduk'])->name('produk.cetak');
 
-        // Laporan Pelanggan
-        Route::get('/pelanggan', [\App\Http\Controllers\Admin\LaporanDataController::class, 'pelanggan'])->name('pelanggan');
+    // Laporan Pelanggan
+    Route::get('/pelanggan', [\App\Http\Controllers\Admin\LaporanDataController::class, 'pelanggan'])->name('pelanggan');
 
-        // Pembelian
-        Route::get('/pembelian', [\App\Http\Controllers\Admin\LaporanDataController::class, 'pembelian'])->name('pembelian');
-        Route::get('/pembelian/cetak', [\App\Http\Controllers\Admin\LaporanDataController::class, 'cetakPembelian'])->name('pembelian.cetak');
+    // Pembelian
+    Route::get('/pembelian', [\App\Http\Controllers\Admin\LaporanDataController::class, 'pembelian'])->name('pembelian');
+    Route::get('/pembelian/cetak', [\App\Http\Controllers\Admin\LaporanDataController::class, 'cetakPembelian'])->name('pembelian.cetak');
 
-        // Penjualan
-        Route::get('/penjualan', [\App\Http\Controllers\Admin\LaporanDataController::class, 'penjualan'])->name('penjualan');
-        Route::get('/penjualan/cetak', [\App\Http\Controllers\Admin\LaporanDataController::class, 'cetakPenjualan'])->name('penjualan.cetak');
-    });
+    // Penjualan
+    Route::get('/penjualan', [\App\Http\Controllers\Admin\LaporanDataController::class, 'penjualan'])->name('penjualan');
+    Route::get('/penjualan/cetak', [\App\Http\Controllers\Admin\LaporanDataController::class, 'cetakPenjualan'])->name('penjualan.cetak');
+
+    // ✅ Laporan Supplier (baru ditambahkan)
+    Route::get('/supplier', [\App\Http\Controllers\Admin\LaporanDataController::class, 'supplier'])->name('supplier');
+    Route::get('/supplier/cetak', [\App\Http\Controllers\Admin\LaporanDataController::class, 'cetakSupplier'])->name('supplier.cetak');
+});
 
 
     // 📊 Rekap

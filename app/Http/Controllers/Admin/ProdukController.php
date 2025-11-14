@@ -5,56 +5,61 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\Produk;
 use App\Models\Kategori;
+use App\Models\Supplier;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
+use Carbon\Carbon;
 
 class ProdukController extends Controller
 {
-    // ✅ Tampilkan semua produk
+    // Tampilkan semua produk
     public function index()
     {
-        $produks = Produk::with('kategori')->get();
+        $produks = Produk::with(['kategori', 'supplier'])->get();
         $kategoris = Kategori::all();
         return view('admin.manajemen_produk.manajemen_produk', compact('produks', 'kategoris'));
     }
 
-    // ✅ Tampilkan form tambah produk
+    // Form tambah produk
     public function create()
     {
         $kategoris = Kategori::all();
-        return view('admin.manajemen_produk.tambah_manajemen_produk', compact('kategoris'));
+        $suppliers = Supplier::all();
+        return view('admin.manajemen_produk.tambah_manajemen_produk', compact('kategoris', 'suppliers'));
     }
 
-    // ✅ Simpan data produk baru
+    // Simpan produk baru
     public function store(Request $request)
     {
-        // Ubah harga jadi integer (hilangkan titik)
-        $request->merge([
-            'price' => str_replace('.', '', $request->price)
-        ]);
+        // Hapus titik dari harga
+        $request->merge(['price' => str_replace('.', '', $request->price)]);
 
         $request->validate([
             'name' => 'required|string|max:255',
-            'kategori_id' => 'required|exists:kategoris,id',
+            'kategori_id' => 'nullable|exists:kategoris,id',
+            'kategori_baru' => 'nullable|string|max:255',
+            'supplier_id' => 'required|exists:suppliers,id',
             'deskripsi' => 'nullable|string',
             'price' => 'required|numeric',
             'stock' => 'required|integer',
             'image' => 'nullable|image|max:2048',
-        ], [
-            'name.required' => 'Nama produk wajib diisi.',
-            'kategori_id.required' => 'Kategori wajib dipilih.',
-            'price.required' => 'Harga produk wajib diisi.',
-            'stock.required' => 'Stok produk wajib diisi.',
-            'image.image' => 'File harus berupa gambar.',
-            'image.max' => 'Ukuran gambar maksimal 2MB.',
         ]);
+
+        // Buat kategori baru jika diisi
+        if ($request->kategori_baru) {
+            $kategori = Kategori::firstOrCreate(['name' => $request->kategori_baru]);
+            $kategori_id = $kategori->id;
+        } else {
+            $kategori_id = $request->kategori_id;
+        }
 
         $data = [
             'nama' => $request->name,
-            'kategori_id' => $request->kategori_id,
+            'kategori_id' => $kategori_id,
+            'supplier_id' => $request->supplier_id,
             'deskripsi' => $request->deskripsi,
             'harga' => $request->price,
-           'stok' => $request->input('stock'), // ✅ FIELD yang benar
+            'stok' => $request->stock,
         ];
 
         if ($request->hasFile('image')) {
@@ -66,48 +71,51 @@ class ProdukController extends Controller
         return redirect()->route('admin.manajemen.manajemen_produk')->with('success', 'Produk berhasil ditambahkan.');
     }
 
-    // ✅ Tampilkan form edit produk
+    // Form edit produk
     public function edit($id)
     {
         $produk = Produk::findOrFail($id);
         $kategoris = Kategori::all();
-        return view('admin.manajemen_produk.edit_manajemen_produk', compact('produk', 'kategoris'));
+        $suppliers = Supplier::all();
+        return view('admin.manajemen_produk.edit_manajemen_produk', compact('produk', 'kategoris', 'suppliers'));
     }
 
-    // ✅ Update data produk
+    // Update produk
     public function update(Request $request, $id)
     {
         $produk = Produk::findOrFail($id);
 
-        $request->merge([
-            'price' => str_replace('.', '', $request->price),
-        ]);
+        $request->merge(['price' => str_replace('.', '', $request->price)]);
 
         $request->validate([
             'name' => 'required|string|max:255',
-            'kategori_id' => 'required|exists:kategoris,id',
+            'kategori_id' => 'nullable|exists:kategoris,id',
+            'kategori_baru' => 'nullable|string|max:255',
+            'supplier_id' => 'required|exists:suppliers,id',
             'deskripsi' => 'nullable|string',
             'price' => 'required|numeric',
             'stock' => 'required|integer',
             'image' => 'nullable|image|max:2048',
-        ], [
-            'name.required' => 'Nama produk wajib diisi.',
-            'kategori_id.required' => 'Kategori wajib dipilih.',
-            'price.required' => 'Harga wajib diisi.',
-            'stock.required' => 'Stok wajib diisi.',
-            
         ]);
+
+        // Buat kategori baru jika diisi
+        if ($request->kategori_baru) {
+            $kategori = Kategori::firstOrCreate(['name' => $request->kategori_baru]);
+            $kategori_id = $kategori->id;
+        } else {
+            $kategori_id = $request->kategori_id;
+        }
 
         $data = [
             'nama' => $request->name,
-            'kategori_id' => $request->kategori_id,
+            'kategori_id' => $kategori_id,
+            'supplier_id' => $request->supplier_id,
             'deskripsi' => $request->deskripsi,
             'harga' => $request->price,
-            'stok' => $request->input('stock'), // ✅ FIELD yang benar
+            'stok' => $request->stock,
         ];
 
         if ($request->hasFile('image')) {
-            // Hapus gambar lama
             if ($produk->gambar && Storage::disk('public')->exists($produk->gambar)) {
                 Storage::disk('public')->delete($produk->gambar);
             }
@@ -119,10 +127,17 @@ class ProdukController extends Controller
         return redirect()->route('admin.manajemen.manajemen_produk')->with('success', 'Produk berhasil diupdate.');
     }
 
-    // ✅ Hapus produk
+    // Hapus produk
     public function destroy($id)
     {
         $produk = Produk::findOrFail($id);
+
+        $selisihHari = Carbon::parse($produk->created_at)->diffInDays(now());
+
+        if ($selisihHari > 7) {
+            return redirect()->route('admin.manajemen.manajemen_produk')
+                ->with('error', 'Produk lama (lebih dari 1 minggu) tidak dapat dihapus.');
+        }
 
         if ($produk->gambar && Storage::disk('public')->exists($produk->gambar)) {
             Storage::disk('public')->delete($produk->gambar);
@@ -132,8 +147,6 @@ class ProdukController extends Controller
 
         return redirect()->route('admin.manajemen.manajemen_produk')->with('success', 'Produk berhasil dihapus.');
     }
-
-    
 
     
 }

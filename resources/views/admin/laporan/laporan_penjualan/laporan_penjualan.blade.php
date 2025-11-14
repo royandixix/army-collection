@@ -8,9 +8,31 @@
         <!-- Judul & tombol cetak -->
         <div class="cx-page-title d-flex justify-content-between align-items-center flex-wrap mb-4">
             <h4 class="mb-0">Laporan Penjualan</h4>
-            <a href="{{ route('admin.laporan.penjualan.cetak') }}" target="_blank" class="btn btn-danger">
-                <i class="bi bi-printer"></i> Cetak PDF
-            </a>
+
+            <!-- Form filter bulan & tahun + cetak -->
+            <form action="{{ route('admin.laporan.penjualan.cetak') }}" method="GET" target="_blank" class="d-flex align-items-center gap-2 flex-wrap">
+                <select name="bulan" class="form-select form-select-sm" style="width: auto;">
+                    <option value="">Semua Bulan</option>
+                    @for ($m = 1; $m <= 12; $m++)
+                        <option value="{{ $m }}" {{ request('bulan') == $m ? 'selected' : '' }}>
+                            {{ DateTime::createFromFormat('!m', $m)->format('F') }}
+                        </option>
+                    @endfor
+                </select>
+
+                <select name="tahun" class="form-select form-select-sm" style="width: auto;">
+                    <option value="">Semua Tahun</option>
+                    @for ($y = date('Y'); $y >= date('Y') - 5; $y--)
+                        <option value="{{ $y }}" {{ request('tahun') == $y ? 'selected' : '' }}>
+                            {{ $y }}
+                        </option>
+                    @endfor
+                </select>
+
+                <button type="submit" class="btn btn-danger btn-sm">
+                    <i class="bi bi-printer"></i> Cetak PDF
+                </button>
+            </form>
         </div>
 
         <!-- Card tabel -->
@@ -42,14 +64,14 @@
                                 $isPenjualan = $item instanceof \App\Models\Penjualan;
                                 $details = $isPenjualan ? $item->detailPenjualans : $item->detailTransaksi;
                                 $userName = $isPenjualan 
-                                            ? $item->pelanggan->nama ?? $item->pelanggan->user->username ?? '-' 
-                                            : $item->user->username ?? '-';
+                                            ? ($item->pelanggan->nama ?? $item->pelanggan->user->username ?? '-') 
+                                            : ($item->user->username ?? '-');
                             @endphp
 
                             @if ($details && $details->count() > 0)
                                 @foreach ($details as $detail)
                                     @php
-                                        $hargaSatuan = $isPenjualan ? $detail->produk->harga ?? 0 : $detail->harga ?? 0;
+                                        $hargaSatuan = $isPenjualan ? ($detail->produk->harga ?? 0) : ($detail->harga ?? 0);
                                         $total = ($detail->jumlah ?? 0) * $hargaSatuan;
                                         $tanggal = $item->tanggal ?? $item->created_at;
                                     @endphp
@@ -63,12 +85,6 @@
                                         <td>Rp {{ number_format($total, 0, ',', '.') }}</td>
                                     </tr>
                                 @endforeach
-                            @else
-                                <tr>
-                                    <td colspan="7" class="text-center text-muted">
-                                        {{ $isPenjualan ? 'Tidak ada detail penjualan.' : 'Tidak ada detail transaksi.' }}
-                                    </td>
-                                </tr>
                             @endif
                         @empty
                             <tr>
@@ -120,8 +136,8 @@ $(document).ready(function() {
             info: "Menampilkan _START_ - _END_ dari _TOTAL_ penjualan",
             infoEmpty: "Tidak ada data",
             paginate: {
-                previous: "⬅️",
-                next: "➡️"
+                previous: "⬅",
+                next: "➡"
             }
         }
     });

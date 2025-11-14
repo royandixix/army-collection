@@ -48,6 +48,14 @@
                     </a>
                 </li>
 
+                <li class="cx-sb-item sb-drop-item">
+    <a href="{{ route('admin.supplier.index') }}" class="cx-drop-toggle">
+        <i class="ri-truck-line"></i>
+        <span class="condense">Data Supplier</span>
+    </a>
+</li>
+
+
                 <!-- Grup Laporan -->
                 <li class="cx-sb-item sb-drop-item has-submenu">
                     <a href="javascript:void(0)" class="cx-drop-toggle">
@@ -70,6 +78,12 @@
                                 <i class="ri-wallet-3-line"></i> Laporan Produk
                             </a>
                         </li>
+                        <li>
+    <a href="{{ route('admin.laporan.supplier') }}">
+        <i class="ri-truck-line"></i> Laporan Supplier
+    </a>
+</li>
+
                     </ul>
                 </li>
                 <!-- End Grup Laporan -->
