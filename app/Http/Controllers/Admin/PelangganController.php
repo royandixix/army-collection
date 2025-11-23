@@ -160,16 +160,23 @@ class PelangganController extends Controller
      */
     public function destroy($id)
     {
-        $user = User::find($id);
+        $pelanggan = Pelanggan::find($id);
 
-        if ($user) {
-            $user->pelanggan()->delete();
-            $user->delete();
-        } else {
-            Pelanggan::find($id)?->delete();
+        if (!$pelanggan) {
+            return back()->with('error', 'Pelanggan tidak ditemukan.');
         }
 
-        return redirect()->route('admin.manajemen.manajemen_pelanggan')
-            ->with('success', 'Pelanggan berhasil dihapus.');
+        // Hapus pelanggan manual (tanpa user)
+        if (!$pelanggan->user_id) {
+            $pelanggan->delete();
+            return back()->with('success', 'Pelanggan berhasil dihapus.');
+        }
+
+        // Hapus pelanggan yang punya user
+        $user = $pelanggan->user;
+        $pelanggan->delete();   // hapus data pelanggan
+        $user->delete();        // hapus user yang tepat
+
+        return back()->with('success', 'Pelanggan berhasil dihapus.');
     }
 }

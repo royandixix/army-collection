@@ -4,15 +4,14 @@
         <div class="cx-sidebar-head text-center py-4">
             @auth
                 @if (Auth::user()->img)
-                    <img src="{{ asset('storage/' . Auth::user()->img) }}" 
-                         alt="Profile" width="60" height="60" class="rounded-circle">
+                    <img src="{{ asset('storage/' . Auth::user()->img) }}" alt="Profile" width="60" height="60"
+                        class="rounded-circle">
                 @else
-                    <img src="{{ asset('img/logo.jpg') }}" 
-                         alt="Logo" width="60" height="60" class="rounded-circle">
+                    <img src="{{ asset('img/logo.jpg') }}" alt="Logo" width="60" height="60"
+                        class="rounded-circle">
                 @endif
             @else
-                <img src="{{ asset('img/logo.jpg') }}" 
-                     alt="Logo" width="60" height="60" class="rounded-circle">
+                <img src="{{ asset('img/logo.jpg') }}" alt="Logo" width="60" height="60" class="rounded-circle">
             @endauth
         </div>
 
@@ -49,11 +48,11 @@
                 </li>
 
                 <li class="cx-sb-item sb-drop-item">
-    <a href="{{ route('admin.supplier.index') }}" class="cx-drop-toggle">
-        <i class="ri-truck-line"></i>
-        <span class="condense">Data Supplier</span>
-    </a>
-</li>
+                    <a href="{{ route('admin.supplier.index') }}" class="cx-drop-toggle">
+                        <i class="ri-truck-line"></i>
+                        <span class="condense">Data Supplier</span>
+                    </a>
+                </li>
 
 
                 <!-- Grup Laporan -->
@@ -78,11 +77,11 @@
                                 <i class="ri-wallet-3-line"></i> Laporan Produk
                             </a>
                         </li>
-                        <li>
-    <a href="{{ route('admin.laporan.supplier') }}">
-        <i class="ri-truck-line"></i> Laporan Supplier
-    </a>
-</li>
+                        {{-- <li>
+                            <a href="{{ route('admin.laporan.supplier') }}">
+                                <i class="ri-truck-line"></i> Laporan Supplier
+                            </a>
+                        </li> --}}
 
                     </ul>
                 </li>
@@ -128,7 +127,7 @@
 
     // Script buat dropdown sidebar
     document.querySelectorAll('.has-submenu > .cx-drop-toggle').forEach(toggle => {
-        toggle.addEventListener('click', function () {
+        toggle.addEventListener('click', function() {
             const parent = this.parentElement;
             parent.classList.toggle('open');
         });
@@ -141,12 +140,15 @@
         display: none;
         padding-left: 1.5rem;
     }
-    .has-submenu.open > .cx-submenu {
+
+    .has-submenu.open>.cx-submenu {
         display: block;
     }
+
     .drop-arrow {
         transition: transform 0.3s;
     }
+
     .has-submenu.open .drop-arrow {
         transform: rotate(180deg);
     }

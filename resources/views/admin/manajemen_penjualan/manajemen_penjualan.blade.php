@@ -208,17 +208,26 @@
                                         <td>
                                             <div class="d-flex gap-2">
                                                 @if ($item instanceof \App\Models\Penjualan)
+                                                    {{-- Button Edit --}}
                                                     <a href="{{ route('admin.manajemen.manajemen_penjualan_edit', ['id' => $item->id]) }}"
-                                                        class="btn btn-sm btn-outline-primary" title="Edit">
+                                                        class="btn btn-sm btn-outline-primary" data-bs-toggle="tooltip"
+                                                        title="Edit Penjualan">
                                                         <i class="ri-edit-line"></i>
                                                     </a>
-                                                    <!-- <form id="delete-form-{{ $uniqueId }}" action="{{ route('admin.manajemen.manajemen_penjualan_destroy', ['id' => $item->id]) }}" method="POST" class="d-inline">
-                                                    @csrf
-                                                    @method('DELETE')
-                                                    <button type="button" class="btn btn-sm btn-outline-danger delete-btn" data-id="{{ $uniqueId }}" title="Hapus">
-                                                        <i class="ri-delete-bin-6-line"></i>
-                                                    </button>
-                                                </form> -->
+
+                                                    {{-- Button Hapus --}}
+                                                    <form id="delete-form-{{ $uniqueId }}"
+                                                        action="{{ route('admin.manajemen.manajemen_penjualan_destroy', ['id' => $item->id]) }}"
+                                                        method="POST" class="d-inline">
+                                                        @csrf
+                                                        @method('DELETE')
+                                                        <button type="button"
+                                                            class="btn btn-sm btn-outline-danger delete-btn"
+                                                            data-id="{{ $uniqueId }}" data-bs-toggle="tooltip"
+                                                            title="Hapus Penjualan">
+                                                            <i class="ri-delete-bin-6-line"></i>
+                                                        </button>
+                                                    </form>
                                                 @else
                                                     <span class="text-muted">-</span>
                                                 @endif
