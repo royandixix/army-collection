@@ -84,6 +84,7 @@ class AuthController extends Controller
             ? $request->file('profile_image')->store('profile_images/user', 'public')
             : null;
 
+        // Buat user
         $user = User::create([
             'username' => $validated['username'],
             'email'    => $validated['email'],
@@ -93,7 +94,7 @@ class AuthController extends Controller
             'img'      => $imagePath,
         ]);
 
-        // Buat alamat default
+        // Alamat default
         UserAlamat::create([
             'user_id'    => $user->id,
             'label'      => 'Rumah',
@@ -103,7 +104,7 @@ class AuthController extends Controller
             'is_default' => true,
         ]);
 
-        // Buat data pelanggan
+        // Data pelanggan
         Pelanggan::create([
             'user_id'     => $user->id,
             'nama'        => $user->username,
@@ -121,6 +122,7 @@ class AuthController extends Controller
     // =========================
     public function showManualResetForm()
     {
+        // Halaman ini hanya menampilkan form
         return view('auth.manual-reset-password');
     }
 
@@ -129,15 +131,19 @@ class AuthController extends Controller
     // =========================
     public function manualReset(Request $request)
     {
+        // Validasi input
         $request->validate([
-            'email' => 'required|email|exists:users,email',
+            'email' => 'required|email|exists:users,email', // hanya user yg pernah register/login
             'password' => 'required|confirmed|min:6',
         ]);
 
+        // Ambil user berdasarkan email
         $user = User::where('email', $request->email)->first();
+
+        // Update password
         $user->password = bcrypt($request->password);
         $user->save();
 
-        return redirect()->route('login')->with('success', 'Password berhasil diubah secara manual.');
+        return redirect()->route('login')->with('success', 'Password berhasil diubah secara manual. Silakan login.');
     }
 }
