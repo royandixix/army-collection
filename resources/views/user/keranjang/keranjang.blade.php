@@ -72,17 +72,25 @@
 
             @if($alamats->isEmpty())
                 <div class="alert alert-warning">
-                    Kamu belum memiliki alamat. <a href="{{ route('user.alamat.create') }}" class="alert-link">Tambah Alamat</a>
+                    Kamu belum memiliki alamat. Klik tombol di bawah untuk menambahkan alamat.
                 </div>
             @else
                 @foreach ($alamats as $alamat)
                     <label class="card p-3 mb-2 alamat-card">
-                        <input type="radio" name="alamat_pilih" class="form-check-input alamat-radio" value="{{ $alamat->alamat }}" {{ $alamat->is_default ? 'checked' : '' }}>
-                        <strong>{{ $alamat->label ?? 'Alamat' }}</strong>
-                        <div class="text-muted small">{{ $alamat->alamat }}</div>
+                        <div class="d-flex align-items-start gap-2">
+                            <input type="radio" name="alamat_pilih" class="form-check-input alamat-radio mt-1" value="{{ $alamat->alamat }}" {{ $alamat->is_default ? 'checked' : '' }}>
+                            <div class="flex-grow-1">
+                                <div class="text-dark">{{ $alamat->alamat }}</div>
+                            </div>
+                        </div>
                     </label>
                 @endforeach
             @endif
+
+            {{-- Tambah Alamat Baru dengan Maps --}}
+            <button type="button" class="btn btn-outline-primary btn-sm mt-2" data-bs-toggle="modal" data-bs-target="#modalTambahAlamat">
+                <i class="bi bi-plus-circle me-1"></i> Tambah Alamat Baru
+            </button>
 
             <input type="hidden" name="alamat" id="alamat_hidden">
         </div>
@@ -119,11 +127,61 @@
     </form>
     @endif
 </div>
+
+{{-- MODAL TAMBAH ALAMAT --}}
+<div class="modal fade" id="modalTambahAlamat" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title"><i class="bi bi-geo-alt-fill me-2"></i>Tambah Alamat Baru</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                {{-- Search Box --}}
+                <div class="mb-3">
+                    <label class="form-label fw-semibold">Cari Lokasi</label>
+                    <div class="input-group">
+                        <input type="text" id="searchLocation" class="form-control" placeholder="Cari alamat atau tempat...">
+                        <button type="button" id="btnSearch" class="btn btn-primary">
+                            <i class="bi bi-search"></i> Cari
+                        </button>
+                        <button type="button" id="btnCurrentLocation" class="btn btn-success" title="Gunakan Lokasi Saat Ini">
+                            <i class="bi bi-geo-fill"></i>
+                        </button>
+                    </div>
+                </div>
+
+                {{-- Map --}}
+                <div id="map" style="height: 400px; border-radius: 8px; margin-bottom: 15px;"></div>
+
+                {{-- Form Alamat --}}
+                <div class="mb-3">
+                    <label class="form-label fw-semibold">Alamat Lengkap <span class="text-danger">*</span></label>
+                    <textarea id="alamatText" class="form-control" rows="3" required placeholder="Klik pada peta untuk mengisi alamat otomatis atau ketik manual..."></textarea>
+                    <small class="text-muted">Klik pada peta untuk mengisi alamat otomatis</small>
+                </div>
+
+                <div class="form-check mb-3">
+                    <input type="checkbox" class="form-check-input" id="isDefaultCheck">
+                    <label class="form-check-label" for="isDefaultCheck">Jadikan alamat utama</label>
+                </div>
+
+                <div class="d-flex justify-content-end gap-2">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+                    <button type="button" id="btnSimpanAlamat" class="btn btn-primary">
+                        <i class="bi bi-save me-1"></i> Simpan Alamat
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
 @endsection
 
 {{-- STYLES --}}
 @push('styles')
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
 <style>
     .checkout-btn {
         padding: 12px 30px;
@@ -143,14 +201,21 @@
         border-color: #0d6efd;
         background-color: #f8f9fa;
     }
-    .alamat-card input:checked ~ * {
-        color: #0d6efd;
+    .alamat-card:has(input:checked) {
+        border-color: #0d6efd;
+        background-color: #e7f1ff;
     }
     .list-group-item {
         transition: background-color 0.2s ease;
     }
     .list-group-item:hover {
         background-color: #f8f9fa;
+    }
+    #map {
+        z-index: 1;
+    }
+    .leaflet-popup-content-wrapper {
+        border-radius: 8px;
     }
 </style>
 @endpush
@@ -159,8 +224,15 @@
 @push('scripts')
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
 <script>
+// ================ MAP VARIABLES ================
+let map;
+let marker;
+let currentLat = -5.147665;
+let currentLng = 119.432732;
+
 // ================ UTILITY FUNCTIONS ================
 function formatRupiah(val) {
     return 'Rp ' + val.toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.');
@@ -235,6 +307,127 @@ function toggleMetode() {
     }
 }
 
+// ================ MAP FUNCTIONS ================
+function initMap() {
+    // Initialize map
+    map = L.map('map').setView([currentLat, currentLng], 13);
+
+    // Add tile layer
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '© OpenStreetMap contributors',
+        maxZoom: 19,
+    }).addTo(map);
+
+    // Add marker
+    marker = L.marker([currentLat, currentLng], {
+        draggable: true
+    }).addTo(map);
+
+    // Update coordinates when marker is dragged
+    marker.on('dragend', function(e) {
+        const position = marker.getLatLng();
+        getAddressFromCoordinates(position.lat, position.lng);
+    });
+
+    // Add click event on map
+    map.on('click', function(e) {
+        const lat = e.latlng.lat;
+        const lng = e.latlng.lng;
+        
+        marker.setLatLng([lat, lng]);
+        getAddressFromCoordinates(lat, lng);
+    });
+}
+
+function getAddressFromCoordinates(lat, lng) {
+    const url = `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&zoom=18&addressdetails=1`;
+    
+    fetch(url)
+        .then(response => response.json())
+        .then(data => {
+            if (data.display_name) {
+                $('#alamatText').val(data.display_name);
+            }
+        })
+        .catch(error => {
+            console.error('Error getting address:', error);
+        });
+}
+
+function searchLocation() {
+    const query = $('#searchLocation').val();
+    if (!query) {
+        Swal.fire('Peringatan', 'Masukkan lokasi yang ingin dicari', 'warning');
+        return;
+    }
+
+    const url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}`;
+    
+    fetch(url)
+        .then(response => response.json())
+        .then(data => {
+            if (data.length > 0) {
+                const lat = parseFloat(data[0].lat);
+                const lng = parseFloat(data[0].lon);
+                
+                map.setView([lat, lng], 15);
+                marker.setLatLng([lat, lng]);
+                $('#alamatText').val(data[0].display_name);
+                
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Lokasi Ditemukan!',
+                    timer: 1500,
+                    showConfirmButton: false
+                });
+            } else {
+                Swal.fire('Tidak Ditemukan', 'Lokasi tidak ditemukan, coba kata kunci lain', 'info');
+            }
+        })
+        .catch(error => {
+            console.error('Error searching location:', error);
+            Swal.fire('Error', 'Terjadi kesalahan saat mencari lokasi', 'error');
+        });
+}
+
+function getCurrentLocation() {
+    if (navigator.geolocation) {
+        Swal.fire({
+            title: 'Mengambil Lokasi...',
+            text: 'Mohon izinkan akses lokasi',
+            allowOutsideClick: false,
+            didOpen: () => {
+                Swal.showLoading();
+            }
+        });
+
+        navigator.geolocation.getCurrentPosition(
+            function(position) {
+                const lat = position.coords.latitude;
+                const lng = position.coords.longitude;
+                
+                map.setView([lat, lng], 15);
+                marker.setLatLng([lat, lng]);
+                getAddressFromCoordinates(lat, lng);
+                
+                Swal.close();
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Lokasi Ditemukan!',
+                    timer: 1500,
+                    showConfirmButton: false
+                });
+            },
+            function(error) {
+                Swal.close();
+                Swal.fire('Error', 'Tidak dapat mengambil lokasi. Pastikan GPS aktif dan izin lokasi diberikan.', 'error');
+            }
+        );
+    } else {
+        Swal.fire('Error', 'Browser tidak mendukung geolocation', 'error');
+    }
+}
+
 // ================ DOCUMENT READY ================
 $(function() {
     // Initial setup
@@ -246,6 +439,85 @@ $(function() {
     $('.pilih-item').on('change', updateTotal);
     $('.alamat-radio').on('change', updateAlamat);
     $('#metode').on('change', toggleMetode);
+
+    // Initialize map when modal is shown
+    $('#modalTambahAlamat').on('shown.bs.modal', function() {
+        if (!map) {
+            setTimeout(() => {
+                initMap();
+            }, 200);
+        } else {
+            setTimeout(() => {
+                map.invalidateSize();
+            }, 200);
+        }
+    });
+
+    // Search location
+    $('#btnSearch').on('click', searchLocation);
+    $('#searchLocation').on('keypress', function(e) {
+        if (e.which === 13) {
+            e.preventDefault();
+            searchLocation();
+        }
+    });
+
+    // Current location
+    $('#btnCurrentLocation').on('click', getCurrentLocation);
+
+    // Simpan alamat
+    $('#btnSimpanAlamat').on('click', function() {
+        const alamat = $('#alamatText').val().trim();
+        const isDefault = $('#isDefaultCheck').is(':checked');
+
+        if (!alamat) {
+            Swal.fire({
+                icon: 'warning',
+                title: 'Peringatan!',
+                text: 'Mohon isi alamat terlebih dahulu'
+            });
+            return;
+        }
+
+        // Simpan alamat
+        $.ajax({
+            url: "{{ route('user.alamat.store') }}",
+            type: 'POST',
+            data: {
+                _token: '{{ csrf_token() }}',
+                alamat: alamat,
+                is_default: isDefault ? 1 : 0
+            },
+            beforeSend: function() {
+                $('#btnSimpanAlamat').prop('disabled', true).html('<span class="spinner-border spinner-border-sm me-1"></span>Menyimpan...');
+            },
+            success: function(response) {
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Berhasil!',
+                    text: 'Alamat berhasil ditambahkan',
+                    timer: 2000,
+                    showConfirmButton: false
+                }).then(() => {
+                    location.reload();
+                });
+            },
+            error: function(xhr) {
+                let errorMsg = 'Terjadi kesalahan saat menyimpan alamat';
+                if (xhr.responseJSON && xhr.responseJSON.message) {
+                    errorMsg = xhr.responseJSON.message;
+                }
+                
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Gagal!',
+                    text: errorMsg
+                });
+                
+                $('#btnSimpanAlamat').prop('disabled', false).html('<i class="bi bi-save me-1"></i> Simpan Alamat');
+            }
+        });
+    });
 
     // Quantity controls
     $('.tambah').on('click', function() {
@@ -332,7 +604,6 @@ $(function() {
 
     // Form checkout validation
     $('#checkoutForm').on('submit', function(e) {
-        // Validasi produk dipilih
         if ($('.pilih-item:checked').length === 0) {
             e.preventDefault();
             Swal.fire({
@@ -343,7 +614,6 @@ $(function() {
             return false;
         }
 
-        // Validasi alamat
         if (!$('#alamat_hidden').val()) {
             e.preventDefault();
             Swal.fire({
@@ -354,18 +624,16 @@ $(function() {
             return false;
         }
 
-        // Disable unchecked items
         $('.pilih-item:not(:checked)').each(function() {
             const li = $(this).closest('[data-id]');
             li.find('input, select, textarea').prop('disabled', true);
         });
 
-        // Show loading
         $('#loadingSpinner').removeClass('d-none');
         $('.checkout-btn').prop('disabled', true);
     });
 
-    // ================ SESSION ALERTS ================
+    // Session alerts
     @if (session('checkout_success'))
         Swal.fire({
             icon: 'success',
@@ -393,3 +661,4 @@ $(function() {
     @endif
 });
 </script>
+@endpush

@@ -14,7 +14,7 @@ class BuktiPembelianController extends Controller
     public function index()
     {
         // Ambil semua bukti pembelian beserta relasi pembelian dan supplier
-        $buktiPembelians = BuktiPembelian::with('pembelian.supplier')
+        $buktiPembelians = BuktiPembelian::with(['pembelian.supplier'])
             ->orderBy('created_at', 'desc')
             ->get();
 
@@ -46,7 +46,7 @@ class BuktiPembelianController extends Controller
     {
         $bukti = BuktiPembelian::findOrFail($id);
 
-        $filePath = storage_path('app/public/' . $bukti->file); // sesuaikan jika pakai disk public
+        $filePath = storage_path('app/public/' . $bukti->file);
 
         if (!file_exists($filePath)) {
             abort(404, 'File tidak ditemukan.');
