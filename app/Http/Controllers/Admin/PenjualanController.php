@@ -16,16 +16,21 @@ class PenjualanController extends Controller
 {
     /**
      * 📦 Daftar Penjualan & Transaksi
+     * Pastikan bukti transfer user tampil di admin
      */
     public function index()
     {
-        $penjualans = Penjualan::with(['pelanggan.user', 'detailPenjualans.produk'])
-            ->latest('tanggal')
-            ->get();
+        $penjualans = Penjualan::with([
+            'pelanggan.user',
+            'detailPenjualans.produk',
+            'transaksi.detailTransaksi.produk' // relasi transaksi untuk fallback bukti
+        ])->latest('tanggal')->get();
 
-        $transaksis = Transaksi::with(['user', 'detailTransaksi.produk'])
-            ->latest('created_at')
-            ->get();
+        $transaksis = Transaksi::with([
+            'user',
+            'detailTransaksi.produk',
+            'penjualan' // supaya admin bisa akses $item->penjualan->bukti_tf
+        ])->latest('created_at')->get();
 
         $items = $penjualans
             ->concat($transaksis)
@@ -47,7 +52,7 @@ class PenjualanController extends Controller
     }
 
     /**
-     * 🧾 Simpan penjualan manual (✅ versi fix & diterapkan)
+     * 🧾 Simpan penjualan manual
      */
     public function storeManual(Request $request)
     {
@@ -109,12 +114,11 @@ class PenjualanController extends Controller
                 ]);
             }
 
-            // ✅ Simpan detail produk & kurangi stok
+            // Simpan detail produk & kurangi stok
             foreach ($request->produk_id as $index => $produkId) {
                 $produk = Produk::findOrFail($produkId);
                 $jumlah = $request->jumlah[$index] ?? 1;
 
-                // Simpan detail penjualan
                 DB::table('detail_penjualans')->insert([
                     'penjualan_id' => $penjualan->id,
                     'produk_id'    => $produkId,
@@ -124,7 +128,6 @@ class PenjualanController extends Controller
                     'updated_at'   => now(),
                 ]);
 
-                // 🔹 Kurangi stok produk sesuai jumlah
                 if ($produk->stok >= $jumlah) {
                     $produk->decrement('stok', $jumlah);
                 } else {
@@ -147,10 +150,8 @@ class PenjualanController extends Controller
     public function edit($id)
     {
         $penjualan = Penjualan::with(['pelanggan'])->findOrFail($id);
-
-        $penjualan->pelanggan ??= new \App\Models\Pelanggan();
+        $penjualan->pelanggan ??= new Pelanggan();
         $penjualan->bukti_tf ??= '';
-
         return view('admin.manajemen_penjualan.edit_manajemen_penjualan', compact('penjualan'));
     }
 

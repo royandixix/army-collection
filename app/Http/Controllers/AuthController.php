@@ -4,89 +4,140 @@ namespace App\Http\Controllers;
 
 use App\Models\User;
 use App\Models\Pelanggan;
+use App\Models\UserAlamat;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Hash;
 
 class AuthController extends Controller
 {
+    // =========================
+    // TAMPILAN LOGIN
+    // =========================
     public function showLogin()
     {
         return view('auth.login');
     }
 
+    // =========================
+    // PROSES LOGIN
+    // =========================
     public function login(Request $request)
     {
-        $credentials = $request->validate([
-            'username' => 'required|string',
-            'password' => 'required|string',
-        ], [
-            'username.required' => 'Username wajib diisi.',
-            'password.required' => 'Password wajib diisi.',
+        $request->validate([
+            'username' => 'required',
+            'password' => 'required',
         ]);
 
-        if (Auth::attempt($credentials)) {
+        if (Auth::attempt($request->only('username', 'password'))) {
             $request->session()->regenerate();
-            $user = Auth::user();
 
-            if ($user->role === 'admin') {
-                return redirect()->intended('/admin/dashboard')->with('success', 'Selamat datang, Admin!');
+            if (auth()->user()->role === 'admin') {
+                return redirect('/admin/dashboard')->with('success', 'Selamat datang, Admin!');
             }
 
-            // default semua user biasa
-            return redirect()->intended('/user/produk')->with('success', 'Selamat datang, ' . $user->username . '!');
+            return redirect('/user/produk')->with('success', 'Selamat datang, ' . auth()->user()->username . '!');
         }
 
-        return back()->withErrors(['username' => 'Username atau password salah.']);
+        return back()->withErrors([
+            'username' => 'Username atau password salah.',
+        ]);
     }
 
+    // =========================
+    // LOGOUT
+    // =========================
     public function logout(Request $request)
     {
         Auth::logout();
         $request->session()->invalidate();
         $request->session()->regenerateToken();
-        return redirect('/login')->with('success', 'Berhasil logout!');
+
+        return redirect('/login')->with('success', 'Berhasil logout.');
     }
 
+    // =========================
+    // TAMPILAN REGISTER
+    // =========================
     public function showRegister()
     {
         return view('auth.register');
     }
 
-   
-
+    // =========================
+    // PROSES REGISTER
+    // =========================
     public function register(Request $request)
     {
         $validated = $request->validate([
-            'username' => 'required|string|max:255|unique:users',
+            'username' => 'required|unique:users',
             'email'    => 'required|email|unique:users',
-            'no_hp'    => 'required|string|max:20',
-            'password' => 'required|confirmed',
-            'profile_image' => 'nullable|image',
+            'no_hp'    => 'required',
+            'alamat'   => 'required',
+            'latitude' => 'nullable',
+            'longitude'=> 'nullable',
+            'password' => 'required',
+            'profile_image' => 'nullable|image|max:2048',
         ]);
 
-        $imagePath = null;
-        if ($request->hasFile('profile_image')) {
-            $imagePath = $request->file('profile_image')->store('profile_images/user', 'public');
-        }
+        $imagePath = $request->file('profile_image')
+            ? $request->file('profile_image')->store('profile_images/user', 'public')
+            : null;
 
-        // ✅ Role otomatis user
         $user = User::create([
             'username' => $validated['username'],
             'email'    => $validated['email'],
             'no_hp'    => $validated['no_hp'],
             'password' => bcrypt($validated['password']),
-            'role'     => 'user', // <-- otomatis user
+            'role'     => 'user',
             'img'      => $imagePath,
         ]);
 
+        // Buat alamat default
+        UserAlamat::create([
+            'user_id'    => $user->id,
+            'label'      => 'Rumah',
+            'alamat'     => $validated['alamat'],
+            'latitude'   => $validated['latitude'] ?? null,
+            'longitude'  => $validated['longitude'] ?? null,
+            'is_default' => true,
+        ]);
+
+        // Buat data pelanggan
         Pelanggan::create([
-            'user_id' => $user->id,
-            'nama'    => $user->username,
-            'email'   => $user->email,
-            'no_hp'   => $user->no_hp,
+            'user_id'     => $user->id,
+            'nama'        => $user->username,
+            'email'       => $user->email,
+            'no_hp'       => $user->no_hp,
+            'alamat'      => $validated['alamat'],
             'foto_profil' => $imagePath,
         ]);
 
         return redirect()->route('login')->with('success', 'Registrasi berhasil. Silakan login.');
+    }
+
+    // =========================
+    // TAMPILAN FORM MANUAL RESET PASSWORD
+    // =========================
+    public function showManualResetForm()
+    {
+        return view('auth.manual-reset-password');
+    }
+
+    // =========================
+    // PROSES RESET PASSWORD MANUAL
+    // =========================
+    public function manualReset(Request $request)
+    {
+        $request->validate([
+            'email' => 'required|email|exists:users,email',
+            'password' => 'required|confirmed|min:6',
+        ]);
+
+        $user = User::where('email', $request->email)->first();
+        $user->password = bcrypt($request->password);
+        $user->save();
+
+        return redirect()->route('login')->with('success', 'Password berhasil diubah secara manual.');
     }
 }

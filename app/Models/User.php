@@ -30,6 +30,11 @@ class User extends Authenticatable
         'password' => 'hashed',
     ];
 
+  
+    // =====================
+    // RELATIONS
+    // =====================
+
     public function pelanggan()
     {
         return $this->hasOne(Pelanggan::class);
@@ -39,6 +44,21 @@ class User extends Authenticatable
     {
         return $this->hasMany(Transaksi::class);
     }
+
+    public function alamats()
+    {
+        return $this->hasMany(UserAlamat::class, 'user_id');
+    }
+
+    public function alamatDefault()
+    {
+        return $this->hasOne(UserAlamat::class, 'user_id')
+            ->where('is_default', true);
+    }
+
+    // =====================
+    // ACCESSOR
+    // =====================
 
     public function getProfilePhotoUrlAttribute()
     {

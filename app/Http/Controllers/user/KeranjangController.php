@@ -5,12 +5,12 @@ namespace App\Http\Controllers\User;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Storage;
 use App\Models\Keranjang;
 use App\Models\Pelanggan;
 use App\Models\Penjualan;
 use App\Models\Transaksi;
 use App\Models\DetailTransaksi;
+use App\Models\UserAlamat;
 
 class KeranjangController extends Controller
 {
@@ -21,15 +21,19 @@ class KeranjangController extends Controller
             ->with('produk.kategori')
             ->get();
 
-        return view('user.keranjang.keranjang', compact('keranjang'));
+        $alamats = UserAlamat::where('user_id', Auth::id())
+            ->orderByDesc('is_default')
+            ->get();
+
+        return view('user.keranjang.keranjang', compact('keranjang', 'alamats'));
     }
 
-    // 🔄 Update jumlah item (AJAX)
+    // 🔄 Update jumlah (AJAX)
     public function updateJumlah(Request $request)
     {
         $request->validate([
-            'id' => 'required|exists:keranjangs,id',
-            'jumlah' => 'required|integer|min:1'
+            'id'     => 'required|exists:keranjangs,id',
+            'jumlah' => 'required|integer|min:1',
         ]);
 
         $item = Keranjang::where('user_id', Auth::id())
@@ -38,118 +42,110 @@ class KeranjangController extends Controller
 
         $item->update(['jumlah' => $request->jumlah]);
 
-        $subtotal = $item->produk->harga * $item->jumlah;
-
-        return response()->json(['subtotal' => $subtotal]);
+        return response()->json([
+            'subtotal' => $item->produk->harga * $item->jumlah
+        ]);
     }
 
     // ❌ Hapus item dari keranjang
     public function destroy($id)
     {
-        $item = Keranjang::where('user_id', Auth::id())
+        Keranjang::where('user_id', Auth::id())
             ->where('id', $id)
-            ->firstOrFail();
+            ->firstOrFail()
+            ->delete();
 
-        $item->delete();
-
-        return response()->json([
-            'success' => true,
-            'message' => 'Produk berhasil dihapus dari keranjang.'
-        ]);
+        return response()->json(['success' => true]);
     }
 
-    // ✅ Proses Checkout
+    // ✅ Proses Checkout (TANPA upload bukti)
     public function prosesCheckout(Request $request)
     {
         $request->validate([
             'alamat' => 'required|string|min:5|max:255',
             'metode' => 'required|in:cod,transfer,qris',
-            'bukti_tf' => 'nullable|image|max:2048',
         ]);
 
         $user = Auth::user();
 
-        // Ambil produk yang dipilih user
         $keranjang = Keranjang::where('user_id', $user->id)
             ->with('produk')
             ->get();
 
         if ($keranjang->isEmpty()) {
-            return redirect()
-                ->route('user.keranjang.index')
-                ->with('error', 'Keranjang masih kosong.');
+            return back()->with('error', 'Keranjang masih kosong.');
         }
 
-        // 🧍 Simpan / update data pelanggan
+        // 🧍 Data pelanggan
         $pelanggan = Pelanggan::updateOrCreate(
             ['user_id' => $user->id],
             [
-                'nama' => $user->username ?? 'Pengguna',
-                'email' => $user->email,
+                'nama'   => $user->username ?? 'Pengguna',
+                'email'  => $user->email,
                 'alamat' => $request->alamat,
-                'no_hp' => $user->no_hp ?? '-',
+                'no_hp'  => $user->no_hp ?? '-',
             ]
         );
 
-        // 💰 Hitung total
-        $total = $keranjang->sum(fn($item) => $item->produk->harga * $item->jumlah);
+        // 📍 Simpan alamat user
+        UserAlamat::updateOrCreate(
+            [
+                'user_id' => $user->id,
+                'alamat'  => $request->alamat,
+            ],
+            ['is_default' => true]
+        );
 
-        // 💾 Buat penjualan baru
+        UserAlamat::where('user_id', $user->id)
+            ->where('alamat', '!=', $request->alamat)
+            ->update(['is_default' => false]);
+
+        // 💰 Hitung total
+        $total = $keranjang->sum(fn ($item) =>
+            $item->produk->harga * $item->jumlah
+        );
+
+        // 🧾 Penjualan
         $penjualan = Penjualan::create([
-            'user_id' => $user->id,
-            'pelanggan_id' => $pelanggan->id,
-            'tanggal' => now(),
-            'total' => $total,
-            'status' => 'pending',
+            'user_id'           => $user->id,
+            'pelanggan_id'      => $pelanggan->id,
+            'tanggal'           => now(),
+            'total'             => $total,
+            'status'            => 'pending',
             'metode_pembayaran' => $request->metode,
         ]);
 
-        // 💾 Buat transaksi utama
+        // 💳 Transaksi (BUKTI BELUM ADA)
         $transaksi = Transaksi::create([
-            'user_id' => $user->id,
+            'user_id'      => $user->id,
             'penjualan_id' => $penjualan->id,
-            'alamat' => $request->alamat,
-            'metode' => $request->metode,
-            'total' => $total,
-            'status' => 'pending',
+            'alamat'       => $request->alamat,
+            'metode'       => $request->metode,
+            'total'        => $total,
+            'status'       => 'pending',
+            'bukti_tf'     => null, // ⬅️ PASTI KOSONG
         ]);
 
-        // // 📸 Upload bukti transfer jika metode = transfer/qris
-        // if ($request->hasFile('bukti_tf')) {
-        //     $path = $request->file('bukti_tf')->store('bukti_tf', 'public');
-        //     $transaksi->update(['bukti_tf' => $path]);
-        //     $penjualan->update(['bukti_pembayaran' => $path]);
-        // }
-
-        if ($request->hasFile('bukti_tf')) {
-            $path = $request->file('bukti_tf')->store('bukti_tf', 'public');
-            $transaksi->update(['bukti_tf' => $path]);
-            $penjualan->update(['bukti_tf' => $path]); // 🟢 perbaikan nama kolom
-        }
-
-
-        // 🧾 Simpan detail transaksi
+        // 📦 Detail transaksi & kurangi stok
         foreach ($keranjang as $item) {
             DetailTransaksi::create([
                 'transaksi_id' => $transaksi->id,
-                'produk_id' => $item->produk_id,
-                'jumlah' => $item->jumlah,
-                'harga' => $item->produk->harga,
-                'subtotal' => $item->produk->harga * $item->jumlah,
+                'produk_id'    => $item->produk_id,
+                'jumlah'       => $item->jumlah,
+                'harga'        => $item->produk->harga,
+                'subtotal'     => $item->produk->harga * $item->jumlah,
             ]);
 
-            // Kurangi stok produk
             $item->produk->decrement('stok', $item->jumlah);
         }
 
-        // 🧹 Kosongkan keranjang user
+        // 🧹 Kosongkan keranjang
         Keranjang::where('user_id', $user->id)->delete();
 
-        // 🎉 Redirect ke halaman riwayat dengan notifikasi sukses
         return redirect()->route('user.riwayat.index')->with([
             'checkout_success' => true,
-            'total' => $total,
-            'penjualan_id' => $penjualan->id,
+            'total'            => $total,
+            'penjualan_id'     => $penjualan->id,
         ]);
     }
 }

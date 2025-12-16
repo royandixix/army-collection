@@ -14,18 +14,32 @@ use App\Http\Controllers\Admin\LaporanController;
 use App\Http\Controllers\Admin\SearchController;
 use App\Http\Controllers\Admin\RekapController;
 use App\Http\Controllers\Admin\SupplierController;
-
+use App\Http\Controllers\Admin\BuktiPembelianController;
 // USER
 use App\Http\Controllers\User\ProdukUserController;
 use App\Http\Controllers\User\KeranjangController;
 use App\Http\Controllers\User\RiwayatController;
 use App\Http\Controllers\User\ProfilController;
+use App\Http\Controllers\User\AlamatController;
+
 
 
 
 // ==============================
 // 🔐 AUTH (LOGIN / REGISTER)
 // ==============================
+// Form reset password
+
+// Halaman manual reset password
+Route::get('/forgot-password/manual', [AuthController::class, 'showManualResetForm'])
+    ->name('password.manual');
+
+// Proses manual reset password
+Route::post('/forgot-password/manual', [AuthController::class, 'manualReset'])
+    ->name('password.manual.post');
+Route::get('/forgot-password', [AuthController::class, 'showManualResetForm'])->name('password.request');
+Route::post('/forgot-password', [AuthController::class, 'manualReset'])->name('password.email');
+
 Route::get('/', [AuthController::class, 'showLogin'])->name('login');
 Route::get('/login', [AuthController::class, 'showLogin'])->name('login');
 Route::post('/login', [AuthController::class, 'login'])->name('login.post');
@@ -87,32 +101,52 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'role:admin'])->grou
 
     // suplier
     Route::get('/supplier', [SupplierController::class, 'index'])->name('supplier.index');
-Route::get('/supplier/create', [SupplierController::class, 'create'])->name('supplier.create');
-Route::post('/supplier', [SupplierController::class, 'store'])->name('supplier.store');
-Route::get('/supplier/{id}', [SupplierController::class, 'show'])->name('supplier.show');
-Route::get('/supplier/{id}/edit', [SupplierController::class, 'edit'])->name('supplier.edit');
-Route::put('/supplier/{id}', [SupplierController::class, 'update'])->name('supplier.update');
-Route::delete('/supplier/{id}', [SupplierController::class, 'destroy'])->name('supplier.destroy');
-Route::prefix('laporan')->name('laporan.')->group(function () {
-    // Laporan Produk
-    Route::get('/produk', [\App\Http\Controllers\Admin\LaporanDataController::class, 'produk'])->name('produk');
-    Route::get('/produk/cetak', [\App\Http\Controllers\Admin\LaporanDataController::class, 'cetakProduk'])->name('produk.cetak');
+    Route::get('/supplier/create', [SupplierController::class, 'create'])->name('supplier.create');
+    Route::post('/supplier', [SupplierController::class, 'store'])->name('supplier.store');
+    Route::get('/supplier/{id}', [SupplierController::class, 'show'])->name('supplier.show');
+    Route::get('/supplier/{id}/edit', [SupplierController::class, 'edit'])->name('supplier.edit');
+    Route::put('/supplier/{id}', [SupplierController::class, 'update'])->name('supplier.update');
+    Route::delete('/supplier/{id}', [SupplierController::class, 'destroy'])->name('supplier.destroy');
+    Route::prefix('laporan')->name('laporan.')->group(function () {
+        // Laporan Produk
+        Route::get('/produk', [\App\Http\Controllers\Admin\LaporanDataController::class, 'produk'])->name('produk');
+        Route::get('/produk/cetak', [\App\Http\Controllers\Admin\LaporanDataController::class, 'cetakProduk'])->name('produk.cetak');
 
-    // Laporan Pelanggan
-    Route::get('/pelanggan', [\App\Http\Controllers\Admin\LaporanDataController::class, 'pelanggan'])->name('pelanggan');
+        // 10 Produk Terlaris Bulan Ini
+        Route::get('/produk/terlaris', [\App\Http\Controllers\Admin\LaporanDataController::class, 'produkTerlaris'])
+            ->name('produk.terlaris');
 
-    // Pembelian
-    Route::get('/pembelian', [\App\Http\Controllers\Admin\LaporanDataController::class, 'pembelian'])->name('pembelian');
-    Route::get('/pembelian/cetak', [\App\Http\Controllers\Admin\LaporanDataController::class, 'cetakPembelian'])->name('pembelian.cetak');
+            Route::get('/laporan/produk-terlaris/cetak', [LaporanDataController::class, 'cetakProdukTerlaris'])
+    ->name('admin.laporan.cetak-produk-terlaris');
 
-    // Penjualan
-    Route::get('/penjualan', [\App\Http\Controllers\Admin\LaporanDataController::class, 'penjualan'])->name('penjualan');
-    Route::get('/penjualan/cetak', [\App\Http\Controllers\Admin\LaporanDataController::class, 'cetakPenjualan'])->name('penjualan.cetak');
+        Route::get('/produk/terlaris/cetak', [\App\Http\Controllers\Admin\LaporanDataController::class, 'cetakProdukTerlaris'])
+            ->name('produk.terlaris.cetak');
+        // Laporan Pelanggan
+        Route::get('/pelanggan', [\App\Http\Controllers\Admin\LaporanDataController::class, 'pelanggan'])->name('pelanggan');
 
-    // ✅ Laporan Supplier (baru ditambahkan)
-    Route::get('/supplier', [\App\Http\Controllers\Admin\LaporanDataController::class, 'supplier'])->name('supplier');
-    Route::get('/supplier/cetak', [\App\Http\Controllers\Admin\LaporanDataController::class, 'cetakSupplier'])->name('supplier.cetak');
-});
+        // Pembelian
+        Route::get('/pembelian', [\App\Http\Controllers\Admin\LaporanDataController::class, 'pembelian'])->name('pembelian');
+        Route::get('/pembelian/cetak', [\App\Http\Controllers\Admin\LaporanDataController::class, 'cetakPembelian'])->name('pembelian.cetak');
+
+        // Penjualan
+        Route::get('/penjualan', [\App\Http\Controllers\Admin\LaporanDataController::class, 'penjualan'])->name('penjualan');
+        Route::get('/penjualan/cetak', [\App\Http\Controllers\Admin\LaporanDataController::class, 'cetakPenjualan'])->name('penjualan.cetak');
+
+        // ✅ Laporan Supplier (baru ditambahkan)
+        Route::get('/supplier', [\App\Http\Controllers\Admin\LaporanDataController::class, 'supplier'])->name('supplier');
+        Route::get('/supplier/cetak', [\App\Http\Controllers\Admin\LaporanDataController::class, 'cetakSupplier'])->name('supplier.cetak');
+    });
+
+    // 📄 Bukti Pembelian
+    Route::get('/bukti-pembelian', [BuktiPembelianController::class, 'index'])
+        ->name('bukti_pembelian.index');
+
+    Route::post('/bukti-pembelian/{id}/update-status', [BuktiPembelianController::class, 'updateStatus'])
+        ->name('bukti_pembelian.update_status');
+
+    Route::get('/bukti-pembelian/{id}/download', [BuktiPembelianController::class, 'download'])
+        ->name('bukti_pembelian.download');
+
 
 
     // 📊 Rekap
@@ -123,25 +157,44 @@ Route::prefix('laporan')->name('laporan.')->group(function () {
 
 // 👤 USER ROUTES
 
+// 👤 USER ROUTES
 Route::prefix('user')->name('user.')->middleware(['auth', 'role:user'])->group(function () {
 
-    /// 🛍️ Produk
+    // 🛍️ Produk
     Route::get('/produk', [ProdukUserController::class, 'index'])->name('produk.index');
     Route::get('/produk/{id}', [ProdukUserController::class, 'show'])->name('produk.show');
 
-    // 🛒 Keranjang & Checkout
+    // 🛒 Keranjang
     Route::get('/keranjang', [KeranjangController::class, 'index'])->name('keranjang.index');
     Route::post('/keranjang', [ProdukUserController::class, 'tambahKeKeranjang'])->name('keranjang.tambah');
     Route::post('/keranjang/update', [KeranjangController::class, 'updateJumlah'])->name('keranjang.update');
-    Route::delete('/keranjang/{id}', [KeranjangController::class, 'destroy'])->name('keranjang.destroy'); // rename agar konsisten
+    Route::delete('/keranjang/{id}', [KeranjangController::class, 'destroy'])->name('keranjang.destroy');
     Route::post('/keranjang/checkout', [KeranjangController::class, 'prosesCheckout'])->name('keranjang.checkout');
 
     // 📄 Riwayat Transaksi
     Route::get('/riwayat', [RiwayatController::class, 'index'])->name('riwayat.index');
     Route::delete('/riwayat/{id}', [RiwayatController::class, 'destroy'])->name('riwayat.hapus');
 
+    // ✅ Upload Bukti Pembayaran
+    Route::post('/riwayat/{id}/upload', [RiwayatController::class, 'uploadBuktiSubmit'])
+        ->name('riwayat.upload');
+
     // 👤 Profil
     Route::get('/profil', [ProfilController::class, 'index'])->name('profil');
     Route::get('/profil/edit', [ProfilController::class, 'edit'])->name('profil.edit');
     Route::post('/profil/update', [ProfilController::class, 'update'])->name('profil.update');
+
+    Route::get('/alamat/create', [AlamatController::class, 'create'])->name('alamat.create');
+    Route::post('/alamat', [AlamatController::class, 'store'])->name('alamat.store');
+});
+
+
+use App\Http\Controllers\Admin\ProdukController;
+
+Route::prefix('admin/manajemen')->middleware(['auth', 'role:admin'])->group(function () {
+    // Route existing produk
+    Route::get('produk', [ProdukController::class, 'index'])->name('admin.manajemen.manajemen_produk');
+
+    // Route untuk cetak PDF Kartu Stok
+    Route::get('produk/kartu-stok/pdf', [ProdukController::class, 'kartuStokPdf'])->name('admin.manajemen.kartu_stok_pdf');
 });

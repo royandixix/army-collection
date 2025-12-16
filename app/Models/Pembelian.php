@@ -9,10 +9,15 @@ class Pembelian extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['supplier_id','tanggal','total'];
+    protected $fillable = ['supplier_id', 'tanggal', 'total'];
 
     public function supplier()
     {
         return $this->belongsTo(Supplier::class);
+    }
+
+    public function buktiPembelians()
+    {
+        return $this->hasMany(BuktiPembelian::class);
     }
 }

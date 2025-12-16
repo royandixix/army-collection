@@ -6,21 +6,50 @@ use App\Http\Controllers\Controller;
 use App\Models\Produk;
 use App\Models\Kategori;
 use App\Models\Supplier;
+use App\Models\PembelianSupplier;
+use App\Models\DetailTransaksi;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Carbon\Carbon;
+use Barryvdh\DomPDF\Facade\Pdf;
 
 class ProdukController extends Controller
 {
-    // Tampilkan semua produk
+    // ============================
+    // INDEX / LIST PRODUK
+    // ============================
     public function index()
-    {
-        $produks = Produk::with(['kategori', 'supplier'])->get();
-        $kategoris = Kategori::all();
-        return view('admin.manajemen_produk.manajemen_produk', compact('produks', 'kategoris'));
-    }
+{
+    // Ambil semua produk sekaligus dengan relasi
+    $produks = Produk::with(['kategori', 'pembelianSuppliers', 'detailTransaksis'])->get();
+    $kategoris = Kategori::all();
 
-    // Form tambah produk
+    // Mapping kartu stok
+    $kartuStok = $produks->map(function ($produk) {
+        // total barang masuk dari pembelian supplier
+        $barangMasuk = $produk->pembelianSuppliers->sum('jumlah');
+
+        // total barang keluar dari penjualan / transaksi
+        $barangKeluar = $produk->detailTransaksis->sum('jumlah');
+
+        // stok sekarang di tabel produk
+        $sisa = $produk->stok;
+
+        return [
+            'nama'   => $produk->nama,
+            'masuk'  => $barangMasuk,
+            'keluar' => $barangKeluar,
+            'sisa'   => $sisa,
+        ];
+    });
+
+    return view('admin.manajemen_produk.manajemen_produk', compact('produks', 'kategoris', 'kartuStok'));
+}
+
+
+    // ============================
+    // CREATE PRODUK
+    // ============================
     public function create()
     {
         $kategoris = Kategori::all();
@@ -28,10 +57,8 @@ class ProdukController extends Controller
         return view('admin.manajemen_produk.tambah_manajemen_produk', compact('kategoris', 'suppliers'));
     }
 
-    // Simpan produk baru
     public function store(Request $request)
     {
-        // Hapus titik dari harga
         $request->merge(['price' => str_replace('.', '', $request->price)]);
 
         $request->validate([
@@ -45,13 +72,9 @@ class ProdukController extends Controller
             'image' => 'nullable|image|max:2048',
         ]);
 
-        // Buat kategori baru jika diisi
-        if ($request->kategori_baru) {
-            $kategori = Kategori::firstOrCreate(['name' => $request->kategori_baru]);
-            $kategori_id = $kategori->id;
-        } else {
-            $kategori_id = $request->kategori_id;
-        }
+        $kategori_id = $request->kategori_baru
+            ? Kategori::firstOrCreate(['name' => $request->kategori_baru])->id
+            : $request->kategori_id;
 
         $data = [
             'nama' => $request->name,
@@ -68,10 +91,13 @@ class ProdukController extends Controller
 
         Produk::create($data);
 
-        return redirect()->route('admin.manajemen.manajemen_produk')->with('success', 'Produk berhasil ditambahkan.');
+        return redirect()->route('admin.manajemen.manajemen_produk')
+            ->with('success', 'Produk berhasil ditambahkan.');
     }
 
-    // Form edit produk
+    // ============================
+    // EDIT & UPDATE PRODUK
+    // ============================
     public function edit($id)
     {
         $produk = Produk::findOrFail($id);
@@ -80,11 +106,9 @@ class ProdukController extends Controller
         return view('admin.manajemen_produk.edit_manajemen_produk', compact('produk', 'kategoris', 'suppliers'));
     }
 
-    // Update produk
     public function update(Request $request, $id)
     {
         $produk = Produk::findOrFail($id);
-
         $request->merge(['price' => str_replace('.', '', $request->price)]);
 
         $request->validate([
@@ -98,13 +122,9 @@ class ProdukController extends Controller
             'image' => 'nullable|image|max:2048',
         ]);
 
-        // Buat kategori baru jika diisi
-        if ($request->kategori_baru) {
-            $kategori = Kategori::firstOrCreate(['name' => $request->kategori_baru]);
-            $kategori_id = $kategori->id;
-        } else {
-            $kategori_id = $request->kategori_id;
-        }
+        $kategori_id = $request->kategori_baru
+            ? Kategori::firstOrCreate(['name' => $request->kategori_baru])->id
+            : $request->kategori_id;
 
         $data = [
             'nama' => $request->name,
@@ -124,14 +144,16 @@ class ProdukController extends Controller
 
         $produk->update($data);
 
-        return redirect()->route('admin.manajemen.manajemen_produk')->with('success', 'Produk berhasil diupdate.');
+        return redirect()->route('admin.manajemen.manajemen_produk')
+            ->with('success', 'Produk berhasil diupdate.');
     }
 
-    // Hapus produk
+    // ============================
+    // DELETE PRODUK
+    // ============================
     public function destroy($id)
     {
         $produk = Produk::findOrFail($id);
-
         $selisihHari = Carbon::parse($produk->created_at)->diffInDays(now());
 
         if ($selisihHari > 7) {
@@ -145,8 +167,47 @@ class ProdukController extends Controller
 
         $produk->delete();
 
-        return redirect()->route('admin.manajemen.manajemen_produk')->with('success', 'Produk berhasil dihapus.');
+        return redirect()->route('admin.manajemen.manajemen_produk')
+            ->with('success', 'Produk berhasil dihapus.');
     }
 
-    
+    // ============================
+    // KARTU STOK
+    // ============================
+    public function kartuStok()
+    {
+        $produks = Produk::with(['pembelianSuppliers', 'detailTransaksis'])->get();
+
+        $kartuStok = $produks->map(function ($produk) {
+            return [
+                'nama'   => $produk->nama,
+                'masuk'  => $produk->pembelianSuppliers->sum('jumlah'),
+                'keluar' => $produk->detailTransaksis->sum('jumlah'),
+                'sisa'   => $produk->stok,
+            ];
+        });
+
+        return view('admin.manajemen_produk.kartu_stok', compact('kartuStok'));
+    }
+
+    // ============================
+    // KARTU STOK PDF
+    // ============================
+    public function kartuStokPdf()
+    {
+        $produks = Produk::with(['pembelianSuppliers', 'detailTransaksis'])->get();
+
+        $kartuStok = $produks->map(function ($produk) {
+            return [
+                'nama'   => $produk->nama,
+                'masuk'  => $produk->pembelianSuppliers->sum('jumlah'),
+                'keluar' => $produk->detailTransaksis->sum('jumlah'),
+                'sisa'   => $produk->stok,
+            ];
+        });
+
+        $pdf = Pdf::loadView('admin.manajemen_produk.kartu_stok_pdf', compact('kartuStok'));
+
+        return $pdf->stream('kartu_stok.pdf');
+    }
 }

@@ -21,18 +21,59 @@ class LaporanDataController extends Controller
     public function produk()
     {
         $produks = Produk::with(['kategori', 'detailPenjualans'])->get();
-
         return view('admin.laporan.laporan_produk.laporan_produk', compact('produks'));
     }
 
     public function cetakProduk()
     {
-        $produks = Produk::orderBy('created_at', 'desc')->get();
-
+        $produks = Produk::with(['kategori', 'detailPenjualans'])->orderBy('created_at', 'desc')->get();
         $pdf = Pdf::loadView('admin.laporan.laporan_produk.produk_pdf', compact('produks'))
             ->setPaper('a4', 'landscape');
-
         return $pdf->stream('laporan_produk.pdf');
+    }
+
+    /**
+     * LAPORAN PRODUK TERLARIS BULAN INI
+     */
+    public function produkTerlaris()
+    {
+        $bulan = now()->month;
+        $tahun = now()->year;
+
+        $produks = Produk::with('kategori')
+            ->withSum(['detailPenjualans as jumlah_terjual' => function ($query) use ($bulan, $tahun) {
+                $query->whereHas('penjualan', function ($q) use ($bulan, $tahun) {
+                    $q->whereMonth('tanggal', $bulan)
+                      ->whereYear('tanggal', $tahun);
+                });
+            }], 'jumlah')
+            ->orderByDesc('jumlah_terjual')
+            ->take(10)
+            ->get();
+
+        return view('admin.laporan.laporan_produk.produk_terlaris', compact('produks', 'bulan', 'tahun'));
+    }
+
+    public function cetakProdukTerlaris()
+    {
+        $bulan = now()->month;
+        $tahun = now()->year;
+
+        $produks = Produk::with('kategori')
+            ->withSum(['detailPenjualans as jumlah_terjual' => function ($query) use ($bulan, $tahun) {
+                $query->whereHas('penjualan', function ($q) use ($bulan, $tahun) {
+                    $q->whereMonth('tanggal', $bulan)
+                      ->whereYear('tanggal', $tahun);
+                });
+            }], 'jumlah')
+            ->orderByDesc('jumlah_terjual')
+            ->take(10)
+            ->get();
+
+        $pdf = Pdf::loadView('admin.laporan.laporan_produk.produk_terlaris_pdf', compact('produks', 'bulan', 'tahun'))
+            ->setPaper('a4', 'landscape');
+
+        return $pdf->stream('produk_terlaris.pdf');
     }
 
     /**
@@ -40,22 +81,15 @@ class LaporanDataController extends Controller
      */
     public function pelanggan()
     {
-        $pelanggans = Pelanggan::with('user')
-            ->orderBy('created_at', 'desc')
-            ->get();
-
+        $pelanggans = Pelanggan::with('user')->orderBy('created_at', 'desc')->get();
         return view('admin.laporan.laporan_pelanggan.laporan_pelanggan', compact('pelanggans'));
     }
 
     public function cetakPelanggan()
     {
-        $pelanggans = Pelanggan::with('user')
-            ->orderBy('created_at', 'desc')
-            ->get();
-
+        $pelanggans = Pelanggan::with('user')->orderBy('created_at', 'desc')->get();
         $pdf = Pdf::loadView('admin.laporan.laporan_pelanggan.pelanggan_pdf', compact('pelanggans'))
             ->setPaper('a4', 'landscape');
-
         return $pdf->stream('laporan_pelanggan.pdf');
     }
 
@@ -99,9 +133,7 @@ class LaporanDataController extends Controller
     public function cetakPembelian()
     {
         $pembelians = Pembelian::with('supplier')->get();
-        $penjualans = Penjualan::with(['pelanggan.user'])
-            ->select('id', 'pelanggan_id', 'tanggal', 'total')
-            ->get();
+        $penjualans = Penjualan::with(['pelanggan.user'])->select('id', 'pelanggan_id', 'tanggal', 'total')->get();
 
         $laporanGabungan = collect();
 
@@ -144,7 +176,6 @@ class LaporanDataController extends Controller
         $penjualans = Penjualan::with(['pelanggan.user', 'detailPenjualans.produk']);
         $transaksis = Transaksi::with(['user', 'detailTransaksi.produk']);
 
-        // Filter berdasarkan bulan jika dipilih
         if ($bulan) {
             $penjualans->whereMonth('tanggal', $bulan);
             $transaksis->whereMonth('created_at', $bulan);
@@ -179,22 +210,18 @@ class LaporanDataController extends Controller
         $namaBulan = $bulan ? Carbon::create()->month($bulan)->translatedFormat('F') : 'Semua';
         return $pdf->stream("laporan_penjualan_{$namaBulan}.pdf");
     }
+
     public function supplier()
-{
-    $suppliers = \App\Models\Supplier::latest()->get();
-    return view('admin.laporan.laporan_supplier.laporan_supplier', compact('suppliers'));
-}
+    {
+        $suppliers = \App\Models\Supplier::latest()->get();
+        return view('admin.laporan.laporan_supplier.laporan_supplier', compact('suppliers'));
+    }
 
-public function cetakSupplier()
-{
-    $suppliers = \App\Models\Supplier::latest()->get();
-
-    $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView(
-        'admin.laporan.laporan_supplier.supplier_pdf',
-        compact('suppliers')
-    )->setPaper('a4', 'portrait');
-
-    return $pdf->stream('laporan_supplier.pdf');
-}
-
+    public function cetakSupplier()
+    {
+        $suppliers = \App\Models\Supplier::latest()->get();
+        $pdf = Pdf::loadView('admin.laporan.laporan_supplier.supplier_pdf', compact('suppliers'))
+            ->setPaper('a4', 'portrait');
+        return $pdf->stream('laporan_supplier.pdf');
+    }
 }

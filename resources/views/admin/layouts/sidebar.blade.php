@@ -41,9 +41,17 @@
                 </li>
 
                 <li class="cx-sb-item sb-drop-item">
+                    <a href="{{ route('admin.bukti_pembelian.index') }}" class="cx-drop-toggle">
+                        <i class="ri-file-list-3-line"></i>
+                        <span class="condense">Bukti Pembelian</span>
+                    </a>
+                </li>
+
+
+                <li class="cx-sb-item sb-drop-item">
                     <a href="{{ route('admin.manajemen.manajemen_pelanggan') }}" class="cx-drop-toggle">
                         <i class="ri-calendar-2-line"></i>
-                        <span class="condense">Data Pembelian</span>
+                        <span class="condense">Data Pembeli</span>
                     </a>
                 </li>
 
@@ -77,15 +85,20 @@
                                 <i class="ri-wallet-3-line"></i> Laporan Produk
                             </a>
                         </li>
-                        {{-- <li>
-                            <a href="{{ route('admin.laporan.supplier') }}">
-                                <i class="ri-truck-line"></i> Laporan Supplier
+                        <li>
+                            <a href="{{ route('admin.laporan.produk.terlaris') }}">
+                                <i class="ri-star-line"></i> 10 Produk Terlaris
                             </a>
-                        </li> --}}
-
+                        </li>
+                        {{-- <li>
+            <a href="{{ route('admin.laporan.supplier') }}">
+                <i class="ri-truck-line"></i> Laporan Supplier
+            </a>
+        </li> --}}
                     </ul>
                 </li>
                 <!-- End Grup Laporan -->
+
             </ul>
         </div>
     </div>

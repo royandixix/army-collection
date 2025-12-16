@@ -3,100 +3,154 @@
 @section('title', 'Riwayat Transaksi')
 
 @section('content')
-<div class="container mt-4 animate__animated animate__fadeInUp">
-    <h4 class="mb-4 fw-bold d-flex align-items-center gap-2 animate__animated animate__fadeInDown">
-        <i class="bi bi-receipt-cutoff fs-4"></i> Riwayat Transaksi
-    </h4>
+<div class="container py-5 animate__animated animate__fadeInUp animate__faster">
 
+    {{-- HEADER --}}
+    <div class="mb-4 d-flex align-items-center gap-3">
+        <i class="bi bi-receipt-cutoff fs-2 text-primary"></i>
+        <h2 class="fw-bold m-0">Riwayat Transaksi</h2>
+    </div>
+
+    {{-- TIDAK ADA TRANSAKSI --}}
     @if($transaksis->isEmpty())
-        <div class="alert alert-info text-center animate__animated animate__fadeIn">
-            <i class="bi bi-info-circle fs-4 mb-2"></i><br>
-            <strong>Belum ada riwayat transaksi.</strong>
+        <div class="alert alert-light text-center py-5 shadow-sm rounded">
+            <i class="bi bi-inbox fs-1 text-secondary"></i>
+            <p class="fs-5 mt-3 text-muted">Belum ada riwayat transaksi.</p>
+            <a href="{{ route('user.produk.index') }}" class="btn btn-outline-primary">
+                <i class="bi bi-cart me-1"></i> Mulai Belanja
+            </a>
         </div>
     @else
-        <div class="row mb-4 animate__animated animate__fadeInLeft animate__delay-1s">
+
+        {{-- SEARCH BAR --}}
+        <div class="row mb-4">
             <div class="col-md-6">
-                <input type="text" id="searchInput" class="form-control shadow-sm rounded-3" placeholder="Cari tanggal / status transaksi...">
+                <div class="input-group">
+                    <span class="input-group-text bg-white">
+                        <i class="bi bi-search"></i>
+                    </span>
+                    <input type="text" id="searchInput" class="form-control border-start-0" 
+                           placeholder="Cari tanggal transaksi...">
+                </div>
             </div>
         </div>
 
-        <div class="row gy-4" id="riwayatContainer">
+        {{-- LIST TRANSAKSI --}}
+        <div class="row gy-4">
             @foreach($transaksis as $transaksi)
-                <div class="col-md-6 animate__animated animate__fadeInUp animate__delay-2s riwayat-item"
-                     data-tanggal="{{ optional($transaksi->penjualan)->tanggal ? strtolower(\Carbon\Carbon::parse($transaksi->penjualan->tanggal)->translatedFormat('d F Y')) : 'tidak diketahui' }}"
-                     data-status="{{ optional($transaksi->penjualan)->status ? strtolower($transaksi->penjualan->status) : 'tidak diketahui' }}">
+                <div class="col-md-6 riwayat-item"
+                     data-tanggal="{{ optional($transaksi->penjualan)->tanggal 
+                        ? strtolower(\Carbon\Carbon::parse($transaksi->penjualan->tanggal)->translatedFormat('d F Y')) 
+                        : '' }}">
 
                     <div class="card shadow-sm border-0 rounded-4 h-100 overflow-hidden">
                         <div class="card-body">
 
-                            {{-- Header: Tanggal & Status + Tombol Hapus --}}
-                            <div class="d-flex justify-content-between align-items-center mb-3">
-                                @if($transaksi->penjualan)
-                                    <div>
-                                        <h6 class="fw-semibold mb-1">
-                                            <i class="bi bi-calendar-check me-1"></i>
-                                            {{ \Carbon\Carbon::parse($transaksi->penjualan->tanggal)->translatedFormat('l, d F Y H:i') }}
-                                        </h6>
-                                    </div>
-                                    <span class="badge status-badge
-                                        @if($transaksi->penjualan->status == 'selesai') bg-success
-                                        @elseif($transaksi->penjualan->status == 'diproses') bg-warning text-dark
-                                        @elseif($transaksi->penjualan->status == 'batal') bg-danger
-                                        @else bg-secondary
-                                        @endif">
-                                        <i class="bi 
-                                            @if($transaksi->penjualan->status == 'selesai') bi-check-circle-fill
-                                            @elseif($transaksi->penjualan->status == 'diproses') bi-hourglass-split
-                                            @elseif($transaksi->penjualan->status == 'batal') bi-x-circle-fill
-                                            @else bi-info-circle
-                                            @endif me-1"></i>
-                                        {{ ucfirst($transaksi->penjualan->status) }}
-                                    </span>
-                                @else
-                                    <span class="text-muted"><i class="bi bi-exclamation-circle me-1"></i> Data penjualan tidak tersedia</span>
-                                @endif
-
-                                {{-- Tombol Hapus --}}
-                                <form id="hapusTransaksiForm-{{ $transaksi->id }}" 
-                                    action="{{ route('user.riwayat.hapus', $transaksi->id) }}" 
-                                    method="POST" class="ms-2">
-                                  @csrf
-                                  @method('DELETE')
-                                  <button type="button" class="btn btn-sm btn-outline-danger btn-hapus">
-                                      <i class="bi bi-trash3-fill"></i>
-                                  </button>
-                              </form>
-                              
-                              
+                            {{-- TANGGAL --}}
+                            <div class="mb-3 pb-3 border-bottom">
+                                <h6 class="fw-semibold mb-1">
+                                    <i class="bi bi-calendar-event text-primary me-1"></i>
+                                    {{ optional($transaksi->penjualan)->tanggal 
+                                        ? \Carbon\Carbon::parse($transaksi->penjualan->tanggal)->translatedFormat('l, d F Y') 
+                                        : '-' }}
+                                </h6>
+                                <small class="text-muted">
+                                    <i class="bi bi-clock me-1"></i>
+                                    {{ optional($transaksi->penjualan)->tanggal 
+                                        ? \Carbon\Carbon::parse($transaksi->penjualan->tanggal)->format('H:i') 
+                                        : '-' }} WIB
+                                </small>
                             </div>
 
-                            {{-- Daftar Produk --}}
+                            {{-- DETAIL PRODUK --}}
                             <div class="mb-3">
                                 @foreach($transaksi->detailTransaksi as $item)
-                                    <div class="d-flex justify-content-between border-bottom py-2">
-                                        <div>
-                                            <strong>{{ $item->produk->nama ?? '-' }}</strong><br>
-                                            <small class="text-muted">x{{ $item->jumlah }} @ Rp {{ number_format($item->harga, 0, ',', '.') }}</small>
+                                    <div class="d-flex justify-content-between align-items-start py-2 {{ !$loop->last ? 'border-bottom' : '' }}">
+                                        <div class="flex-grow-1">
+                                            <strong class="d-block">{{ $item->produk->nama ?? '-' }}</strong>
+                                            <small class="text-muted">
+                                                {{ $item->jumlah }} x Rp {{ number_format($item->harga, 0, ',', '.') }}
+                                            </small>
                                         </div>
-                                        <div class="fw-semibold">
-                                            Rp {{ number_format($item->jumlah * $item->harga, 0, ',', '.') }}
+                                        <div class="fw-semibold text-nowrap ms-3">
+                                            Rp {{ number_format($item->subtotal, 0, ',', '.') }}
                                         </div>
                                     </div>
                                 @endforeach
                             </div>
 
-                            {{-- Info Tambahan --}}
-                            <div class="text-muted small mb-1">Alamat Pengiriman:</div>
-                            <div class="mb-2">{{ $transaksi->alamat ?? '-' }}</div>
+                            {{-- ALAMAT --}}
+                            <div class="mb-2">
+                                <small class="text-muted d-block mb-1">
+                                    <i class="bi bi-geo-alt me-1"></i> Alamat Pengiriman
+                                </small>
+                                <div class="small">{{ $transaksi->alamat }}</div>
+                            </div>
 
-                            <div class="text-muted small mb-1">Metode Pembayaran:</div>
-                            <div class="mb-2 text-uppercase">{{ $transaksi->metode ?? '-' }}</div>
+                            {{-- METODE PEMBAYARAN --}}
+                            <div class="mb-3">
+                                <small class="text-muted d-block mb-1">
+                                    <i class="bi bi-credit-card me-1"></i> Metode Pembayaran
+                                </small>
+                                <span class="badge bg-primary-subtle text-primary text-uppercase">{{ $transaksi->metode }}</span>
+                            </div>
 
-                            {{-- Total --}}
-                            <div class="d-flex justify-content-between align-items-center mt-3 border-top pt-3">
-                                <span class="text-muted fw-medium">Total Pembayaran</span>
-                                <h5 class="mb-0 fw-bold">
-                                    Rp {{ $transaksi->penjualan ? number_format($transaksi->penjualan->total, 0, ',', '.') : '-' }}
+                            {{-- BUKTI PEMBAYARAN --}}
+                            <div class="mb-3">
+                                <small class="text-muted d-block mb-2">
+                                    <i class="bi bi-receipt me-1"></i> Bukti Pembayaran
+                                </small>
+
+                                @if($transaksi->bukti_tf)
+                                    {{-- Tombol lihat bukti jika sudah ada upload --}}
+                                    <button class="btn btn-sm btn-outline-primary viewBuktiBtn" 
+                                            data-image="{{ asset('storage/'.$transaksi->bukti_tf) }}">
+                                        <i class="bi bi-eye me-1"></i> Lihat Bukti
+                                    </button>
+
+                                @elseif($transaksi->metode === 'transfer')
+                                    {{-- Form upload bukti transfer --}}
+                                    <form action="{{ route('user.riwayat.upload', $transaksi->id) }}" method="POST" enctype="multipart/form-data" class="text-center mt-2">
+                                        @csrf
+                                        <img src="{{ asset('images/bank/transfer.webp') }}" class="img-fluid mb-2" style="max-width:200px;">
+                                        <div><strong>No. Rek:</strong> <span class="nomorRek">218101004389533</span></div>
+                                        <button type="button" class="btn btn-sm btn-outline-primary mt-1 copyRekBtn">
+                                            <i class="bi bi-clipboard"></i> Salin No. Rek
+                                        </button>
+                                        <div class="mt-2">
+                                            <input type="file" name="bukti_tf" required>
+                                            <button type="submit" class="btn btn-sm btn-warning mt-1">
+                                                <i class="bi bi-cloud-upload me-1"></i> Upload Bukti
+                                            </button>
+                                        </div>
+                                    </form>
+
+                                @elseif($transaksi->metode === 'qris')
+                                    {{-- Form upload bukti QRIS --}}
+                                    <form action="{{ route('user.riwayat.upload', $transaksi->id) }}" method="POST" enctype="multipart/form-data" class="text-center mt-2">
+                                        @csrf
+                                        <img src="{{ asset('images/qiris/qr_123.jpeg') }}" class="img-fluid mb-2" style="max-width:200px;">
+                                        <div>Scan QRIS untuk bayar</div>
+                                        <div class="mt-2">
+                                            <input type="file" name="bukti_tf" required>
+                                            <button type="submit" class="btn btn-sm btn-warning mt-1">
+                                                <i class="bi bi-cloud-upload me-1"></i> Upload Bukti
+                                            </button>
+                                        </div>
+                                    </form>
+
+                                @else
+                                    <span class="badge bg-success-subtle text-success">
+                                        <i class="bi bi-cash me-1"></i> Bayar di Tempat
+                                    </span>
+                                @endif
+                            </div>
+
+                            {{-- TOTAL --}}
+                            <div class="d-flex justify-content-between align-items-center mt-4 pt-3 border-top">
+                                <span class="fw-semibold">Total Pembayaran</span>
+                                <h5 class="fw-bold text-primary m-0">
+                                    Rp {{ number_format(optional($transaksi->penjualan)->total, 0, ',', '.') }}
                                 </h5>
                             </div>
 
@@ -107,87 +161,129 @@
         </div>
     @endif
 </div>
+
+{{-- MODAL VIEW BUKTI --}}
+<div class="modal fade" id="viewImageModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content">
+            <div class="modal-header border-0">
+                <h5 class="modal-title">Bukti Pembayaran</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body text-center p-0">
+                <img id="viewImage" class="img-fluid w-100" alt="Bukti Pembayaran">
+            </div>
+        </div>
+    </div>
+</div>
 @endsection
-<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-
-
-@push('style')
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css" />
-<style>
-    .status-badge {
-        font-size: 0.8rem;
-        padding: 6px 12px;
-        transition: all 0.3s ease;
-        text-transform: capitalize;
-    }
-    .status-badge:hover {
-        transform: scale(1.05);
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-    }
-    .card {
-        transition: all 0.3s ease;
-        border-radius: 1rem;
-    }
-    .card:hover {
-        transform: translateY(-5px);
-        box-shadow: 0 10px 20px rgba(0, 0, 0, 0.08);
-    }
-    #searchInput {
-        padding: 12px 14px;
-        font-size: 0.95rem;
-        border-radius: 1rem;
-    }
-    .text-muted.small {
-        font-size: 0.8rem;
-    }
-</style>
-@endpush
 
 @push('scripts')
-<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script>
-document.addEventListener('DOMContentLoaded', () => {
+$(document).ready(function() {
 
-    // -----------------------------
-    // Filter Riwayat Transaksi
-    // -----------------------------
-    const searchInput = document.getElementById('searchInput');
-    const riwayatItems = document.querySelectorAll('.riwayat-item');
+    // Lihat bukti pembayaran sesuai transaksi
+    $('.viewBuktiBtn').on('click', function() {
+        const img = $(this).data('image'); // ambil dari data-image
+        $('#viewImage').attr('src', img);
+        new bootstrap.Modal($('#viewImageModal')).show();
+    });
 
-    searchInput?.addEventListener('keyup', (e) => {
-        const filter = e.target.value.toLowerCase();
-        riwayatItems.forEach(item => {
-            const tanggal = item.dataset.tanggal.toLowerCase();
-            const status = item.dataset.status.toLowerCase();
-            item.style.display = (tanggal.includes(filter) || status.includes(filter)) ? '' : 'none';
+    // Copy nomor rekening
+    $('.copyRekBtn').on('click', function() {
+        const rek = $(this).siblings('.nomorRek').text();
+        navigator.clipboard.writeText(rek)
+            .then(() => alert('Nomor rekening berhasil disalin!'))
+            .catch(() => alert('Gagal menyalin nomor rekening.'));
+    });
+
+    // Search filter berdasarkan tanggal
+    $('#searchInput').on('input', function() {
+        const term = $(this).val().toLowerCase();
+        $('.riwayat-item').each(function() {
+            const tanggal = $(this).data('tanggal');
+            $(this).toggle(tanggal.includes(term));
         });
     });
 
-    // -----------------------------
-    // Tombol Hapus dengan SweetAlert2
-    // -----------------------------
-    $(document).on('click', '.btn-hapus', function() {
-        const form = $(this).closest('form');
-
-        Swal.fire({
-            title: 'Hapus transaksi ini?',
-            text: "Data transaksi akan dihapus permanen!",
-            icon: 'warning',
-            showCancelButton: true,
-            confirmButtonText: 'Ya, hapus!',
-            cancelButtonText: 'Batal',
-            customClass: {
-                confirmButton: 'btn btn-danger px-4 ms-3 py-2',
-                cancelButton: 'btn btn-secondary px-4 py-2'
-            },
-            buttonsStyling: false
-        }).then((result) => {
-            if (result.isConfirmed) {
-                form.trigger('submit');
-            }
-        });
-    });
+    // Notifikasi berhasil upload bukti
+    @if(session('success'))
+        alert('{{ session("success") }}');
+    @endif
 
 });
 </script>
 @endpush
+@push('scripts')
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script>
+$(document).ready(function() {
+
+    // Lihat bukti pembayaran sesuai transaksi dengan loading spinner
+    $('.viewBuktiBtn').on('click', function() {
+        const imgSrc = $(this).data('image');
+        const $img = $('#viewImage');
+        $img.attr('src', '');
+        
+        // Tampilkan modal dengan spinner
+        const modal = new bootstrap.Modal($('#viewImageModal'));
+        modal.show();
+        $img.after('<div class="spinner-border text-primary" id="imgLoader" role="status"><span class="visually-hidden">Loading...</span></div>');
+
+        // Load gambar
+        const img = new Image();
+        img.onload = function() {
+            $img.attr('src', imgSrc);
+            $('#imgLoader').remove();
+        }
+        img.src = imgSrc;
+    });
+
+    // Copy nomor rekening dengan SweetAlert
+    $('.copyRekBtn').on('click', function() {
+        const rek = $(this).closest('div').find('.nomorRek').text();
+        navigator.clipboard.writeText(rek)
+            .then(() => {
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Berhasil!',
+                    text: 'Nomor rekening berhasil disalin.',
+                    timer: 1500,
+                    showConfirmButton: false
+                });
+            })
+            .catch(() => {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Gagal!',
+                    text: 'Gagal menyalin nomor rekening.',
+                });
+            });
+    });
+
+    // Search filter berdasarkan tanggal
+    $('#searchInput').on('input', function() {
+        const term = $(this).val().toLowerCase();
+        $('.riwayat-item').each(function() {
+            const tanggal = $(this).data('tanggal').toLowerCase();
+            $(this).toggle(!term || tanggal.includes(term));
+        });
+    });
+
+    // Notifikasi berhasil upload bukti dengan SweetAlert
+    @if(session('success'))
+        Swal.fire({
+            icon: 'success',
+            title: 'Sukses!',
+            text: '{{ session("success") }}',
+            timer: 2000,
+            showConfirmButton: false
+        });
+    @endif
+
+});
+</script>
+@endpush
+
