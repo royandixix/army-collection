@@ -122,7 +122,6 @@ class AuthController extends Controller
     // =========================
     public function showManualResetForm()
     {
-        // Halaman ini hanya menampilkan form
         return view('auth.manual-reset-password');
     }
 
@@ -131,16 +130,12 @@ class AuthController extends Controller
     // =========================
     public function manualReset(Request $request)
     {
-        // Validasi input
         $request->validate([
-            'email' => 'required|email|exists:users,email', // hanya user yg pernah register/login
-            'password' => 'required|confirmed|min:6',
+            'email' => 'required|email|exists:users,email',
+            'password' => 'required|confirmed', // Hapus min:6
         ]);
 
-        // Ambil user berdasarkan email
         $user = User::where('email', $request->email)->first();
-
-        // Update password
         $user->password = bcrypt($request->password);
         $user->save();
 
