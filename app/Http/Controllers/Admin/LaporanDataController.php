@@ -41,15 +41,19 @@ class LaporanDataController extends Controller
         $tahun = now()->year;
 
         $produks = Produk::with('kategori')
-            ->withSum(['detailPenjualans as jumlah_terjual' => function ($query) use ($bulan, $tahun) {
-                $query->whereHas('penjualan', function ($q) use ($bulan, $tahun) {
-                    $q->whereMonth('tanggal', $bulan)
-                      ->whereYear('tanggal', $tahun);
-                });
+            ->withSum(['detailPenjualans as jumlah_terjual' => function ($q) use ($bulan, $tahun) {
+                $q->whereHas('penjualan', fn($p) => $p->whereMonth('tanggal', $bulan)->whereYear('tanggal', $tahun));
             }], 'jumlah')
-            ->orderByDesc('jumlah_terjual')
-            ->take(10)
-            ->get();
+            ->withSum(['detailTransaksis as jumlah_terjual_transaksi' => function ($q) use ($bulan, $tahun) {
+                $q->whereHas('transaksi', fn($t) => $t->whereMonth('created_at', $bulan)->whereYear('created_at', $tahun));
+            }], 'jumlah')
+            ->get()
+            ->map(function ($produk) {
+                $produk->jumlah_terjual_total = ($produk->jumlah_terjual ?? 0) + ($produk->jumlah_terjual_transaksi ?? 0);
+                return $produk;
+            })
+            ->sortByDesc('jumlah_terjual_total')
+            ->take(10);
 
         return view('admin.laporan.laporan_produk.produk_terlaris', compact('produks', 'bulan', 'tahun'));
     }
@@ -60,15 +64,19 @@ class LaporanDataController extends Controller
         $tahun = now()->year;
 
         $produks = Produk::with('kategori')
-            ->withSum(['detailPenjualans as jumlah_terjual' => function ($query) use ($bulan, $tahun) {
-                $query->whereHas('penjualan', function ($q) use ($bulan, $tahun) {
-                    $q->whereMonth('tanggal', $bulan)
-                      ->whereYear('tanggal', $tahun);
-                });
+            ->withSum(['detailPenjualans as jumlah_terjual' => function ($q) use ($bulan, $tahun) {
+                $q->whereHas('penjualan', fn($p) => $p->whereMonth('tanggal', $bulan)->whereYear('tanggal', $tahun));
             }], 'jumlah')
-            ->orderByDesc('jumlah_terjual')
-            ->take(10)
-            ->get();
+            ->withSum(['detailTransaksis as jumlah_terjual_transaksi' => function ($q) use ($bulan, $tahun) {
+                $q->whereHas('transaksi', fn($t) => $t->whereMonth('created_at', $bulan)->whereYear('created_at', $tahun));
+            }], 'jumlah')
+            ->get()
+            ->map(function ($produk) {
+                $produk->jumlah_terjual_total = ($produk->jumlah_terjual ?? 0) + ($produk->jumlah_terjual_transaksi ?? 0);
+                return $produk;
+            })
+            ->sortByDesc('jumlah_terjual_total')
+            ->take(10);
 
         $pdf = Pdf::loadView('admin.laporan.laporan_produk.produk_terlaris_pdf', compact('produks', 'bulan', 'tahun'))
             ->setPaper('a4', 'landscape');

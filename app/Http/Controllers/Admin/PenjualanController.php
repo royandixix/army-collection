@@ -18,20 +18,38 @@ class PenjualanController extends Controller
      * 📦 Daftar Penjualan & Transaksi
      * Pastikan bukti transfer user tampil di admin
      */
-    public function index()
+    public function index(Request $request)
     {
-        $penjualans = Penjualan::with([
+        // Ambil parameter filter status dari query string
+        $statusFilter = $request->query('status', null); // contoh: ?status=belum_bayar
+
+        // Query penjualan
+        $penjualansQuery = Penjualan::with([
             'pelanggan.user',
             'detailPenjualans.produk',
-            'transaksi.detailTransaksi.produk' // relasi transaksi untuk fallback bukti
-        ])->latest('tanggal')->get();
+            'transaksi.detailTransaksi.produk'
+        ])->latest('tanggal');
 
-        $transaksis = Transaksi::with([
+        if ($statusFilter === 'belum_bayar') {
+            $penjualansQuery->where('status', 'belum_bayar');
+        }
+
+        $penjualans = $penjualansQuery->get();
+
+        // Query transaksi
+        $transaksisQuery = Transaksi::with([
             'user',
             'detailTransaksi.produk',
-            'penjualan' // supaya admin bisa akses $item->penjualan->bukti_tf
-        ])->latest('created_at')->get();
+            'penjualan'
+        ])->latest('created_at');
 
+        if ($statusFilter === 'belum_bayar') {
+            $transaksisQuery->where('status', 'belum_bayar');
+        }
+
+        $transaksis = $transaksisQuery->get();
+
+        // Gabungkan data
         $items = $penjualans
             ->concat($transaksis)
             ->sortByDesc(fn($item) => $item->tanggal ?? $item->created_at)
@@ -39,6 +57,7 @@ class PenjualanController extends Controller
 
         return view('admin.manajemen_penjualan.manajemen_penjualan', compact('items'));
     }
+
 
     /**
      * 🧩 Form tambah penjualan manual
@@ -260,4 +279,22 @@ class PenjualanController extends Controller
     {
         return $file->store('bukti_tf', 'public');
     }
+
+
+
+
+
+    /**
+     * 📄 Tampilkan penjualan yang belum membayar
+     */
+    public function belumBayar()
+{
+    $items = Penjualan::with(['pelanggan', 'detailPenjualans'])
+        ->where('status', 'pending') // pending dianggap belum bayar
+        ->latest('tanggal')
+        ->get();
+
+    return view('admin.manajemen_penjualan.belum_bayar', compact('items'));
+}
+
 }

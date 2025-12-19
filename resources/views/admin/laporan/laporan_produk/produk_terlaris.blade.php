@@ -5,7 +5,9 @@
 @section('content')
 <div class="cx-main-content">
     <div class="container-fluid">
-        <h4 class="mb-4">10 Produk Terlaris Bulan {{ \Carbon\Carbon::create()->month($bulan)->translatedFormat('F') }} {{ $tahun }}</h4>
+        <h4 class="mb-4">
+            10 Produk Terlaris Bulan {{ \Carbon\Carbon::create()->month($bulan)->translatedFormat('F') }} {{ $tahun }}
+        </h4>
 
         <div class="mb-3">
             <a href="{{ route('admin.laporan.produk.terlaris.cetak') }}" class="btn btn-danger" target="_blank">
@@ -21,10 +23,9 @@
                             <tr>
                                 <th>No</th>
                                 <th>Nama Produk</th>
-                                {{-- <th>Kategori</th> --}}
+                                <th>Kategori</th>
                                 <th>Harga</th>
-                                <th>Stok</th>
-                                {{-- <th>Jumlah Terjual</th> --}}
+                                <th>Jumlah Terjual</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -32,16 +33,17 @@
                                 <tr>
                                     <td>{{ $index + 1 }}</td>
                                     <td>{{ $produk->nama }}</td>
-                                    {{-- <td>{{ $produk->kategori->nama ?? '-' }}</td> --}}
+                                    <td>{{ $produk->kategori->name ?? '-' }}</td>
                                     <td>Rp {{ number_format($produk->harga, 0, ',', '.') }}</td>
-                                    <td>{{ $produk->stok >= 0 ? $produk->stok : 0 }}</td>
-                                    {{-- <td class="text-center">
-                                        <span class="badge bg-success">{{ $produk->jumlah_terjual ?? 0 }}</span>
-                                    </td> --}}
+                                    <td class="text-center">
+                                        <span class="badge bg-success">{{ $produk->jumlah_terjual_total ?? 0 }}</span>
+                                    </td>
                                 </tr>
                             @empty
                                 <tr>
-                                    <td colspan="6" class="text-center text-muted">Tidak ada data produk terlaris bulan ini.</td>
+                                    <td colspan="5" class="text-center text-muted">
+                                        Tidak ada data produk terlaris bulan ini.
+                                    </td>
                                 </tr>
                             @endforelse
                         </tbody>

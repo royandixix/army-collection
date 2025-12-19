@@ -132,50 +132,37 @@
 <div class="modal fade" id="modalTambahAlamat" tabindex="-1">
     <div class="modal-dialog modal-lg">
         <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title"><i class="bi bi-geo-alt-fill me-2"></i>Tambah Alamat Baru</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-            </div>
-            <div class="modal-body">
-                {{-- Search Box --}}
-                <div class="mb-3">
-                    <label class="form-label fw-semibold">Cari Lokasi</label>
-                    <div class="input-group">
-                        <input type="text" id="searchLocation" class="form-control" placeholder="Cari alamat atau tempat...">
-                        <button type="button" id="btnSearch" class="btn btn-primary">
-                            <i class="bi bi-search"></i> Cari
-                        </button>
-                        <button type="button" id="btnCurrentLocation" class="btn btn-success" title="Gunakan Lokasi Saat Ini">
-                            <i class="bi bi-geo-fill"></i>
-                        </button>
+            <form method="POST" action="{{ route('user.alamat.store') }}">
+                @csrf
+                <div class="modal-header">
+                    <h5 class="modal-title"><i class="bi bi-geo-alt-fill me-2"></i>Tambah Alamat Baru</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    {{-- Map --}}
+                    <div id="map" style="height: 400px; border-radius: 8px; margin-bottom: 15px;"></div>
+
+                    {{-- Form Alamat --}}
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Alamat Lengkap <span class="text-danger">*</span></label>
+                        <textarea id="alamatText" name="alamat" class="form-control" rows="3" required placeholder="Klik pada peta untuk mengisi alamat otomatis atau ketik manual..."></textarea>
+                        <small class="text-muted">Klik pada peta untuk mengisi alamat otomatis</small>
+                    </div>
+
+                    <div class="form-check mb-3">
+                        <input type="checkbox" name="is_default" class="form-check-input" id="isDefaultCheck" value="1">
+                        <label class="form-check-label" for="isDefaultCheck">Jadikan alamat utama</label>
                     </div>
                 </div>
-
-                {{-- Map --}}
-                <div id="map" style="height: 400px; border-radius: 8px; margin-bottom: 15px;"></div>
-
-                {{-- Form Alamat --}}
-                <div class="mb-3">
-                    <label class="form-label fw-semibold">Alamat Lengkap <span class="text-danger">*</span></label>
-                    <textarea id="alamatText" class="form-control" rows="3" required placeholder="Klik pada peta untuk mengisi alamat otomatis atau ketik manual..."></textarea>
-                    <small class="text-muted">Klik pada peta untuk mengisi alamat otomatis</small>
-                </div>
-
-                <div class="form-check mb-3">
-                    <input type="checkbox" class="form-check-input" id="isDefaultCheck">
-                    <label class="form-check-label" for="isDefaultCheck">Jadikan alamat utama</label>
-                </div>
-
-                <div class="d-flex justify-content-end gap-2">
+                <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
-                    <button type="button" id="btnSimpanAlamat" class="btn btn-primary">
-                        <i class="bi bi-save me-1"></i> Simpan Alamat
-                    </button>
+                    <button type="submit" class="btn btn-primary"><i class="bi bi-save me-1"></i> Simpan Alamat</button>
                 </div>
-            </div>
+            </form>
         </div>
     </div>
 </div>
+
 @endsection
 
 {{-- STYLES --}}

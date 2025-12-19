@@ -20,6 +20,7 @@
                     <option value="lunas">LUNAS</option>
                     <option value="pending">PENDING</option>
                     <option value="batal">BATAL</option>
+                    <option value="belum_bayar">BELUM BAYAR</option>
                 </select>
             </div>
             <div class="col-md-8">
@@ -46,6 +47,13 @@
                         Tambah Penjualan
                     </a>
                 </div>
+
+
+                <a href="{{ route('admin.manajemen.penjualan.belum_bayar') }}" class="btn btn-warning">
+                    Penjualan Belum Bayar
+                </a>
+
+
 
                 <div class="cx-card-content card-default">
                     <div class="table-responsive">
@@ -121,7 +129,7 @@
                                         }
                                         $totalJumlah = $details->sum('jumlah');
 
-                                        // Bukti pembayaran (cek penjualan & transaksi)
+                                        // Bukti pembayaran
                                         if ($item instanceof \App\Models\Penjualan) {
                                             $buktiPath = $item->bukti_tf ?: $item->transaksi?->bukti_tf ?? null;
                                         } elseif ($item instanceof \App\Models\Transaksi) {
@@ -130,12 +138,10 @@
                                             $buktiPath = null;
                                         }
 
-                                        // Pastikan prefix storage
                                         if ($buktiPath && !str_starts_with($buktiPath, 'storage/')) {
                                             $buktiPath = 'storage/' . $buktiPath;
                                         }
 
-                                        // Cek file menggunakan Storage
                                         $buktiExists = $buktiPath
                                             ? Storage::disk('public')->exists(str_replace('storage/', '', $buktiPath))
                                             : false;
@@ -163,7 +169,7 @@
                                         <td>{{ \Carbon\Carbon::parse($item->tanggal ?? $item->created_at)->translatedFormat('l, d F Y H:i') }}
                                         </td>
                                         <td>Rp {{ number_format($item->total ?? 0, 0, ',', '.') }}</td>
-                                        <td>
+                                        <td data-status="{{ $item->status }}">
                                             @if ($item instanceof \App\Models\Penjualan)
                                                 <form id="status-form-{{ $uniqueId }}"
                                                     action="{{ route('admin.manajemen.penjualan_ubah_status', $item->id) }}"
@@ -172,25 +178,32 @@
                                                     @method('PATCH')
                                                     <select name="status" class="form-select form-select-sm status-select"
                                                         data-id="{{ $uniqueId }}">
-                                                        <option value="lunas" {{ $item->status == 'lunas' ? 'selected' : '' }}>
-                                                            LUNAS</option>
+                                                        <option value="lunas"
+                                                            {{ $item->status == 'lunas' ? 'selected' : '' }}>LUNAS</option>
                                                         <option value="pending"
-                                                            {{ $item->status == 'pending' ? 'selected' : '' }}>PENDING</option>
-                                                        <option value="batal" {{ $item->status == 'batal' ? 'selected' : '' }}>
-                                                            BATAL</option>
+                                                            {{ $item->status == 'pending' ? 'selected' : '' }}>PENDING
+                                                        </option>
+                                                        <option value="batal"
+                                                            {{ $item->status == 'batal' ? 'selected' : '' }}>BATAL</option>
+                                                        <option value="belum_bayar"
+                                                            {{ $item->status == 'belum_bayar' ? 'selected' : '' }}>BELUM
+                                                            BAYAR</option>
                                                     </select>
                                                 </form>
                                             @else
-                                                <span class="text-muted">{{ ucfirst($item->status ?? '-') }}</span>
+                                                <span
+                                                    class="text-muted">{{ ucfirst(str_replace('_', ' ', $item->status ?? '-')) }}</span>
                                             @endif
                                         </td>
                                         <td>{{ ucfirst(str_replace('_', ' ', $item->metode_pembayaran ?? '-')) }}</td>
                                         <td>
                                             @if ($buktiExists)
-                                                <a href="{{ asset($buktiPath) }}" target="_blank">
+                                                <button type="button" class="btn btn-sm btn-outline-info"
+                                                    data-bs-toggle="modal"
+                                                    data-bs-target="#buktiModal-{{ $uniqueId }}">
                                                     <img src="{{ asset($buktiPath) }}" width="60" height="60"
                                                         class="rounded shadow-sm border" style="object-fit: cover;">
-                                                </a>
+                                                </button>
                                             @elseif(($item->metode_pembayaran ?? '') === 'qris')
                                                 <img src="{{ asset('images/qiris/qris.jpeg') }}" width="60"
                                                     height="60" class="rounded shadow-sm border"
@@ -206,8 +219,7 @@
                                             <div class="d-flex gap-2">
                                                 @if ($item instanceof \App\Models\Penjualan)
                                                     <a href="{{ route('admin.manajemen.manajemen_penjualan_edit', $item->id) }}"
-                                                        class="btn btn-sm btn-outline-primary" data-bs-toggle="tooltip"
-                                                        title="Edit Penjualan">
+                                                        class="btn btn-sm btn-outline-primary">
                                                         <i class="ri-edit-line"></i>
                                                     </a>
                                                     <form id="delete-form-{{ $uniqueId }}"
@@ -217,8 +229,7 @@
                                                         @method('DELETE')
                                                         <button type="button"
                                                             class="btn btn-sm btn-outline-danger delete-btn"
-                                                            data-id="{{ $uniqueId }}" data-bs-toggle="tooltip"
-                                                            title="Hapus Penjualan">
+                                                            data-id="{{ $uniqueId }}">
                                                             <i class="ri-delete-bin-6-line"></i>
                                                         </button>
                                                     </form>
@@ -228,8 +239,28 @@
                                             </div>
                                         </td>
                                     </tr>
-                                @endforeach
 
+                                    {{-- Modal bukti --}}
+                                    @if ($buktiExists)
+                                        <div class="modal fade" id="buktiModal-{{ $uniqueId }}" tabindex="-1"
+                                            aria-labelledby="buktiModalLabel-{{ $uniqueId }}" aria-hidden="true">
+                                            <div class="modal-dialog modal-dialog-centered">
+                                                <div class="modal-content">
+                                                    <div class="modal-header">
+                                                        <h5 class="modal-title" id="buktiModalLabel-{{ $uniqueId }}">
+                                                            Bukti Pembayaran</h5>
+                                                        <button type="button" class="btn-close"
+                                                            data-bs-dismiss="modal"></button>
+                                                    </div>
+                                                    <div class="modal-body text-center">
+                                                        <img src="{{ asset($buktiPath) }}" class="img-fluid rounded"
+                                                            alt="Bukti Pembayaran">
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    @endif
+                                @endforeach
                             </tbody>
                         </table>
                     </div>
@@ -252,11 +283,11 @@
         $(document).ready(function() {
             const table = $('#penjualan-table').DataTable({
                 language: {
-                    search: "INPUT",
+                    search: "",
                     searchPlaceholder: "🔍 Cari penjualan...",
-                    lengthMenu: "Tampilkan MENU entri",
+                    lengthMenu: "Tampilkan _MENU_ entri",
                     zeroRecords: "Tidak ditemukan data",
-                    info: "Menampilkan START hingga END dari TOTAL entri",
+                    info: "Menampilkan _START_ hingga _END_ dari _TOTAL_ entri",
                     infoEmpty: "Tidak ada data",
                     paginate: {
                         next: "➡",
@@ -267,18 +298,28 @@
                 responsive: true
             });
 
+            // Filter status
             $('#statusFilter').on('change', function() {
-                table.column(5).search($(this).val()).draw();
+                const val = $(this).val();
+                table.rows().every(function() {
+                    const row = this.node();
+                    const status = $('td:eq(5)', row).data('status') || '';
+                    $(row).toggle(val === '' || status === val);
+                });
             });
+
+            // Pencarian global
             $('#global-search').on('keyup', function() {
                 table.search(this.value).draw();
             });
 
+            // Submit status change
             $('.status-select').on('change', function() {
                 const id = this.dataset.id;
                 document.getElementById(`status-form-${id}`).submit();
             });
 
+            // Hapus
             $('.delete-btn').on('click', function() {
                 const id = $(this).data('id');
                 Swal.fire({
@@ -295,6 +336,7 @@
                 });
             });
 
+            // Toast success
             const Toast = Swal.mixin({
                 toast: true,
                 position: 'top-end',

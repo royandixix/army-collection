@@ -58,6 +58,47 @@ class KeranjangController extends Controller
         return response()->json(['success' => true]);
     }
 
+    // 📍 Simpan alamat baru dari modal (NEW METHOD)
+    public function storeAlamat(Request $request)
+    {
+        $request->validate([
+            'alamat' => 'required|string|min:5|max:500',
+            'is_default' => 'nullable|boolean',
+        ]);
+
+        $isDefault = $request->is_default ? true : false;
+
+        // Jika alamat ini dijadikan default, set semua alamat lain jadi false
+        if ($isDefault) {
+            UserAlamat::where('user_id', Auth::id())
+                ->update(['is_default' => false]);
+        }
+
+        // Cek apakah alamat sudah ada
+        $existingAlamat = UserAlamat::where('user_id', Auth::id())
+            ->where('alamat', $request->alamat)
+            ->first();
+
+        if ($existingAlamat) {
+            // Update existing address
+            $existingAlamat->update(['is_default' => $isDefault]);
+            $alamat = $existingAlamat;
+        } else {
+            // Create new address
+            $alamat = UserAlamat::create([
+                'user_id' => Auth::id(),
+                'alamat' => $request->alamat,
+                'is_default' => $isDefault,
+            ]);
+        }
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Alamat berhasil disimpan',
+            'data' => $alamat
+        ]);
+    }
+
     // ✅ Proses Checkout (TANPA upload bukti)
     public function prosesCheckout(Request $request)
     {
@@ -123,7 +164,7 @@ class KeranjangController extends Controller
             'metode'       => $request->metode,
             'total'        => $total,
             'status'       => 'pending',
-            'bukti_tf'     => null, // ⬅️ PASTI KOSONG
+            'bukti_tf'     => null,
         ]);
 
         // 📦 Detail transaksi & kurangi stok

@@ -13,25 +13,25 @@ class AlamatController extends Controller
         return view('user.alamat.create');
     }
 
-    public function store(Request $request)
-    {
-        $request->validate([
-            'label' => 'required|string|max:255',
-            'alamat' => 'required|string|max:500',
-            'latitude' => 'required',
-            'longitude' => 'required',
-        ]);
+   public function store(Request $request)
+{
+    $request->validate([
+        'alamat' => 'required|string|max:500',
+        'is_default' => 'nullable|boolean',
+    ]);
 
-        UserAlamat::create([
-            'user_id' => auth()->id(),
-            'label' => $request->label,
-            'alamat' => $request->alamat,
-            'latitude' => $request->latitude,
-            'longitude' => $request->longitude,
-            'is_default' => false,
-        ]);
+    $isDefault = $request->has('is_default') ? true : false;
 
-        return redirect()->route('user.keranjang.index')
-            ->with('success', 'Alamat berhasil ditambahkan');
+    if ($isDefault) {
+        \App\Models\UserAlamat::where('user_id', auth()->id())->update(['is_default' => false]);
     }
+
+    \App\Models\UserAlamat::updateOrCreate(
+        ['user_id' => auth()->id(), 'alamat' => $request->alamat],
+        ['is_default' => $isDefault]
+    );
+
+    return redirect()->back()->with('success', 'Alamat berhasil ditambahkan');
+}
+
 }
