@@ -9,27 +9,17 @@ use Illuminate\Support\Facades\Storage;
 
 class ProfilController extends Controller
 {
-    // ===============================
-    // TAMPILKAN PROFIL
-    // ===============================
+   
     public function index()
     {
         $user = Auth::user();
         return view('user.profil.profil', compact('user'));
     }
-
-    // ===============================
-    // FORM EDIT PROFIL
-    // ===============================
     public function edit()
     {
         $user = Auth::user();
         return view('user.profil.edit_profil', compact('user'));
     }
-
-    // ===============================
-    // UPDATE PROFIL
-    // ===============================
     public function update(Request $request)
     {
         $user = Auth::user();
@@ -46,9 +36,6 @@ class ProfilController extends Controller
             'longitude' => 'nullable',
         ]);
 
-        // ===============================
-        // UPLOAD FOTO PROFIL
-        // ===============================
         if ($request->hasFile('photo')) {
 
             // hapus foto lama
@@ -60,10 +47,7 @@ class ProfilController extends Controller
             $photoPath = $request->file('photo')->store('profile', 'public');
             $user->img = $photoPath;
         }
-
-        // ===============================
-        // SIMPAN DATA PROFIL
-        // ===============================
+        
         $user->username  = $request->name;
         $user->email     = $request->email;
 

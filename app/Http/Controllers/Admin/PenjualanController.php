@@ -8,6 +8,8 @@ use App\Models\Penjualan;
 use App\Models\Pelanggan;
 use App\Models\Transaksi;
 use App\Models\Produk;
+use App\Models\Pembelian;
+use App\Models\BuktiPembelian;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\DB;
@@ -15,15 +17,13 @@ use Illuminate\Support\Facades\DB;
 class PenjualanController extends Controller
 {
     /**
-     * 📦 Daftar Penjualan & Transaksi
-     * Pastikan bukti transfer user tampil di admin
+     * 📦 Halaman utama: manajemen penjualan & bukti pembelian
      */
     public function index(Request $request)
     {
-        // Ambil parameter filter status dari query string
-        $statusFilter = $request->query('status', null); // contoh: ?status=belum_bayar
+        $statusFilter = $request->query('status', null);
 
-        // Query penjualan
+        // Ambil penjualan
         $penjualansQuery = Penjualan::with([
             'pelanggan.user',
             'detailPenjualans.produk',
@@ -36,7 +36,7 @@ class PenjualanController extends Controller
 
         $penjualans = $penjualansQuery->get();
 
-        // Query transaksi
+        // Ambil transaksi
         $transaksisQuery = Transaksi::with([
             'user',
             'detailTransaksi.produk',
@@ -49,15 +49,20 @@ class PenjualanController extends Controller
 
         $transaksis = $transaksisQuery->get();
 
-        // Gabungkan data
+        // Gabungkan penjualan + transaksi
         $items = $penjualans
             ->concat($transaksis)
             ->sortByDesc(fn($item) => $item->tanggal ?? $item->created_at)
             ->values();
 
-        return view('admin.manajemen_penjualan.manajemen_penjualan', compact('items'));
-    }
+        // Ambil pembelian & bukti pembelian untuk form dan tabel
+        $pembelians = Pembelian::with('supplier')->get();
+        $buktiPembelians = BuktiPembelian::with('pembelian.supplier')->get();
 
+        return view('admin.manajemen_penjualan.manajemen_penjualan', compact(
+            'items', 'pembelians', 'buktiPembelians'
+        ));
+    }
 
     /**
      * 🧩 Form tambah penjualan manual
@@ -194,7 +199,6 @@ class PenjualanController extends Controller
             'bukti_tf' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
         ]);
 
-        // Update data pelanggan
         $pelanggan = $penjualan->pelanggan ?? Pelanggan::create([
             'nama' => $request->nama,
             'email' => $request->email,
@@ -214,7 +218,6 @@ class PenjualanController extends Controller
             $pelanggan->update(['foto_profil' => $path]);
         }
 
-        // Update penjualan
         $penjualan->update([
             'tanggal' => $request->tanggal,
             'status' => $request->status,
@@ -273,28 +276,23 @@ class PenjualanController extends Controller
     }
 
     /**
-     * 📂 Upload bukti pembayaran ke storage
+     * 📂 Upload bukti pembayaran
      */
     private function uploadBukti($file)
     {
         return $file->store('bukti_tf', 'public');
     }
 
-
-
-
-
     /**
      * 📄 Tampilkan penjualan yang belum membayar
      */
     public function belumBayar()
-{
-    $items = Penjualan::with(['pelanggan', 'detailPenjualans'])
-        ->where('status', 'pending') // pending dianggap belum bayar
-        ->latest('tanggal')
-        ->get();
+    {
+        $items = Penjualan::with(['pelanggan', 'detailPenjualans'])
+            ->where('status', 'pending')
+            ->latest('tanggal')
+            ->get();
 
-    return view('admin.manajemen_penjualan.belum_bayar', compact('items'));
-}
-
+        return view('admin.manajemen_penjualan.belum_bayar', compact('items'));
+    }
 }

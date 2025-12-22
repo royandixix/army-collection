@@ -47,4 +47,11 @@ class BuktiPembelianController extends Controller
 
         return redirect()->back()->with('success', 'Bukti berhasil diupload');
     }
+
+    
+    
+
+
+
+
 }

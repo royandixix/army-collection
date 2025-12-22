@@ -19,6 +19,9 @@ class Produk extends Model
         'gambar'
     ];
 
+
+    
+
     public function kategori()
     {
         return $this->belongsTo(Kategori::class);
