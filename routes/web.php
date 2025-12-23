@@ -20,6 +20,8 @@ use App\Http\Controllers\User\AlamatController;
 use App\Http\Controllers\Admin\ProdukController;
 use App\Http\Controllers\Admin\LaporanDataController;
 
+use App\Http\Controllers\User\NotifikasiController;
+
 Route::get('/forgot-password/manual', [AuthController::class, 'showManualResetForm'])->name('password.manual');
 Route::post('/forgot-password/manual', [AuthController::class, 'manualReset'])->name('password.manual.post');
 Route::get('/forgot-password', [AuthController::class, 'showManualResetForm'])->name('password.request');
@@ -62,8 +64,14 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'role:admin'])->grou
     Route::get('/manajemen/penjualan/{id}/edit', [PenjualanController::class, 'edit'])->name('manajemen.manajemen_penjualan_edit');
     Route::put('/manajemen/penjualan/{id}', [PenjualanController::class, 'update'])->name('manajemen.manajemen_penjualan_update');
     Route::delete('/manajemen/penjualan/{id}', [PenjualanController::class, 'destroy'])->name('manajemen.manajemen_penjualan_destroy');
+
+    // PATCH untuk ubah status penjualan
     Route::patch('/manajemen/penjualan/{id}/status', [PenjualanController::class, 'ubahStatus'])->name('manajemen.penjualan_ubah_status');
-    Route::patch('/manajemen/penjualan/{id}/status-kirim', [PenjualanController::class, 'ubahStatusKirim'])->name('manajemen.penjualan_ubah_status_kirim');
+
+    // PATCH untuk update status pengiriman & bukti pengiriman
+    Route::patch('/manajemen/penjualan/{id}/update-pengiriman', [PenjualanController::class, 'updatePengiriman'])
+        ->name('penjualan.update_pengiriman');
+
     Route::post('/manajemen/penjualan/store-manual', [PenjualanController::class, 'storeManual'])->name('manajemen.manajemen_penjualan_store_manual');
 
     Route::get('/manajemen/pelanggan', [PelangganController::class, 'index'])->name('manajemen.manajemen_pelanggan');
@@ -82,18 +90,18 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'role:admin'])->grou
     Route::delete('/supplier/{id}', [SupplierController::class, 'destroy'])->name('supplier.destroy');
 
     Route::prefix('laporan')->name('laporan.')->group(function () {
-        Route::get('/produk', [\App\Http\Controllers\Admin\LaporanDataController::class, 'produk'])->name('produk');
-        Route::get('/produk/cetak', [\App\Http\Controllers\Admin\LaporanDataController::class, 'cetakProduk'])->name('produk.cetak');
-        Route::get('/produk/terlaris', [\App\Http\Controllers\Admin\LaporanDataController::class, 'produkTerlaris'])->name('produk.terlaris');
+        Route::get('/produk', [LaporanDataController::class, 'produk'])->name('produk');
+        Route::get('/produk/cetak', [LaporanDataController::class, 'cetakProduk'])->name('produk.cetak');
+        Route::get('/produk/terlaris', [LaporanDataController::class, 'produkTerlaris'])->name('produk.terlaris');
         Route::get('/laporan/produk-terlaris/cetak', [LaporanDataController::class, 'cetakProdukTerlaris'])->name('admin.laporan.cetak-produk-terlaris');
-        Route::get('/produk/terlaris/cetak', [\App\Http\Controllers\Admin\LaporanDataController::class, 'cetakProdukTerlaris'])->name('produk.terlaris.cetak');
-        Route::get('/pelanggan', [\App\Http\Controllers\Admin\LaporanDataController::class, 'pelanggan'])->name('pelanggan');
-        Route::get('/pembelian', [\App\Http\Controllers\Admin\LaporanDataController::class, 'pembelian'])->name('pembelian');
-        Route::get('/pembelian/cetak', [\App\Http\Controllers\Admin\LaporanDataController::class, 'cetakPembelian'])->name('pembelian.cetak');
-        Route::get('/penjualan', [\App\Http\Controllers\Admin\LaporanDataController::class, 'penjualan'])->name('penjualan');
-        Route::get('/penjualan/cetak', [\App\Http\Controllers\Admin\LaporanDataController::class, 'cetakPenjualan'])->name('penjualan.cetak');
-        Route::get('/supplier', [\App\Http\Controllers\Admin\LaporanDataController::class, 'supplier'])->name('supplier');
-        Route::get('/supplier/cetak', [\App\Http\Controllers\Admin\LaporanDataController::class, 'cetakSupplier'])->name('supplier.cetak');
+        Route::get('/produk/terlaris/cetak', [LaporanDataController::class, 'cetakProdukTerlaris'])->name('produk.terlaris.cetak');
+        Route::get('/pelanggan', [LaporanDataController::class, 'pelanggan'])->name('pelanggan');
+        Route::get('/pembelian', [LaporanDataController::class, 'pembelian'])->name('pembelian');
+        Route::get('/pembelian/cetak', [LaporanDataController::class, 'cetakPembelian'])->name('pembelian.cetak');
+        Route::get('/penjualan', [LaporanDataController::class, 'penjualan'])->name('penjualan');
+        Route::get('/penjualan/cetak', [LaporanDataController::class, 'cetakPenjualan'])->name('penjualan.cetak');
+        Route::get('/supplier', [LaporanDataController::class, 'supplier'])->name('supplier');
+        Route::get('/supplier/cetak', [LaporanDataController::class, 'cetakSupplier'])->name('supplier.cetak');
     });
 
     Route::get('/bukti-pembelian', [BuktiPembelianController::class, 'index'])->name('bukti_pembelian.index');
@@ -117,6 +125,12 @@ Route::prefix('user')->name('user.')->middleware(['auth', 'role:user'])->group(f
     Route::get('/riwayat', [RiwayatController::class, 'index'])->name('riwayat.index');
     Route::delete('/riwayat/{id}', [RiwayatController::class, 'destroy'])->name('riwayat.hapus');
     Route::post('/riwayat/{id}/upload', [RiwayatController::class, 'uploadBuktiSubmit'])->name('riwayat.upload');
+    // User upload bukti diterima
+    Route::post('/riwayat/{id}/bukti-diterima', [\App\Http\Controllers\User\RiwayatController::class, 'uploadBuktiDiterima'])->name('riwayat.bukti_diterima');
+    // Admin lihat bukti diterima user
+    Route::get('/manajemen/penjualan/{id}/bukti-diterima', [\App\Http\Controllers\Admin\PenjualanController::class, 'lihatBuktiDiterima'])->name('manajemen.penjualan.bukti_diterima');
+
+
 
     Route::get('/profil', [ProfilController::class, 'index'])->name('profil');
     Route::get('/profil/edit', [ProfilController::class, 'edit'])->name('profil.edit');
@@ -124,6 +138,7 @@ Route::prefix('user')->name('user.')->middleware(['auth', 'role:user'])->group(f
 
     Route::get('/alamat/create', [AlamatController::class, 'create'])->name('alamat.create');
     Route::post('/alamat', [AlamatController::class, 'store'])->name('alamat.store');
+    Route::patch('/notifikasi/baca-semua', [NotifikasiController::class, 'bacaSemua'])->name('notifikasi.bacaSemua');
 });
 
 Route::prefix('admin/manajemen')->middleware(['auth', 'role:admin'])->group(function () {

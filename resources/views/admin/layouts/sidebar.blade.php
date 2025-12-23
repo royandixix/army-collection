@@ -40,12 +40,12 @@
                     </a>
                 </li>
 
-                <li class="cx-sb-item sb-drop-item">
+                {{-- <li class="cx-sb-item sb-drop-item">
                     <a href="{{ route('admin.bukti_pembelian.index') }}" class="cx-drop-toggle">
                         <i class="ri-file-list-3-line"></i>
                         <span class="condense">Bukti Pembelian</span>
                     </a>
-                </li>
+                </li> --}}
 
 
                 <li class="cx-sb-item sb-drop-item">

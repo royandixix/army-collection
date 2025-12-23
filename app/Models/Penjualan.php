@@ -10,14 +10,19 @@ class Penjualan extends Model
     use HasFactory;
 
     protected $fillable = [
-        'pelanggan_id',
-        'user_id',
-        'tanggal',
-        'total',
-        'status',
-        'metode_pembayaran',
-        'bukti_tf', // hanya ini yang dipakai
-    ];
+    'pelanggan_id',
+    'user_id',
+    'tanggal',
+    'total',
+    'status',
+    'metode_pembayaran',
+    'bukti_tf',
+    'status_pengiriman',
+    'bukti_pengiriman',
+    'bukti_diterima', // kolom baru
+];
+
+
 
     protected $casts = [
         'tanggal' => 'datetime',
